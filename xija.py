@@ -64,18 +64,19 @@ class ModelComponent(object):
         self.n_mvals = 0
         self.predict = False  # Predict values for this model component
         self.parnames = []
+        self.parvals = []
 
     def __str__(self):
         return self.name
 
-    n_parvals = property(lambda self: len(self.parnames))
+    n_parvals = property(lambda self: len(self.parvals))
 
-    def add_par(self, name):
-        # self.pars[name] = Par(name, val, frozen, self.n_parvals)
-        setattr(self, name, property(get_par_func(self.n_parvals),
-                                     set_par_func(self.n_parvals)))
+    def add_par(self, name, val=None):
+        setattr(ModelComponent, name,
+                property(get_par_func(self.n_parvals),
+                         set_par_func(self.n_parvals)))
         self.parnames.append(name)
-
+        self.parvals.append(val)
 
 class Node(ModelComponent):
     times = property(lambda self: self.model.tlms.times)
@@ -97,14 +98,16 @@ class Node(ModelComponent):
 
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
-    def __init__(self, model, node1, node2):
+    def __init__(self, model, node1, node2, tau):
         name = '{0}__{1}'.format(node1, node2)
         ModelComponent.__init__(self, model, name)
         self.node1 = self.model.comp[str(node1)]
         self.node2 = self.model.comp[str(node2)]
-        self.add_par('tau')
+        self.add_par('tau', tau)
+        self.add_par('tau2', 2)
+        self.add_par('tau3', 3)
 
-    #tau = property(get_par_func(0), set_par_func(0))
+    # tau = property(get_par_func(0), set_par_func(0))
 
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
@@ -185,10 +188,11 @@ class ThermalModel(object):
         n_parvals = sum(x.n_parvals for x in comps)
         i_parvals = np.cumsum([0] + [x.n_parvals for x in comps])
         self.parvals = np.zeros(n_parvals, dtype=np.float32)
+        self.parnames = []
         for comp, i0, i1 in zip(comps, i_parvals[:-1], i_parvals[1:]):
-            # make a local (component) view into global parvals
-            comp.parvals = self.parvals[i0:i1]
-            # comp.set_parvals()   # set parvals based on model component definition
+            self.parnames.extend(comp.parnames)
+            self.parvals[i0:i1] = comp.parvals  # copy existing values
+            comp.parvals = self.parvals[i0:i1]  # make a local (view into global parvals
             comp.parvals_i = i0
 
     def make_mvals(self):
