@@ -59,16 +59,12 @@ def set_par_func(index):
 
 class ModelComponent(object):
     """ Model component base class"""
-    def __init__(self, model, name):
+    def __init__(self, model):
         self.model = model
-        self.name = name
         self.n_mvals = 0
         self.predict = False  # Predict values for this model component
         self.parnames = []
         self.parvals = []
-
-    def __str__(self):
-        return self.name
 
     n_parvals = property(lambda self: len(self.parvals))
 
@@ -87,25 +83,32 @@ class ModelComponent(object):
         
     mvals = property(_get_mvals, _set_mvals)
 
+    @property
+    def name(self):
+        return self.__str__()
+
 class TelemData(ModelComponent):
     times = property(lambda self: self.model.tlms.times)
 
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+    def __init__(self, model, msid):
+        ModelComponent.__init__(self, model)
+        self.msid = msid
         self.n_mvals = 1
         self.predict = False
 
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
-            self.model.tlms.fetch(self.name)
-            self._dvals = self.model.tlms[self.name]
+            self.model.tlms.fetch(self.msid)
+            self._dvals = self.model.tlms[self.msid]
         return self._dvals
 
+    def __str__(self):
+        return self.msid
 
 class Node(TelemData):
-    def __init__(self, model, name, sigma=1.0, quant=None, predict=True):
-        TelemData.__init__(self, model, name)
+    def __init__(self, model, msid, sigma=1.0, quant=None, predict=True):
+        TelemData.__init__(self, model, msid)
         self.sigma = sigma
         self.quant = quant
         self.predict = predict
@@ -114,17 +117,20 @@ class Node(TelemData):
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
     def __init__(self, model, node1, node2, tau):
-        name = '{0}__{1}'.format(node1, node2)
-        ModelComponent.__init__(self, model, name)
-        self.node1 = self.model.comp[str(node1)]
-        self.node2 = self.model.comp[str(node2)]
+        ModelComponent.__init__(self, model)
+        self.node1 = self.model.get_comp(node1)
+        self.node2 = self.model.get_comp(node2)
         self.add_par('tau', tau)
 
+    def __str__(self):
+        return 'coupling__{0}__{1}'.format(self.node1, self.node2)
+        
 
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
     def __init__(self, model, name, T):
-        ModelComponent.__init__(self, model, name)
+        ModelComponent.__init__(self, model)
+        self._name = name
         self.add_par('T', T)
 
     @property
@@ -132,6 +138,9 @@ class HeatSink(ModelComponent):
         if not hasattr(self, '_dvals'):
             self._dvals = self.pars['T'].val * np.ones(self.model.tlms.n_times)
         return self._dvals
+
+    def __str__(self):
+        return 'heatsink__{0}'.format(self._name)
 
 
 class PrecomputedHeatPower(ModelComponent):
@@ -142,16 +151,16 @@ class PrecomputedHeatPower(ModelComponent):
 class ActiveHeatPower(ModelComponent):
     """Component that provides active heat power input which depends on
     current or past computed model values"""
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+    pass
 
 
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)"""
 
-    def __init__(self, model, name, pitch_comp, P_pitches=None, Ps=None, dPs=None,
+    def __init__(self, model, node, pitch_comp, P_pitches=None, Ps=None, dPs=None,
                  tau=1732.0, ampl=0.05, epoch='2011:001'):
-        ModelComponent.__init__(self, model, name)
+        ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
         self.pitch_comp = pitch_comp
 
         if P_pitches is None:
@@ -203,6 +212,9 @@ class SolarHeat(PrecomputedHeatPower):
     def update(self):
         self.mvals = self.dvals
 
+    def __str__(self):
+        return 'solarheat__{0}'.format(self.node)
+
 
 class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
@@ -240,6 +252,10 @@ class ThermalModel(object):
 
     comps = property(lambda self: self.comp.values())
 
+    def get_comp(self, name):
+        """Get a model component.  Works with either a string or a component object"""
+        return self.comp[str(name)]
+
     def make(self):
         self.make_parvals()
         self.make_mvals()
@@ -259,7 +275,7 @@ class ThermalModel(object):
         self.parvals = np.zeros(n_parvals, dtype=np.float32)
         self.parnames = []
         for comp, i0, i1 in zip(comps, i_parvals[:-1], i_parvals[1:]):
-            self.parnames.extend(comp.parnames)
+            self.parnames.extend(comp.name + '__' + x for x in comp.parnames)
             self.parvals[i0:i1] = comp.parvals  # copy existing values
             comp.parvals = self.parvals[i0:i1]  # make a local (view into global parvals
             comp.parvals_i = i0
@@ -314,9 +330,9 @@ class ThermalModel(object):
           d_mvals[i1] /dt += mvals[i2]
         """
         heats = []
-        for comp in self.vcomps:
+        for comp in self.comps:
             if isinstance(comp, PrecomputedHeatPower):
-                i1 = comp.node1.mvals_i  # Node being heated
+                i1 = comp.node.mvals_i   # Node being heated
                 i2 = comp.mvals_i        # mvals row with precomputed heat input
                 heats.append((i1, i2))
 
