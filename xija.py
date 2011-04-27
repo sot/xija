@@ -9,6 +9,7 @@ import Ska.Numpy
 from Chandra.Time import DateTime
 import Ska.engarchive.fetch_sci as fetch
 import clogging
+import scipy.interpolate
 
 debug=1
 if 'debug' in globals():
@@ -78,15 +79,21 @@ class ModelComponent(object):
         self.parnames.append(name)
         self.parvals.append(val)
 
-class Node(ModelComponent):
+    def _set_mvals(self, vals):
+        self.model.mvals[self.mvals_i, :] = vals
+        
+    def _get_mvals(self, vals):
+        return self.model.mvals[self.mvals_i, :]
+        
+    mvals = property(_get_mvals, _set_mvals)
+
+class TelemData(ModelComponent):
     times = property(lambda self: self.model.tlms.times)
 
-    def __init__(self, model, name, sigma=1.0, quant=None):
+    def __init__(self, model, name):
         ModelComponent.__init__(self, model, name)
-        self.sigma = sigma
-        self.quant = quant
         self.n_mvals = 1
-        self.predict = True
+        self.predict = False
 
     @property
     def dvals(self):
@@ -94,6 +101,14 @@ class Node(ModelComponent):
             self.model.tlms.fetch(self.name)
             self._dvals = self.model.tlms[self.name]
         return self._dvals
+
+
+class Node(TelemData):
+    def __init__(self, model, name, sigma=1.0, quant=None, predict=True):
+        TelemData.__init__(self, model, name)
+        self.sigma = sigma
+        self.quant = quant
+        self.predict = predict
 
 
 class Coupling(ModelComponent):
@@ -104,10 +119,7 @@ class Coupling(ModelComponent):
         self.node1 = self.model.comp[str(node1)]
         self.node2 = self.model.comp[str(node2)]
         self.add_par('tau', tau)
-        self.add_par('tau2', 2)
-        self.add_par('tau3', 3)
 
-    # tau = property(get_par_func(0), set_par_func(0))
 
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
@@ -124,8 +136,7 @@ class HeatSink(ModelComponent):
 
 class PrecomputedHeatPower(ModelComponent):
     """Component that provides a static (precomputed) direct heat power input"""
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+    pass
 
 
 class ActiveHeatPower(ModelComponent):
@@ -137,8 +148,60 @@ class ActiveHeatPower(ModelComponent):
 
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)"""
-    def __init__(self, model, name):
+
+    def __init__(self, model, name, pitch_comp, P_pitches=None, Ps=None, dPs=None,
+                 tau=1732.0, ampl=0.05, epoch='2011:001'):
         ModelComponent.__init__(self, model, name)
+        self.pitch_comp = pitch_comp
+
+        if P_pitches is None:
+            P_pitches = [45, 65, 90, 130, 180]
+        self.P_pitches = np.array(P_pitches, dtype=np.float32)
+        self.n_pitches = len(self.P_pitches)
+
+        if Ps is None:
+            Ps = np.ones_like(self.P_pitches)
+        self.Ps = np.array(Ps, dtype=np.float32)
+
+        if dPs is None:
+            dPs = np.zeros_like(self.P_pitches)
+        self.dPs = np.array(dPs, dtype=np.float32)
+
+        self.epoch=epoch
+
+        for pitch, power in zip(self.P_pitches, self.Ps):
+            self.add_par('P_{0:.0f}'.format(float(pitch)), power)
+        for pitch, dpower in zip(self.P_pitches, self.dPs):
+            self.add_par('dP_{0:.0f}'.format(float(pitch)), dpower)
+        self.add_par('tau', tau)
+        self.add_par('ampl', ampl)
+        self.n_mvals = 1
+
+    @property
+    def dvals(self):
+        if not hasattr(self, 'pitches'):
+            self.pitches = self.pitch_comp.dvals
+        if not hasattr(self, 't_days'):
+            self.t_days = (self.pitch_comp.times - DateTime(self.epoch).secs) / 86400.0
+        if not hasattr(self, 't_phase'):
+            time2000 = DateTime('2000:001:00:00:00').secs
+            time2010 = DateTime('2010:001:00:00:00').secs
+            secs_per_year = (time2010 - time2000) / 10.0
+            t_year = (self.pitch_comp.times - time2000) / secs_per_year
+            self.t_phase = t_year * 2 * np.pi
+
+        Ps = self.parvals[0:self.n_pitches]
+        dPs = self.parvals[self.n_pitches:2*self.n_pitches]
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='cubic')
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='cubic')
+        P_vals = Ps_interp(self.pitches)
+        dP_vals = dPs_interp(self.pitches)
+        self._dvals = (P_vals + dP_vals * (1 - np.exp(-self.t_days / self.tau))
+                       + self.ampl * np.cos(self.t_phase)).reshape(-1)
+        return self._dvals
+
+    def update(self):
+        self.mvals = self.dvals
 
 
 class EarthHeat(PrecomputedHeatPower):
@@ -176,6 +239,12 @@ class ThermalModel(object):
         return comp
 
     comps = property(lambda self: self.comp.values())
+
+    def make(self):
+        self.make_parvals()
+        self.make_mvals()
+        self.make_mults()
+        self.make_heats()
 
     def make_parvals(self):
         """For components that have parameter values make a view into the
@@ -218,29 +287,29 @@ class ThermalModel(object):
         # Stack the input dvals.  This *copies* the data values.
         self.n_preds = len(preds)
         self.mvals = np.hstack(comp.dvals for comp in preds + unpreds)
-        self.mvals.shape = (len(comps_dvals), -1)
+        self.mvals.shape = (len(comps), -1)
 
     def make_mults(self):
         """"
         Iterate through Couplings to make mults: 2-d array containing rows
         in the format:
-          [idx1, idx2]
+          [idx1, idx2, parvals_i]
 
         This provides a derivative coupling term in the form:
-          d_mvals[idx1] /dt += U12 * mvals[idx2]
+          d_mvals[idx1] /dt += mvals[idx2] / parvals[parvals_i]
         """
         mults = []
         for comp in self.comps:
             if isinstance(comp, Coupling):
                 i1 = comp.node1.mvals_i
                 i2 = comp.node2.mvals_i
-                mults.append((i1, i2))
+                mults.append((i1, i2, comp.parvals_i))
 
         self.mults = np.array(mults)
 
     def make_heats(self):
         """"
-        Iterate through Couplings to make heats.
+        Iterate through PrecomputedHeatPower to make heats.
         This provides a derivative heating term in the form:
           d_mvals[i1] /dt += mvals[i2]
         """
@@ -254,11 +323,15 @@ class ThermalModel(object):
         self.heats = np.array(heats)
 
     def calc(self, parvals, x=None):
+        mults = self.mults
+        heats = self.heats
+        n_preds = self.n_preds
+        
         # Pre-allocate some arrays
         y = np.zeros(n_preds)
         k1 = np.zeros(n_preds)
         k2 = np.zeros(n_preds)
-        d = np.zeros(n_preds)
+        deriv = np.zeros(n_preds)
         dt = self.model.tlms.dt_ksec * 2
 
         self.parvals[:] = parvals
@@ -269,28 +342,29 @@ class ThermalModel(object):
         for j in np.arange(0, self.model.tlms.n_times-2, 2):
             # 2nd order Runge-Kutta (do 4th order later as needed)
             y[:] = mvals[:n_preds, j]
-            k1[:] = dt * dT_dt(j, y, d)
-            k2[:] = dt * dT_dt(j+1, y + k1 / 2.0, d)
+            k1[:] = dt * dT_dt(j, y, deriv, mults, heats)
+            k2[:] = dt * dT_dt(j+1, y + k1 / 2.0, deriv, mults, heats)
             self.mvals[:n_preds, j+2] = y + k2
 
-def dT_dt(j, y, d):
-    d[:] = 0.0
+def dT_dt(j, y, deriv, mults, heats):
+    deriv[:] = 0.0
 
     # Couplings with other nodes
-    for i in xrange(len(mult_idxs)):
-        i1 = mult_idxs[i, 0] 
-        i2 = mult_idxs[i, 1]
+    for i in xrange(len(mults)):
+        i1 = mults[i, 0] 
+        i2 = mults[i, 1]
+        tau = parvals[mults[i, 2]]
         if i2 < n_preds:
-            d[i1] += mult_vals[i] * y[i2]
+            deriv[i1] += y[i2] / tau
         else:
-            d[i1] += mult_vals[i] * mvals[i2, j]
+            deriv[i1] += mvals[i2, j] / tau
 
     # Direct heat inputs (e.g. Solar, Earth)
-    for i in xrange(len(head_idxs)):
+    for i in xrange(len(heats)):
         i1 = heats[i, 0] 
         i2 = heats[i, 1]
-        d[i1] += mvals[i2, j]
+        deriv[i1] += mvals[i2, j]
 
-    return d
+    return deriv
 
 
