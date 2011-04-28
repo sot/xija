@@ -167,16 +167,16 @@ class SolarHeat(PrecomputedHeatPower):
 
         if P_pitches is None:
             P_pitches = [45, 65, 90, 130, 180]
-        self.P_pitches = np.array(P_pitches, dtype=np.float32)
+        self.P_pitches = np.array(P_pitches, dtype=np.float)
         self.n_pitches = len(self.P_pitches)
 
         if Ps is None:
             Ps = np.ones_like(self.P_pitches)
-        self.Ps = np.array(Ps, dtype=np.float32)
+        self.Ps = np.array(Ps, dtype=np.float)
 
         if dPs is None:
             dPs = np.zeros_like(self.P_pitches)
-        self.dPs = np.array(dPs, dtype=np.float32)
+        self.dPs = np.array(dPs, dtype=np.float)
 
         self.epoch=epoch
 
@@ -277,7 +277,7 @@ class ThermalModel(object):
         comps = [x for x in self.comps if x.n_parvals]
         n_parvals = sum(x.n_parvals for x in comps)
         i_parvals = np.cumsum([0] + [x.n_parvals for x in comps])
-        self.parvals = np.zeros(n_parvals, dtype=np.float32)
+        self.parvals = np.zeros(n_parvals, dtype=np.float)
         self.parnames = []
         for comp, i0, i1 in zip(comps, i_parvals[:-1], i_parvals[1:]):
             self.parnames.extend(comp.name + '__' + x for x in comp.parnames)
