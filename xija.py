@@ -87,6 +87,9 @@ class ModelComponent(object):
     def name(self):
         return self.__str__()
 
+    def update(self):
+        pass
+
 class TelemData(ModelComponent):
     times = property(lambda self: self.model.tlms.times)
 
@@ -304,6 +307,7 @@ class ThermalModel(object):
         self.n_preds = len(preds)
         self.mvals = np.hstack(comp.dvals for comp in preds + unpreds)
         self.mvals.shape = (len(comps), -1)
+        self.cvals = self.mvals[:, 0::2]
 
     def make_mults(self):
         """"
@@ -324,7 +328,7 @@ class ThermalModel(object):
         self.mults = np.array(mults)
 
     def make_heats(self):
-        """"
+        """
         Iterate through PrecomputedHeatPower to make heats.
         This provides a derivative heating term in the form:
           d_mvals[i1] /dt += mvals[i2]
@@ -338,9 +342,7 @@ class ThermalModel(object):
 
         self.heats = np.array(heats)
 
-    def calc(self, parvals, x=None):
-        mults = self.mults
-        heats = self.heats
+    def calc(self, parvals=None, x=None):
         n_preds = self.n_preds
         
         # Pre-allocate some arrays
@@ -348,21 +350,26 @@ class ThermalModel(object):
         k1 = np.zeros(n_preds)
         k2 = np.zeros(n_preds)
         deriv = np.zeros(n_preds)
-        dt = self.model.tlms.dt_ksec * 2
+        dt = self.tlms.dt_ksec * 2
 
-        self.parvals[:] = parvals
+        if parvals is not None:
+            self.parvals[:] = parvals
 
         for comp in self.comps:
             comp.update()
 
-        for j in np.arange(0, self.model.tlms.n_times-2, 2):
+        mvals = self.mvals
+        parvals = self.parvals
+        mults = self.mults
+        heats = self.heats
+        for j in np.arange(0, self.tlms.n_times-2, 2):
             # 2nd order Runge-Kutta (do 4th order later as needed)
             y[:] = mvals[:n_preds, j]
-            k1[:] = dt * dT_dt(j, y, deriv, mults, heats)
-            k2[:] = dt * dT_dt(j+1, y + k1 / 2.0, deriv, mults, heats)
+            k1[:] = dt * dT_dt(j, y, deriv, n_preds, mvals, parvals, mults, heats)
+            k2[:] = dt * dT_dt(j+1, y + k1 / 2.0, deriv, n_preds, mvals, parvals, mults, heats)
             self.mvals[:n_preds, j+2] = y + k2
 
-def dT_dt(j, y, deriv, mults, heats):
+def dT_dt(j, y, deriv, n_preds, mvals, parvals, mults, heats):
     deriv[:] = 0.0
 
     # Couplings with other nodes
@@ -371,9 +378,9 @@ def dT_dt(j, y, deriv, mults, heats):
         i2 = mults[i, 1]
         tau = parvals[mults[i, 2]]
         if i2 < n_preds:
-            deriv[i1] += y[i2] / tau
+            deriv[i1] += (y[i2] - y[i1]) / tau
         else:
-            deriv[i1] += mvals[i2, j] / tau
+            deriv[i1] += (mvals[i2, j] - y[i1]) / tau
 
     # Direct heat inputs (e.g. Solar, Earth)
     for i in xrange(len(heats)):
