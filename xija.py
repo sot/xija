@@ -131,19 +131,14 @@ class Coupling(ModelComponent):
 
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
-    def __init__(self, model, name, T):
+    def __init__(self, model, node, T, tau):
         ModelComponent.__init__(self, model)
-        self._name = name
         self.add_par('T', T)
-
-    @property
-    def dvals(self):
-        if not hasattr(self, '_dvals'):
-            self._dvals = self.pars['T'].val * np.ones(self.model.tlms.n_times)
-        return self._dvals
+        self.add_par('tau', tau)
+        self.node = self.model.get_comp(node)
 
     def __str__(self):
-        return 'heatsink__{0}'.format(self._name)
+        return 'heatsink__{0}'.format(self.node)
 
 
 class PrecomputedHeatPower(ModelComponent):
@@ -264,6 +259,7 @@ class ThermalModel(object):
         self.make_mvals()
         self.make_mults()
         self.make_heats()
+        self.make_heatsinks()
 
     def make_parvals(self):
         """For components that have parameter values make a view into the
@@ -342,13 +338,26 @@ class ThermalModel(object):
 
         self.heats = np.array(heats)
 
+    def make_heatsinks(self):
+        """
+        """
+        heatsinks = []
+        for comp in self.comps:
+            if isinstance(comp, HeatSink):
+                i1 = comp.node.mvals_i   # Node being heated
+                T_parval_i = comp.parvals_i
+                tau_parval_i = comp.parvals_i + 1
+                heatsinks.append((i1, T_parval_i, tau_parval_i))
+
+        self.heatsinks = np.array(heatsinks)
+
     def calc(self, parvals=None, x=None):
         n_preds = self.n_preds
         
         # Pre-allocate some arrays
-        y = np.zeros(n_preds)
-        k1 = np.zeros(n_preds)
-        k2 = np.zeros(n_preds)
+        #y = np.zeros(n_preds)
+        #k1 = np.zeros(n_preds)
+        #k2 = np.zeros(n_preds)
         deriv = np.zeros(n_preds)
         dt = self.tlms.dt_ksec * 2
 
@@ -362,14 +371,18 @@ class ThermalModel(object):
         parvals = self.parvals
         mults = self.mults
         heats = self.heats
+        heatsinks = self.heatsinks
+        
         for j in np.arange(0, self.tlms.n_times-2, 2):
             # 2nd order Runge-Kutta (do 4th order later as needed)
-            y[:] = mvals[:n_preds, j]
-            k1[:] = dt * dT_dt(j, y, deriv, n_preds, mvals, parvals, mults, heats)
-            k2[:] = dt * dT_dt(j+1, y + k1 / 2.0, deriv, n_preds, mvals, parvals, mults, heats)
+            y = mvals[:n_preds, j]
+            k1 = dt * dT_dt(j, y, deriv, n_preds, mvals, parvals, mults,
+                            heats, heatsinks)
+            k2 = dt * dT_dt(j+1, y + k1 / 2.0, deriv, n_preds, mvals, parvals, mults,
+                            heats, heatsinks)
             self.mvals[:n_preds, j+2] = y + k2
 
-def dT_dt(j, y, deriv, n_preds, mvals, parvals, mults, heats):
+def dT_dt(j, y, deriv, n_preds, mvals, parvals, mults, heats, heatsinks):
     deriv[:] = 0.0
 
     # Couplings with other nodes
@@ -377,16 +390,25 @@ def dT_dt(j, y, deriv, n_preds, mvals, parvals, mults, heats):
         i1 = mults[i, 0] 
         i2 = mults[i, 1]
         tau = parvals[mults[i, 2]]
-        if i2 < n_preds:
+        if i2 < n_preds and i1 < n_preds:
             deriv[i1] += (y[i2] - y[i1]) / tau
         else:
             deriv[i1] += (mvals[i2, j] - y[i1]) / tau
 
     # Direct heat inputs (e.g. Solar, Earth)
     for i in xrange(len(heats)):
-        i1 = heats[i, 0] 
-        i2 = heats[i, 1]
-        deriv[i1] += mvals[i2, j]
+        i1 = heats[i, 0]
+        if i1 < n_preds:
+            i2 = heats[i, 1]
+            deriv[i1] += mvals[i2, j]
+
+    # Couplings to heat sinks
+    for i in xrange(len(heatsinks)):
+        i1 = heatsinks[i, 0]
+        if i1 < n_preds:
+            T = parvals[heatsinks[i, 1]]
+            tau = parvals[heatsinks[i, 2]]
+            deriv[i1] += (T - mvals[i1, j]) / tau
 
     return deriv
 
