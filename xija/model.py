@@ -11,7 +11,7 @@ import Ska.engarchive.fetch_sci as fetch
 import clogging
 import scipy.interpolate
 
-from calc_model import calc_model
+from .core_python import calc_model
 
 debug=1
 if 'debug' in globals():
@@ -366,7 +366,7 @@ class ThermalModel(object):
 
         dt = self.tlms.dt_ksec * 2
         indexes = np.arange(0, self.tlms.n_times-2, 2)
-        calc_pred_vals(indexes, dt, self.n_preds, self.mvals, self.parvals, self.mults,
-                       self.heats, self.heatsinks)
+        calc_model(indexes, dt, self.n_preds, self.mvals, self.parvals, self.mults,
+                   self.heats, self.heatsinks)
 
 

@@ -1,4 +1,7 @@
+import numpy as np
+
 def calc_model(indexes, dt, n_preds, mvals, parvals, mults, heats, heatsinks):
+    deriv = np.zeros(n_preds)
     def dT_dt(j, y):
         deriv[:] = 0.0
 
@@ -29,7 +32,6 @@ def calc_model(indexes, dt, n_preds, mvals, parvals, mults, heats, heatsinks):
 
         return deriv
 
-    deriv = np.zeros(n_preds)
     for j in indexes:
         # 2nd order Runge-Kutta (do 4th order later as needed)
         y = mvals[:n_preds, j]
