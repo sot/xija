@@ -2,3 +2,6 @@ dpa_dea
 nmass_ref
 nmass
 psmc
+xija/core.c
+xija/*.so
+xija/setup.py

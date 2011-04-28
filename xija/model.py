@@ -11,7 +11,7 @@ import Ska.engarchive.fetch_sci as fetch
 import clogging
 import scipy.interpolate
 
-from .core_python import calc_model
+from .core import calc_model
 
 debug=1
 if 'debug' in globals():
