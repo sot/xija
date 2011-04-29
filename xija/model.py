@@ -309,7 +309,7 @@ class ThermalModel(object):
         self.cvals = self.mvals[:, 0::2]
 
     def make_mults(self):
-        """"
+        """
         Iterate through Couplings to make mults: 2-d array containing rows
         in the format:
           [idx1, idx2, parvals_i]
