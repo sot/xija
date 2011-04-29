@@ -2,7 +2,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-print "Here in core.pyx3!"
+print "Here in core3.pyx!"
 
 DTYPE = np.int
 ctypedef np.int_t INT_t
@@ -35,6 +35,7 @@ def calc_model(np.ndarray[INT_t, ndim=1] indexes,
     cdef int i2
     cdef int j1
 
+    # Need to re-roll the loops with some logic.  Do this later.
     for j in indexes:
         # 2nd order Runge-Kutta (do 4th order later as needed)
         for i in range(n_preds):
