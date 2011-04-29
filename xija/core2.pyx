@@ -64,11 +64,16 @@ def calc_model(np.ndarray[INT_t, ndim=1] indexes,
                np.ndarray[INT_t, ndim=2] heats,
                np.ndarray[INT_t, ndim=2] heatsinks):
 
-    deriv = np.zeros(py_n_preds)
-    y = np.zeros(py_n_preds)
+    cdef np.ndarray[FLOAT_t] deriv = np.zeros(py_n_preds)
+    cdef np.ndarray[FLOAT_t] y = np.zeros(py_n_preds)
     cdef int n_preds = py_n_preds
     cdef float dt = py_dt
     cdef int j    
+
+    def nested():
+        print 'dt=', y[0]
+
+    nested()
 
     for j in indexes:
         # 2nd order Runge-Kutta (do 4th order later as needed)

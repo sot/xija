@@ -49,7 +49,6 @@ class TelemSet(dict):
 
 def get_par_func(index):
     def _func(self):
-        print "Getting pars [{0}]".format(index)
         return self.parvals[index]
     return _func
 
@@ -72,7 +71,6 @@ class ModelComponent(object):
     n_parvals = property(lambda self: len(self.parvals))
 
     def add_par(self, name, val=None):
-        print "Adding par {0} at index {1}".format(name, self.n_parvals)
         setattr(self.__class__, name,
                 property(get_par_func(self.n_parvals),
                          set_par_func(self.n_parvals)))
@@ -208,7 +206,6 @@ class SolarHeat(PrecomputedHeatPower):
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
-        print 'tau=',self.tau, zip(self.parnames, self.parvals)
         self._dvals = (P_vals + dP_vals * (1 - np.exp(-self.t_days / self.tau))
                        + self.ampl * np.cos(self.t_phase)).reshape(-1)
         return self._dvals
