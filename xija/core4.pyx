@@ -2,8 +2,6 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-print "Here in core3.pyx!"
-
 DTYPE = np.int
 ctypedef np.int_t INT_t
 ctypedef np.float_t FLOAT_t

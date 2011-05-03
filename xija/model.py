@@ -7,56 +7,24 @@ import numpy as np
 
 import Ska.Numpy
 from Chandra.Time import DateTime
-import Ska.engarchive.fetch_sci as fetch
 import clogging
 import scipy.interpolate
 
+try:
+    # Optional packages for model fitting or use on HEAD LAN
+    import Ska.engarchive.fetch_sci as fetch
+    import Chandra.cmd_states
+    import Ska.DBI
+except ImportError:
+    pass
+
 from .core import calc_model
 
-debug=1
 if 'debug' in globals():
     from IPython.Debugger import Tracer
     pdb_settrace = Tracer()
 
 logger = clogging.config_logger('xija', level=clogging.INFO)
-
-class TelemSet(dict):
-    """
-    Dict of uniformly sampled 5min telemetry.
-    """
-    def __init__(self, start=None, stop=None, dt=328.8):
-        self.dt = dt
-        self.dt_ksec = self.dt / 1000.
-        self.set_times(start, stop)
-
-    def set_times(self, start, stop=None, dt=328.0):
-        self.tstart = DateTime(start).secs
-        self.tstop = DateTime(stop).secs
-        self.datestart = DateTime(self.tstart).date
-        self.datestop = DateTime(self.tstop).date
-
-    def fetch(self, msid):
-        msid = msid.lower()
-        logger.info('Fetching msid: %s over %s to %s' % (msid, self.datestart, self.datestop))
-        tlm = fetch.MSID(msid, self.tstart, self.tstop, stat='5min', filter_bad=True)
-        if not self.keys():
-            self.times = np.arange(tlm.times[0], tlm.times[-1], self.dt)
-            self.ksecs = (self.times - self.times[0]) / 1000.
-            self.n_times = len(self.times)
-
-        self[msid] = Ska.Numpy.interpolate(tlm.vals, tlm.times, self.times, method='nearest')
-
-
-def get_par_func(index):
-    def _func(self):
-        return self.parvals[index]
-    return _func
-
-
-def set_par_func(index):
-    def _func(self, val):
-        self.parvals[index] = val
-    return _func
 
 
 class ModelComponent(object):
@@ -69,11 +37,24 @@ class ModelComponent(object):
         self.parvals = []
 
     n_parvals = property(lambda self: len(self.parvals))
+    times = property(lambda self: self.model.times)
+
+    @staticmethod
+    def get_par_func(index):
+        def _func(self):
+            return self.parvals[index]
+        return _func
+
+    @staticmethod
+    def set_par_func(index):
+        def _func(self, val):
+            self.parvals[index] = val
+        return _func
 
     def add_par(self, name, val=None):
         setattr(self.__class__, name,
-                property(get_par_func(self.n_parvals),
-                         set_par_func(self.n_parvals)))
+                property(ModelComponent.get_par_func(self.n_parvals),
+                         ModelComponent.set_par_func(self.n_parvals)))
         self.parnames.append(name)
         self.parvals.append(val)
 
@@ -92,28 +73,44 @@ class ModelComponent(object):
     def update(self):
         pass
 
-class TelemData(ModelComponent):
-    times = property(lambda self: self.model.tlms.times)
 
-    def __init__(self, model, msid):
+# RENAME TelemData to Data or ??
+class TelemData(ModelComponent):  
+    times = property(lambda self: self.model.times)
+
+    def __init__(self, model, msid, data=None):
         ModelComponent.__init__(self, model)
         self.msid = msid
         self.n_mvals = 1
         self.predict = False
+        self.data = data
+
+    def get_dvals_tlm(self):
+        return self.model.fetch(self.msid)
+
+    def get_dvals_cmd(self):
+        return Chandra.cmd_states.interpolate_states(
+            self.model.cmd_states[self.msid], self.model.times)
 
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
-            self.model.tlms.fetch(self.msid)
-            self._dvals = self.model.tlms[self.msid]
+            if self.data is None:
+                self._dvals = self.get_dvals_tlm()
+            elif self.data == 'cmd':
+                self._dvals = self.get_dvals_cmd()
+            else:
+                self._dvals = self.data
+            
         return self._dvals
 
     def __str__(self):
         return self.msid
 
+
 class Node(TelemData):
-    def __init__(self, model, msid, sigma=1.0, quant=None, predict=True):
-        TelemData.__init__(self, model, msid)
+    def __init__(self, model, msid, data=None, sigma=1.0, quant=None, predict=True):
+        TelemData.__init__(self, model, msid, data)
         self.sigma = sigma
         self.quant = quant
         self.predict = predict
@@ -143,6 +140,20 @@ class HeatSink(ModelComponent):
         return 'heatsink__{0}'.format(self.node)
 
 
+class Pitch(TelemData):
+    def __init__(self, model, data=None):
+        TelemData.__init__(self, model, 'aosares1', data)
+    
+    @property
+    def dvals(self):
+        if not hasattr(self, '_dvals'):
+            self._dvals = self.model.fetch(self.msid)
+        return self._dvals
+
+    def __str__(self):
+        return 'pitch'
+
+
 class PrecomputedHeatPower(ModelComponent):
     """Component that provides a static (precomputed) direct heat power input"""
     pass
@@ -156,7 +167,6 @@ class ActiveHeatPower(ModelComponent):
 
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)"""
-
     def __init__(self, model, node, pitch_comp, P_pitches=None, Ps=None, dPs=None,
                  tau=1732.0, ampl=0.05, epoch='2010:001'):
         ModelComponent.__init__(self, model)
@@ -242,10 +252,37 @@ class ThermostatHeater(ActiveHeatPower):
 
 
 class ThermalModel(object):
-    def __init__(self, start='2011:115:00:00:00', stop='2011:115:01:00:00'):
+    def __init__(self, start='2011:115:00:00:00', stop='2011:115:01:00:00', dt=328.0):
         self.comp = OrderedDict()
-        self.tlms = TelemSet(start, stop)
-        
+        self.dt = dt
+        self.dt_ksec = self.dt / 1000.
+        self.times = self.eng_match_times(start, stop, dt)
+        self.tstart = self.times[0]
+        self.tstop = self.times[-1]
+        self.ksecs = (self.times - self.tstart) / 1000.
+        self.datestart = DateTime(self.tstart).date
+        self.datestop = DateTime(self.tstop).date
+        self.n_times = len(self.times)
+
+    @staticmethod
+    def eng_match_times(start, stop, dt):
+        """Return an array of times between ``start`` and ``stop`` at ``dt`` sec
+        intervals.  The times are roughly aligned (within 1 sec) to the timestamps
+        in the '5min' (328 sec) Ska eng archive data.
+        """
+        time0 = 410270764.0
+        i0 = int((DateTime(start).secs - time0) / dt) + 1
+        i1 = int((DateTime(stop).secs - time0) / dt)
+        return time0 + np.arange(i0, i1) * dt
+
+    def fetch(self, msid):
+        tpad = self.dt * 5
+        datestart = DateTime(self.tstart - tpad).date
+        datestop = DateTime(self.tstop + tpad).date
+        logger.info('Fetching msid: %s over %s to %s' % (msid, datestart, datestop))
+        tlm = fetch.MSID(msid, datestart, datestop, stat='5min', filter_bad=True)
+        return Ska.Numpy.interpolate(tlm.vals, tlm.times, self.times, method='linear')
+
     def add(self, ComponentClass, *args, **kwargs):
         comp = ComponentClass(self, *args, **kwargs)
         self.comp[comp.name] = comp
@@ -361,8 +398,8 @@ class ThermalModel(object):
         for comp in self.comps:
             comp.update()
 
-        dt = self.tlms.dt_ksec * 2
-        indexes = np.arange(0, self.tlms.n_times-2, 2)
+        dt = self.dt_ksec * 2
+        indexes = np.arange(0, self.n_times-2, 2)
         calc_model(indexes, dt, self.n_preds, self.mvals, self.parvals, self.mults,
                    self.heats, self.heatsinks)
 
