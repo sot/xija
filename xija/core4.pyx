@@ -36,6 +36,7 @@ def calc_model(np.ndarray[INT_t, ndim=1] indexes,
 
     # Need to re-roll the loops with some logic.  Do this later.
     for j0 in indexes:
+        # print '========== j=', j0, '==============='
         for rki in range(2):
             # 2nd order Runge-Kutta (do 4th order later as needed)
             if rki == 0:
@@ -64,12 +65,17 @@ def calc_model(np.ndarray[INT_t, ndim=1] indexes,
                 i1 = heats[i, 0]
                 if i1 < n_preds:
                     i2 = heats[i, 1]
+                    # print "Deriv[{0}] += {1:.3f} (heat P)".format(i, mvals[i2, j])
                     deriv[i1] = deriv[i1] + mvals[i2, j]
 
             # Couplings to heat sinks
             for i in range(n_heatsinks):
                 i1 = heatsinks[i, 0]
                 if i1 < n_preds:
+                    # print "Deriv[{0}] += {1} {2} {3} (heat Ue*Te)".format(
+                    #   i, parvals[heatsinks[i,1]] / parvals[heatsinks[i,2]],
+                    #   parvals[heatsinks[i,1]] , parvals[heatsinks[i,2]] )
+                    # print "Deriv[{0}] += {1} (Ue*Ti)".format(i, -y[i1] / parvals[heatsinks[i,2]])
                     deriv[i1] = deriv[i1] + (parvals[heatsinks[i, 1]] - y[i1]) / parvals[heatsinks[i, 2]]
 
         for i in range(n_preds):

@@ -78,9 +78,10 @@ class ModelComponent(object):
 class TelemData(ModelComponent):  
     times = property(lambda self: self.model.times)
 
-    def __init__(self, model, msid, data=None):
+    def __init__(self, model, msid, cmd_states_col=None, data=None):
         ModelComponent.__init__(self, model)
         self.msid = msid
+        self.cmd_states_col = cmd_states_col or msid
         self.n_mvals = 1
         self.predict = False
         self.data = data
@@ -90,7 +91,7 @@ class TelemData(ModelComponent):
 
     def get_dvals_cmd(self):
         return Chandra.cmd_states.interpolate_states(
-            self.model.cmd_states[self.msid], self.model.times)
+            self.model.cmd_states[self.cmd_states_col], self.model.times)
 
     @property
     def dvals(self):
@@ -142,16 +143,27 @@ class HeatSink(ModelComponent):
 
 class Pitch(TelemData):
     def __init__(self, model, data=None):
-        TelemData.__init__(self, model, 'aosares1', data)
+        TelemData.__init__(self, model, 'aosares1', 'pitch', data)
+    
+    def __str__(self):
+        return 'pitch'
+
+
+class SimZ(TelemData):
+    def __init__(self, model, data=None):
+        TelemData.__init__(self, model, 'sim_z', 'simpos', data)
     
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
-            self._dvals = self.model.fetch(self.msid)
+            if self.data is None:
+                self._dvals = np.rint(self.get_dvals_tlm() * -397.7225924607)
+            elif self.data == 'cmd':
+                self._dvals = self.get_dvals_cmd()
+            else:
+                self._dvals = self.data
+            
         return self._dvals
-
-    def __str__(self):
-        return 'pitch'
 
 
 class PrecomputedHeatPower(ModelComponent):
@@ -233,10 +245,77 @@ class EarthHeat(PrecomputedHeatPower):
         ModelComponent.__init__(self, model, name)
 
     
-class AcisPower(PrecomputedHeatPower):
+class AcisPsmcSolarHeat(PrecomputedHeatPower):
+    """Solar heating of PSMC box.  This is dependent on SIM-Z"""
+    def __init__(self, model, node, pitch_comp, simz_comp, P_pitches=None, P_vals=None):
+        ModelComponent.__init__(self, model)
+        self.n_mvals = 1
+        self.node = node
+        self.pitch_comp = pitch_comp
+        self.simz_comp = simz_comp
+        self.P_pitches = np.array([50., 90., 150.] if (P_pitches is None) else P_pitches)
+        self.simz_lims = ((-400000.0, -85000.0),  # HRC-S
+                          (-85000.0, 0.0),        # HRC-I
+                          (0.0, 400000.0))        # ACIS
+        self.instr_names = ['hrcs', 'hrci', 'acis']
+        for i, instr_name in enumerate(self.instr_names):
+            for j, pitch in enumerate(self.P_pitches):
+                self.add_par('P_{0}_{1:d}'.format(instr_name, pitch), P_vals[i, j])
+        
+    @property
+    def dvals(self):
+        if not hasattr(self, 'pitches'):
+            self.pitches = self.pitch_comp.dvals
+        if not hasattr(self, 'simzs'):
+            self.simzs = self.simz_comp.dvals
+            # Instrument 0=HRC-S 1=HRC-I 2=ACIS
+            self.instrs = np.zeros(self.model.n_times, dtype=np.int8)
+            for i, lims in enumerate(self.simz_lims):
+                ok = (self.simzs > lims[0]) & (self.simzs <= lims[1])
+                self.instrs[ok] = i
+
+        # Interpolate power(pitch) for each instrument separately and make 2d stack
+        n_p = len(self.P_pitches)
+        heats = []
+        for i in range(len(self.instr_names)):
+            P_vals = self.parvals[i*n_p : (i+1)*n_p]
+            heats.append(Ska.Numpy.interpolate(P_vals, self.P_pitches, self.pitches))
+        self.heats = np.vstack(heats)
+
+        # Now pick out the power(pitch) for the appropriate instrument at each time
+        self._dvals = self.heats[self.instrs, np.arange(self.heats.shape[1])]
+        return self._dvals
+
+    def update(self):
+        self.mvals = self.dvals
+
+    def __str__(self):
+        return 'psmc_solarheat__{0}'.format(self.node)
+        
+
+class AcisPsmcPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+    def __init__(self, model, node, k=1.0):
+        ModelComponent.__init__(self, model)
+        self.node = node
+        self.k = k
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'psmc__{0}'.format(self.node)
+
+    @property
+    def dvals(self):
+        if not hasattr(self, '_dvals'):
+            deav = self.model.fetch('1de28avo')
+            deai = self.model.fetch('1deicacu')
+            dpaav = self.model.fetch('1dp28avo')
+            dpaai = self.model.fetch('1dpicacu')
+            dpabv = self.model.fetch('1dp28bvo')
+            dpabi = self.model.fetch('1dpicbcu')
+            # maybe smooth? (already 5min telemetry, no need)
+            self._dvals = self.k * (deav * deai + dpaav * dpaai + dpabv * dpabi)
+        return self._dvals
 
     
 class ProportialHeater(ActiveHeatPower):
