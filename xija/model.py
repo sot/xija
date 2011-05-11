@@ -4,7 +4,7 @@ Next-generation thermal modeling framework for Chandra thermal modeling
 
 from odict import OrderedDict
 import numpy as np
-
+from inspect import getargvalues, currentframe
 import Ska.Numpy
 from Chandra.Time import DateTime
 import clogging
@@ -80,6 +80,7 @@ class TelemData(ModelComponent):
 
     def __init__(self, model, msid, cmd_states_col=None, data=None):
         ModelComponent.__init__(self, model)
+        self.argvals = getargvalues(currentframe())
         self.msid = msid
         self.cmd_states_col = cmd_states_col or msid
         self.n_mvals = 1
@@ -111,6 +112,7 @@ class TelemData(ModelComponent):
 
 class Node(TelemData):
     def __init__(self, model, msid, data=None, sigma=1.0, quant=None, predict=True):
+        self.argvals = getargvalues(currentframe())
         TelemData.__init__(self, model, msid, data)
         self.sigma = sigma
         self.quant = quant
@@ -120,6 +122,7 @@ class Node(TelemData):
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
     def __init__(self, model, node1, node2, tau):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model)
         self.node1 = self.model.get_comp(node1)
         self.node2 = self.model.get_comp(node2)
@@ -132,6 +135,7 @@ class Coupling(ModelComponent):
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
     def __init__(self, model, node, T, tau):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model)
         self.add_par('T', T)
         self.add_par('tau', tau)
@@ -143,6 +147,7 @@ class HeatSink(ModelComponent):
 
 class Pitch(TelemData):
     def __init__(self, model, data=None):
+        self.argvals = getargvalues(currentframe())
         TelemData.__init__(self, model, 'aosares1', 'pitch', data)
     
     def __str__(self):
@@ -151,6 +156,7 @@ class Pitch(TelemData):
 
 class SimZ(TelemData):
     def __init__(self, model, data=None):
+        self.argvals = getargvalues(currentframe())
         TelemData.__init__(self, model, 'sim_z', 'simpos', data)
     
     @property
@@ -181,6 +187,7 @@ class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)"""
     def __init__(self, model, node, pitch_comp, P_pitches=None, Ps=None, dPs=None,
                  tau=1732.0, ampl=0.05, epoch='2010:001'):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = pitch_comp
@@ -242,12 +249,14 @@ class SolarHeat(PrecomputedHeatPower):
 class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
     def __init__(self, model, name):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model, name)
 
     
 class AcisPsmcSolarHeat(PrecomputedHeatPower):
     """Solar heating of PSMC box.  This is dependent on SIM-Z"""
     def __init__(self, model, node, pitch_comp, simz_comp, P_pitches=None, P_vals=None):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = node
@@ -296,6 +305,7 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
 class AcisPsmcPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
     def __init__(self, model, node, k=1.0):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model)
         self.node = node
         self.k = k
@@ -321,12 +331,14 @@ class AcisPsmcPower(PrecomputedHeatPower):
 class ProportialHeater(ActiveHeatPower):
     """Proportional heater (P = k * (T - T_set) for T > T_set)"""
     def __init__(self, model, name):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model, name)
 
         
 class ThermostatHeater(ActiveHeatPower):
     """Thermostat heater (with configurable deadband)"""
     def __init__(self, model, name):
+        self.argvals = getargvalues(currentframe())
         ModelComponent.__init__(self, model, name)
 
 

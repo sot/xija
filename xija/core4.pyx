@@ -34,7 +34,6 @@ def calc_model(np.ndarray[INT_t, ndim=1] indexes,
     cdef int i2
     cdef int rki
 
-    # Need to re-roll the loops with some logic.  Do this later.
     for j0 in indexes:
         # print '========== j=', j0, '==============='
         for rki in range(2):

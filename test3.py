@@ -15,7 +15,7 @@ coup__tephin__tmzp_my = mdl.add(xija.Coupling, tephin, tmzp_my, tau=105.91)
 aosares1 = mdl.add(xija.TelemData, 'aosares1')
 tephin_solar = mdl.add(xija.SolarHeat, tephin, aosares1,
                        P_pitches=[45, 60, 90, 120, 145, 170],
-                       Ps=np.array([0.970, 1.42, 1.91, 1.92, 1.42, 0.69]),
+                       Ps=[0.970, 1.42, 1.91, 1.92, 1.42, 0.69],
                        ampl=0.0679)
 
 tephin_heatsink = mdl.add(xija.HeatSink, tephin, T=0.0, tau=38.0)
