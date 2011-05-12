@@ -13,7 +13,7 @@ nodes = {}
 pitch = mdl.add(xija.Pitch)
 for msid in minusz:
     pars = minusz[msid]
-    Ps = [pars['pf_{0:03d}'.format(pitch)] for pitch in P_pitches]
+    Ps = [pars['pf_{0:03d}'.format(p)] for p in P_pitches]
     nodes[msid] = mdl.add(xija.Node, msid)
     mdl.add(xija.SolarHeat, msid, pitch, P_pitches, Ps, ampl=pars['p_ampl'])
     mdl.add(xija.HeatSink, msid, T=pars['T_e'], tau=pars['tau_ext'])
@@ -22,7 +22,7 @@ for msid in minusz:
     pars = minusz[msid]
     coupled_nodes = [x for x in pars if x.startswith('tau_t')]
     for parname in coupled_nodes:
-        mdl.add(xija.Coupling, msid, msid2=parname[4:], tau=pars[parname])
+        mdl.add(xija.Coupling, msid, node2=parname[4:], tau=pars[parname])
 
 mdl.make()
 mdl.calc()
