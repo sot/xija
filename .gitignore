@@ -4,3 +4,5 @@ nmass
 psmc
 xija/*.c
 xija/*.so
+NOTES.paper
+test_write.json
