@@ -111,12 +111,20 @@ class TelemData(ModelComponent):
 
 
 class Node(TelemData):
-    def __init__(self, model, msid, data=None, sigma=1.0, quant=None, predict=True):
+    def __init__(self, model, msid, data=None, sigma=-10, quant=None, predict=True):
         TelemData.__init__(self, model, msid, data)
-        self.sigma = sigma
+        self._sigma = sigma
         self.quant = quant
         self.predict = predict
 
+    @property
+    def sigma(self):
+        if self._sigma < 0:
+            self._sigma = self.dvals.std() * (-self._sigma / 100.0)
+        return self._sigma
+
+    def calc_stat(self):
+        return np.sum((self.dvals - self.mvals)**2 / self.sigma**2)
 
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
@@ -333,24 +341,24 @@ class ThermostatHeater(ActiveHeatPower):
 
 class ThermalModel(object):
     def __init__(self, start='2011:115:00:00:00', stop='2011:115:01:00:00', dt=328.0,
-                 model_spec=None):
+                 model_spec=None, name='xijamod'):
         if model_spec:
             dt = model_spec['dt']
+        self.name = name
         self.comp = OrderedDict()
         self.dt = dt
         self.dt_ksec = self.dt / 1000.
-        self.times = self.eng_match_times(start, stop, dt)
+        self.times = self._eng_match_times(start, stop, dt)
         self.tstart = self.times[0]
         self.tstop = self.times[-1]
         self.ksecs = (self.times - self.tstart) / 1000.
         self.datestart = DateTime(self.tstart).date
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
-
         if model_spec:
-            self.set_from_model_spec(model_spec)
+            self._set_from_model_spec(model_spec)
 
-    def set_from_model_spec(self, model_spec):
+    def _set_from_model_spec(self, model_spec):
         for comp in model_spec['comps']:
             ComponentClass = globals()[comp['class_name']]
             args = comp['init_args']
@@ -365,7 +373,7 @@ class ThermalModel(object):
         self.parvals[:] = parvals
 
     @staticmethod
-    def eng_match_times(start, stop, dt):
+    def _eng_match_times(start, stop, dt):
         """Return an array of times between ``start`` and ``stop`` at ``dt`` sec
         intervals.  The times are roughly aligned (within 1 sec) to the timestamps
         in the '5min' (328 sec) Ska eng archive data.
@@ -374,6 +382,10 @@ class ThermalModel(object):
         i0 = int((DateTime(start).secs - time0) / dt) + 1
         i1 = int((DateTime(stop).secs - time0) / dt)
         return time0 + np.arange(i0, i1) * dt
+
+    @property
+    def pars(self):
+        return dict((k, v) for k, v in zip(self.parnames, self.parvals))
 
     def fetch(self, msid):
         tpad = self.dt * 5
@@ -401,11 +413,12 @@ class ThermalModel(object):
 
     def write(self, filename):
         """Write a full model specification for this model"""
-        model_spec = dict(comps=[],
-                   pars=[(name, val) for name, val in zip(self.parnames, self.parvals)],
-                   dt=self.dt,
-                   tlm_code=None,
-                   mval_names=[])
+        model_spec = dict(name=self.name,
+                          comps=[],
+                          pars=[(name, val) for name, val in zip(self.parnames, self.parvals)],
+                          dt=self.dt,
+                          tlm_code=None,
+                          mval_names=[])
                
         stringify = lambda x: str(x) if isinstance(x, ModelComponent) else x
         for comp in self.comps:
@@ -515,10 +528,7 @@ class ThermalModel(object):
 
         self.heatsinks = np.array(heatsinks)
 
-    def calc(self, parvals=None, x=None):
-        if parvals is not None:
-            self.parvals[:] = parvals
-
+    def calc(self):
         for comp in self.comps:
             comp.update()
 
@@ -527,4 +537,10 @@ class ThermalModel(object):
         calc_model(indexes, dt, self.n_preds, self.mvals, self.parvals, self.mults,
                    self.heats, self.heatsinks)
 
+    def calc_stat(self):
+        self.calc()            # parvals already set with dummy_calc
+        fit_stat = sum(comp.calc_stat() for comp in self.comps if comp.predict)
+        return fit_stat
 
+    def calc_staterror(self, data):
+        return numpy.ones_like(data)

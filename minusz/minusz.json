@@ -1,0 +1,666 @@
+{
+    "comps": [
+        {
+            "class_name": "Pitch", 
+            "init_args": [], 
+            "init_kwargs": {}, 
+            "name": "pitch"
+        }, 
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "tcylfmzm"
+            ], 
+            "init_kwargs": {
+                "sigma": -20
+            }, 
+            "name": "tcylfmzm"
+        }, 
+        {
+            "class_name": "SolarHeat", 
+            "init_args": [
+                "tcylfmzm", 
+                "pitch", 
+                [
+                    45, 
+                    60, 
+                    90, 
+                    120, 
+                    145, 
+                    170
+                ], 
+                [
+                    2.5909793928920073, 
+                    2.441932623304949, 
+                    1.3040236164355279, 
+                    0.48828069214739034, 
+                    -0.39794782490249514, 
+                    -0.92077712463389527
+                ]
+            ], 
+            "init_kwargs": {
+                "ampl": 0.055087173919677754
+            }, 
+            "name": "solarheat__tcylfmzm"
+        }, 
+        {
+            "class_name": "HeatSink", 
+            "init_args": [
+                "tcylfmzm"
+            ], 
+            "init_kwargs": {
+                "T": 0.0, 
+                "tau": 44.246029474944891
+            }, 
+            "name": "heatsink__tcylfmzm"
+        }, 
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "tmzp_my"
+            ], 
+            "init_kwargs": {
+                "sigma": -20
+            }, 
+            "name": "tmzp_my"
+        }, 
+        {
+            "class_name": "SolarHeat", 
+            "init_args": [
+                "tmzp_my", 
+                "pitch", 
+                [
+                    45, 
+                    60, 
+                    90, 
+                    120, 
+                    145, 
+                    170
+                ], 
+                [
+                    1.1608053172803638, 
+                    1.4217058046291391, 
+                    1.4569049401568839, 
+                    1.1808530737614313, 
+                    0.42254226207095658, 
+                    -0.30455302151882246
+                ]
+            ], 
+            "init_kwargs": {
+                "ampl": 0.029389582120490643
+            }, 
+            "name": "solarheat__tmzp_my"
+        }, 
+        {
+            "class_name": "HeatSink", 
+            "init_args": [
+                "tmzp_my"
+            ], 
+            "init_kwargs": {
+                "T": 0.0, 
+                "tau": 91.129424847165012
+            }, 
+            "name": "heatsink__tmzp_my"
+        }, 
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "tfssbkt1"
+            ], 
+            "init_kwargs": {
+                "sigma": -20
+            }, 
+            "name": "tfssbkt1"
+        }, 
+        {
+            "class_name": "SolarHeat", 
+            "init_args": [
+                "tfssbkt1", 
+                "pitch", 
+                [
+                    45, 
+                    60, 
+                    90, 
+                    120, 
+                    145, 
+                    170
+                ], 
+                [
+                    23.005800378484899, 
+                    26.692345235697701, 
+                    28.579320381672904, 
+                    26.208736438743159, 
+                    17.254114241863981, 
+                    -7.594429820706516
+                ]
+            ], 
+            "init_kwargs": {
+                "ampl": 0.71928486824035631
+            }, 
+            "name": "solarheat__tfssbkt1"
+        }, 
+        {
+            "class_name": "HeatSink", 
+            "init_args": [
+                "tfssbkt1"
+            ], 
+            "init_kwargs": {
+                "T": 0.0, 
+                "tau": 3.0302087591667606
+            }, 
+            "name": "heatsink__tfssbkt1"
+        }, 
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "tephin"
+            ], 
+            "init_kwargs": {
+                "sigma": -10
+            }, 
+            "name": "tephin"
+        }, 
+        {
+            "class_name": "SolarHeat", 
+            "init_args": [
+                "tephin", 
+                "pitch", 
+                [
+                    45, 
+                    60, 
+                    90, 
+                    120, 
+                    145, 
+                    170
+                ], 
+                [
+                    0.96976110603706989, 
+                    1.4221924089192244, 
+                    1.9133045643725675, 
+                    1.9183228014942686, 
+                    1.4231235450884276, 
+                    0.69415616876670061
+                ]
+            ], 
+            "init_kwargs": {
+                "ampl": 0.067919468805023628
+            }, 
+            "name": "solarheat__tephin"
+        }, 
+        {
+            "class_name": "HeatSink", 
+            "init_args": [
+                "tephin"
+            ], 
+            "init_kwargs": {
+                "T": 0.0, 
+                "tau": 38.509613333455292
+            }, 
+            "name": "heatsink__tephin"
+        }, 
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "tcylaft6"
+            ], 
+            "init_kwargs": {
+                "sigma": -20
+            }, 
+            "name": "tcylaft6"
+        }, 
+        {
+            "class_name": "SolarHeat", 
+            "init_args": [
+                "tcylaft6", 
+                "pitch", 
+                [
+                    45, 
+                    60, 
+                    90, 
+                    120, 
+                    145, 
+                    170
+                ], 
+                [
+                    -0.0010068180434237755, 
+                    -0.099760099097663438, 
+                    -0.12967974597298776, 
+                    -0.080537379319678609, 
+                    0.052313883428031643, 
+                    0.086047015046623238
+                ]
+            ], 
+            "init_kwargs": {
+                "ampl": 0.00341020788137107
+            }, 
+            "name": "solarheat__tcylaft6"
+        }, 
+        {
+            "class_name": "HeatSink", 
+            "init_args": [
+                "tcylaft6"
+            ], 
+            "init_kwargs": {
+                "T": 0.0, 
+                "tau": 94.225153054658904
+            }, 
+            "name": "heatsink__tcylaft6"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "tcylfmzm"
+            ], 
+            "init_kwargs": {
+                "node2": "tcylaft6", 
+                "tau": 54.540151395733886
+            }, 
+            "name": "coupling__tcylfmzm__tcylaft6"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "tmzp_my"
+            ], 
+            "init_kwargs": {
+                "node2": "tcylaft6", 
+                "tau": 17.196436295379229
+            }, 
+            "name": "coupling__tmzp_my__tcylaft6"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "tfssbkt1"
+            ], 
+            "init_kwargs": {
+                "node2": "tcylfmzm", 
+                "tau": 14.214247255053813
+            }, 
+            "name": "coupling__tfssbkt1__tcylfmzm"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "tephin"
+            ], 
+            "init_kwargs": {
+                "node2": "tmzp_my", 
+                "tau": 105.91197886711586
+            }, 
+            "name": "coupling__tephin__tmzp_my"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "tephin"
+            ], 
+            "init_kwargs": {
+                "node2": "tcylaft6", 
+                "tau": 130.26749285187424
+            }, 
+            "name": "coupling__tephin__tcylaft6"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "tcylaft6"
+            ], 
+            "init_kwargs": {
+                "node2": "tmzp_my", 
+                "tau": 32.52740634502716
+            }, 
+            "name": "coupling__tcylaft6__tmzp_my"
+        }
+    ], 
+    "dt": 328.0, 
+    "mval_names": [], 
+    "name": "minusz", 
+    "pars": [
+        [
+            "solarheat__tcylfmzm__P_45", 
+            2.5909793928920073
+        ], 
+        [
+            "solarheat__tcylfmzm__P_60", 
+            2.441932623304949
+        ], 
+        [
+            "solarheat__tcylfmzm__P_90", 
+            1.3040236164355279
+        ], 
+        [
+            "solarheat__tcylfmzm__P_120", 
+            0.48828069214739034
+        ], 
+        [
+            "solarheat__tcylfmzm__P_145", 
+            -0.39794782490249514
+        ], 
+        [
+            "solarheat__tcylfmzm__P_170", 
+            -0.92077712463389527
+        ], 
+        [
+            "solarheat__tcylfmzm__dP_45", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylfmzm__dP_60", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylfmzm__dP_90", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylfmzm__dP_120", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylfmzm__dP_145", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylfmzm__dP_170", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylfmzm__tau", 
+            1732.0
+        ], 
+        [
+            "solarheat__tcylfmzm__ampl", 
+            0.055087173919677754
+        ], 
+        [
+            "heatsink__tcylfmzm__T", 
+            0.0
+        ], 
+        [
+            "heatsink__tcylfmzm__tau", 
+            44.246029474944891
+        ], 
+        [
+            "solarheat__tmzp_my__P_45", 
+            1.1608053172803638
+        ], 
+        [
+            "solarheat__tmzp_my__P_60", 
+            1.4217058046291391
+        ], 
+        [
+            "solarheat__tmzp_my__P_90", 
+            1.4569049401568839
+        ], 
+        [
+            "solarheat__tmzp_my__P_120", 
+            1.1808530737614313
+        ], 
+        [
+            "solarheat__tmzp_my__P_145", 
+            0.42254226207095658
+        ], 
+        [
+            "solarheat__tmzp_my__P_170", 
+            -0.30455302151882246
+        ], 
+        [
+            "solarheat__tmzp_my__dP_45", 
+            0.0
+        ], 
+        [
+            "solarheat__tmzp_my__dP_60", 
+            0.0
+        ], 
+        [
+            "solarheat__tmzp_my__dP_90", 
+            0.0
+        ], 
+        [
+            "solarheat__tmzp_my__dP_120", 
+            0.0
+        ], 
+        [
+            "solarheat__tmzp_my__dP_145", 
+            0.0
+        ], 
+        [
+            "solarheat__tmzp_my__dP_170", 
+            0.0
+        ], 
+        [
+            "solarheat__tmzp_my__tau", 
+            1732.0
+        ], 
+        [
+            "solarheat__tmzp_my__ampl", 
+            0.029389582120490643
+        ], 
+        [
+            "heatsink__tmzp_my__T", 
+            0.0
+        ], 
+        [
+            "heatsink__tmzp_my__tau", 
+            91.129424847165012
+        ], 
+        [
+            "solarheat__tfssbkt1__P_45", 
+            23.005800378484899
+        ], 
+        [
+            "solarheat__tfssbkt1__P_60", 
+            26.692345235697701
+        ], 
+        [
+            "solarheat__tfssbkt1__P_90", 
+            28.579320381672904
+        ], 
+        [
+            "solarheat__tfssbkt1__P_120", 
+            26.208736438743159
+        ], 
+        [
+            "solarheat__tfssbkt1__P_145", 
+            17.254114241863981
+        ], 
+        [
+            "solarheat__tfssbkt1__P_170", 
+            -7.594429820706516
+        ], 
+        [
+            "solarheat__tfssbkt1__dP_45", 
+            0.0
+        ], 
+        [
+            "solarheat__tfssbkt1__dP_60", 
+            0.0
+        ], 
+        [
+            "solarheat__tfssbkt1__dP_90", 
+            0.0
+        ], 
+        [
+            "solarheat__tfssbkt1__dP_120", 
+            0.0
+        ], 
+        [
+            "solarheat__tfssbkt1__dP_145", 
+            0.0
+        ], 
+        [
+            "solarheat__tfssbkt1__dP_170", 
+            0.0
+        ], 
+        [
+            "solarheat__tfssbkt1__tau", 
+            1732.0
+        ], 
+        [
+            "solarheat__tfssbkt1__ampl", 
+            0.71928486824035631
+        ], 
+        [
+            "heatsink__tfssbkt1__T", 
+            0.0
+        ], 
+        [
+            "heatsink__tfssbkt1__tau", 
+            3.0302087591667606
+        ], 
+        [
+            "solarheat__tephin__P_45", 
+            0.96976110603706989
+        ], 
+        [
+            "solarheat__tephin__P_60", 
+            1.4221924089192244
+        ], 
+        [
+            "solarheat__tephin__P_90", 
+            1.9133045643725675
+        ], 
+        [
+            "solarheat__tephin__P_120", 
+            1.9183228014942686
+        ], 
+        [
+            "solarheat__tephin__P_145", 
+            1.4231235450884276
+        ], 
+        [
+            "solarheat__tephin__P_170", 
+            0.69415616876670061
+        ], 
+        [
+            "solarheat__tephin__dP_45", 
+            0.0
+        ], 
+        [
+            "solarheat__tephin__dP_60", 
+            0.0
+        ], 
+        [
+            "solarheat__tephin__dP_90", 
+            0.0
+        ], 
+        [
+            "solarheat__tephin__dP_120", 
+            0.0
+        ], 
+        [
+            "solarheat__tephin__dP_145", 
+            0.0
+        ], 
+        [
+            "solarheat__tephin__dP_170", 
+            0.0
+        ], 
+        [
+            "solarheat__tephin__tau", 
+            1732.0
+        ], 
+        [
+            "solarheat__tephin__ampl", 
+            0.067919468805023628
+        ], 
+        [
+            "heatsink__tephin__T", 
+            0.0
+        ], 
+        [
+            "heatsink__tephin__tau", 
+            38.509613333455292
+        ], 
+        [
+            "solarheat__tcylaft6__P_45", 
+            -0.0010068180434237755
+        ], 
+        [
+            "solarheat__tcylaft6__P_60", 
+            -0.099760099097663438
+        ], 
+        [
+            "solarheat__tcylaft6__P_90", 
+            -0.12967974597298776
+        ], 
+        [
+            "solarheat__tcylaft6__P_120", 
+            -0.080537379319678609
+        ], 
+        [
+            "solarheat__tcylaft6__P_145", 
+            0.052313883428031643
+        ], 
+        [
+            "solarheat__tcylaft6__P_170", 
+            0.086047015046623238
+        ], 
+        [
+            "solarheat__tcylaft6__dP_45", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylaft6__dP_60", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylaft6__dP_90", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylaft6__dP_120", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylaft6__dP_145", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylaft6__dP_170", 
+            0.0
+        ], 
+        [
+            "solarheat__tcylaft6__tau", 
+            1732.0
+        ], 
+        [
+            "solarheat__tcylaft6__ampl", 
+            0.00341020788137107
+        ], 
+        [
+            "heatsink__tcylaft6__T", 
+            0.0
+        ], 
+        [
+            "heatsink__tcylaft6__tau", 
+            94.225153054658904
+        ], 
+        [
+            "coupling__tcylfmzm__tcylaft6__tau", 
+            54.540151395733886
+        ], 
+        [
+            "coupling__tmzp_my__tcylaft6__tau", 
+            17.196436295379229
+        ], 
+        [
+            "coupling__tfssbkt1__tcylfmzm__tau", 
+            14.214247255053813
+        ], 
+        [
+            "coupling__tephin__tmzp_my__tau", 
+            105.91197886711586
+        ], 
+        [
+            "coupling__tephin__tcylaft6__tau", 
+            130.26749285187424
+        ], 
+        [
+            "coupling__tcylaft6__tmzp_my__tau", 
+            32.52740634502716
+        ]
+    ], 
+    "tlm_code": null
+}
