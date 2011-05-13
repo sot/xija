@@ -54,6 +54,7 @@ while True:
         src.update((x, msg[x]) for x in ('model', 'outdir', 'pardir'))
         model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
         model = xija.ThermalModel(name=msg['model'], start=tstart, stop=tstop, model_spec=model_spec)
+        model.make()
 
     elif cmd == 'calc_model':
         model.parvals[:] = msg['parvals']

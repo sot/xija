@@ -364,7 +364,8 @@ class ThermalModel(object):
             args = comp['init_args']
             kwargs = dict((str(k), v) for k, v in comp['init_kwargs'].items())
             self.add(ComponentClass, *args, **kwargs)
-        self.make()
+
+        self.make_pars()
         parnames, parvals = zip(*model_spec['pars'])
         parnames = [str(x) for x in parnames]
         if self.parnames != parnames:
@@ -431,34 +432,47 @@ class ThermalModel(object):
         with open(filename, 'w') as f:
             json.dump(model_spec, f, sort_keys=True, indent=4)
 
+    def _get_parvals(self):
+        """For components that have parameter values make a view into the
+        global parameter values array.  But first count the total number of
+        parameters and make that global param vals array ``self.parvals``.
+        """
+        if not hasattr(self, '_parvals'):
+            self.make_pars()
+        return self._parvals
+    
+    def _set_parvals(self, vals):
+        self.parvals[:] = vals
+        
+    parvals = property(_get_parvals, _set_parvals)
+
+    @property
+    def parnames(self):
+        if not hasattr(self, '_parnames'):
+            self.make_pars()
+        return self._parnames
+
     def make(self):
-        self.make_parvals()
+        self.make_pars()
         self.make_mvals()
         self.make_mults()
         self.make_heats()
         self.make_heatsinks()
 
-    def get_parvals(self):
+    def make_pars(self):
         if not hasattr(self, '_parvals'):
-            self.make_parvals()
+            comps = [x for x in self.comps if x.n_parvals]
+            n_parvals = sum(x.n_parvals for x in comps)
+            i_parvals = np.cumsum([0] + [x.n_parvals for x in comps])
+            self._parvals = np.zeros(n_parvals, dtype=np.float)
+            self._parnames = []
+            for comp, i0, i1 in zip(comps, i_parvals[:-1], i_parvals[1:]):
+                self._parnames.extend(comp.name + '__' + x for x in comp.parnames)
+                self._parvals[i0:i1] = comp.parvals  # copy existing values
 
-    def make_parvals(self):
-        """For components that have parameter values make a view into the
-        global parameter values array.  But first count the total number of
-        parameters and make that global param vals array ``self.parvals``.
-        This must be manipulated only by reference (i.e. parvals[:] = ..)
-        in order that the component views remain valid.
-        """
-        comps = [x for x in self.comps if x.n_parvals]
-        n_parvals = sum(x.n_parvals for x in comps)
-        i_parvals = np.cumsum([0] + [x.n_parvals for x in comps])
-        self.parvals = np.zeros(n_parvals, dtype=np.float)
-        self.parnames = []
-        for comp, i0, i1 in zip(comps, i_parvals[:-1], i_parvals[1:]):
-            self.parnames.extend(comp.name + '__' + x for x in comp.parnames)
-            self.parvals[i0:i1] = comp.parvals  # copy existing values
-            comp.parvals = self.parvals[i0:i1]  # make a local (view into global parvals
-            comp.parvals_i = i0
+                # This hidden interaction is not really nice...
+                comp.parvals = self._parvals[i0:i1]  # make a local (view into global parvals
+                comp.parvals_i = i0
 
     def make_mvals(self):
         """Initialize the global mvals (model values) array.  This is an

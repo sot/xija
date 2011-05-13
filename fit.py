@@ -213,6 +213,12 @@ src['pardir'] = opt.pardir or opt.model
 
 model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
 model = xija.ThermalModel(start, stop, name=opt.model, model_spec=model_spec)
+
+### UGHH, need to clean this up, probably have model elements accumulate dynamically
+### instead of a make step.
+if not opt.nproc:
+    model.make()   
+
 model.outdir = src['outdir'].val
 model.pardir = src['pardir'].val
 
