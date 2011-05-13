@@ -38,20 +38,23 @@ freeze_pars = ('.*',
              #)
 
 class CalcModel(object):
-    def __init__(self, model, comm=None):
+    def __init__(self, model, comm=None, outdir='', pardir=''):
         self.model = model
         self.comm = comm
         if self.comm:
-            comm.bcast(dict(cmd='init', model=model.model, tstart=model.tstart, tstop=model.tstop,
-                            outdir=model.outdir, pardir=model.pardir),
+            comm.bcast(dict(cmd='init', model=model.name, tstart=model.tstart, tstop=model.tstop,
+                            outdir=model.outdir, pardir=model.pardir),  
                        root=MPI.ROOT)
 
     def __call__(self, parvals, x):
+        fit_logger.info('Calculating params:')
+        for parname, parval, newparval in zip(self.model.parnames, self.model.parvals, parvals):
+            if parval != newparval:
+                fit_logger.info('  {0}: {1}'.format(parname, newparval))
         self.model.parvals[:] = parvals
-        fit_logger.info('Fitting params:\n%s' % json.dumps(self.model.pars, sort_keys=True, indent=4))
 
         if self.comm:
-            self.comm.bcast(dict(cmd='calc_model', parvals=parvals, x=x), root=MPI.ROOT)
+            self.comm.bcast(dict(cmd='calc_model', parvals=parvals), root=MPI.ROOT)
 
         return np.ones_like(x)
 
@@ -154,7 +157,7 @@ def get_options():
                       default='minusz',
                       help="Model to predict (default=minusz)")
     parser.add_option("--thaw-pars",
-                      default='',
+                      default='solarheat__tmzp_my__P_60',
                       help="List of parameters (space-separated) to thaw (default=none)")
     parser.add_option("--nproc",
                       default=0,
@@ -176,9 +179,6 @@ def get_options():
     parser.add_option("--nofit",
                       action="store_true",
                       help="Do not fit (default=False)")
-    parser.add_option("--stored-data",
-                      help="Use stored states and telem data from this file "
-                           "instead of database and archive")
     (opt, args) = parser.parse_args()
     return (opt, args)
 
@@ -211,11 +211,10 @@ src['model'] = opt.model
 src['outdir'] = opt.outdir
 src['pardir'] = opt.pardir or opt.model
 
-if opt.stored_data and os.path.exists(opt.stored_data):
-    model = pickle.load(open(opt.stored_data))
-else:    
-    model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
-    model = xija.ThermalModel(start, stop, name=opt.model, model_spec=model_spec)
+model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
+model = xija.ThermalModel(start, stop, name=opt.model, model_spec=model_spec)
+model.outdir = src['outdir'].val
+model.pardir = src['pardir'].val
 
 thaw_pars = opt.thaw_pars.split()
 
@@ -236,7 +235,7 @@ fit_logger.info('Start time: {0}'.format(time.ctime()))
 
 if opt.nproc:
     fit_logger.info('fit_nmass: Spawning processes')
-    comm = MPI.COMM_SELF.Spawn(sys.executable, args=['nmass_worker.py'], maxprocs=opt.nproc)
+    comm = MPI.COMM_SELF.Spawn(sys.executable, args=['worker.py'], maxprocs=opt.nproc)
     fit_logger.info('fit_nmass: Finished spawning processes')
     fit_logger.info('fit_nmass: comm.Get_size() = {0}'.format(comm.Get_size()))
 else:
@@ -248,23 +247,21 @@ try:
 
     kwargs = {'savefig': True}
     if comm:
-        comm.bcast(dict(cmd='model', func='plot_fit_resid', kwargs=kwargs), root=MPI.ROOT)
+        pass
+        #comm.bcast(dict(cmd='model', func='plot_fit_resid', kwargs=kwargs), root=MPI.ROOT)
     else:
         pass
         # model.plot_fit_resid(**kwargs)
 
     if comm:
-        comm.bcast(dict(cmd='model', func='plot_hist', kwargs=kwargs), root=MPI.ROOT)
+        pass
+        #comm.bcast(dict(cmd='model', func='plot_hist', kwargs=kwargs), root=MPI.ROOT)
     else:
         if 0:
             model.plot_hist(select='all', **kwargs)
             model.plot_hist(select='hot', **kwargs)
             model.write_fit_data()
             model.write_html_report()
-
-    if opt.stored_data and not os.path.exists(opt.stored_data):
-        with open(opt.stored_data, 'w') as f:
-            pickle.dump(model, f, protocol=-1)
 
 finally:
     if comm:

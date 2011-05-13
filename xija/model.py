@@ -438,6 +438,10 @@ class ThermalModel(object):
         self.make_heats()
         self.make_heatsinks()
 
+    def get_parvals(self):
+        if not hasattr(self, '_parvals'):
+            self.make_parvals()
+
     def make_parvals(self):
         """For components that have parameter values make a view into the
         global parameter values array.  But first count the total number of
