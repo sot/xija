@@ -394,7 +394,7 @@ class ThermalModel(object):
         datestop = DateTime(self.tstop + tpad).date
         logger.info('Fetching msid: %s over %s to %s' % (msid, datestart, datestop))
         tlm = fetch.MSID(msid, datestart, datestop, stat='5min', filter_bad=True)
-        return Ska.Numpy.interpolate(tlm.vals, tlm.times, self.times, method='linear')
+        return Ska.Numpy.interpolate(tlm.means, tlm.times, self.times, method='linear')
 
     def add(self, ComponentClass, *args, **kwargs):
         comp = ComponentClass(self, *args, **kwargs)
