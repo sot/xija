@@ -8,7 +8,7 @@ import xija
 P_pitches=[45, 60, 90, 120, 145, 170]
 minusz = json.load(open('nmass/minusz/pars_minusz.json'))
 
-mdl = xija.ThermalModel(start='2010:001', stop='2010:090')
+mdl = xija.ThermalModel(name='minusz', start='2010:001', stop='2010:090')
 nodes = {}
 pitch = mdl.add(xija.Pitch)
 for msid in minusz:

@@ -9,11 +9,16 @@ import shutil
 import logging
 import glob
 
+# Matplotlib setup: use Agg backend for command-line (non-interactive) operation
+import matplotlib
+if __name__ == '__main__':
+    matplotlib.use('Agg')
+
 import numpy as np
 import sherpa.ui as ui
 from mpi4py import MPI
 from Chandra.Time import DateTime
-import pyyaks.context
+import pyyaks.context as pyc
 
 import clogging   # get rid of this or something
 import xija
@@ -107,16 +112,15 @@ def fit_model(model,
     ui.set_model(1, 'xijamod')
 
     fit_parnames = set()
-    print 'thawpars=', thaw_pars
     for parname, parval in zip(model.parnames, model.parvals):
         getattr(xijamod, parname).val = parval
         fit_parnames.add(parname)
         if any([re.match(x + '$', parname) for x in freeze_pars]):
-            print 'Freezing', parname
+            fit_logger.info('Freezing ' + parname)
             ui.freeze(getattr(xijamod, parname))
             fit_parnames.remove(parname)
         if any([re.match(x + '$', parname) for x in thaw_pars]):
-            print 'Thawing', parname
+            fit_logger.info('Thawing ' + parname)
             ui.thaw(getattr(xijamod, parname))
             fit_parnames.add(parname)
 
@@ -191,8 +195,9 @@ sherpa_configs = dict(
 
 opt, args = get_options()
 
-src = pyyaks.context.ContextDict('src')
-files = pyyaks.context.ContextDict('files', basedir=os.getcwd())
+src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
+files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
+         pyc.ContextDict('files', basedir=os.getcwd()))
 files.update(xija.files)
 
 fit_logger = clogging.config_logger('fit', level=clogging.INFO)
@@ -253,11 +258,9 @@ try:
 
     kwargs = {'savefig': True}
     if comm:
-        pass
-        #comm.bcast(dict(cmd='model', func='plot_fit_resid', kwargs=kwargs), root=MPI.ROOT)
+        comm.bcast(dict(cmd='model', func='plot_fit_resids', kwargs=kwargs), root=MPI.ROOT)
     else:
-        pass
-        # model.plot_fit_resid(**kwargs)
+        model.plot_fit_resids(**kwargs)
 
     if comm:
         pass

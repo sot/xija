@@ -2,6 +2,7 @@
 Next-generation thermal modeling framework for Chandra thermal modeling
 """
 
+import os
 import json
 from odict import OrderedDict
 import numpy as np
@@ -18,7 +19,14 @@ try:
 except ImportError:
     pass
 
+import pyyaks.context as pyc
 from .core import calc_model
+from .files import files as xija_files
+
+src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
+files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
+         pyc.ContextDict('files', basedir=os.getcwd()))
+files.update(xija_files)
 
 if 'debug' in globals():
     from IPython.Debugger import Tracer
@@ -562,3 +570,49 @@ class ThermalModel(object):
 
     def calc_staterror(self, data):
         return numpy.ones_like(data)
+
+    @property
+    def date_range(self):
+        return '%s_%s' % (DateTime(self.tstart).greta[:7],
+                          DateTime(self.tstop).greta[:7])
+
+    def plot_fit_resids(self, savefig=False, names=None):
+        import matplotlib.pyplot as plt
+        from Ska.Matplotlib import plot_cxctime
+        src['model'] = self.name
+        if 'outdir' not in src:
+            src['outdir'] = '.'
+        
+        self.calc()
+        times = self.times
+        comps = (comp for comp in self.comps if comp.predict and isinstance(comp, Node))
+
+        for i, comp in enumerate(comps):
+            if names and comp.name not in names:
+                continue
+            plt.figure(i+10, figsize=(10,5))
+            plt.clf()
+
+            plt.subplot(2, 1, 1)
+            plot_cxctime(times, comp.dvals, '-b')
+            plot_cxctime(times, comp.mvals, '-r')
+            plt.title(comp.name.upper() + ' ' + self.date_range)
+            plt.ylabel('degC')
+            plt.grid()
+
+            resid = (comp.dvals - comp.mvals) * 1.8
+            plt.subplot(2, 1, 2)
+            plot_cxctime(times, resid, '-m')
+            ylim = np.max(np.abs(resid)) * 1.1
+            if ylim < 6:
+                ylim = 6
+            plt.ylim(-ylim, ylim)
+            plt.ylabel('degF')
+            plt.grid()
+
+            plt.subplots_adjust(bottom=0.1, top=0.93, hspace=0.15)
+            if savefig:
+                src['date_range'] = self.date_range
+                src['msid'] = comp.name
+                plt.savefig(files['fit_resid.png'].abs)
+    

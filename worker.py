@@ -9,15 +9,21 @@ import os
 import signal
 import json
 
+# Matplotlib setup: use Agg backend for command-line (non-interactive) operation
+import matplotlib
+if __name__ == '__main__':
+    matplotlib.use('Agg')
+
 import numpy as np
 from Chandra.Time import DateTime
 from mpi4py import MPI
-import pyyaks.context
+import pyyaks.context as pyc
 
 import xija
 
-src = pyyaks.context.ContextDict('src')
-files = pyyaks.context.ContextDict('files', basedir=os.getcwd())
+src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
+files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
+         pyc.ContextDict('files', basedir=os.getcwd()))
 files.update(xija.files)
 
 comm = MPI.Comm.Get_parent()
