@@ -133,6 +133,32 @@ class Pitch(TelemData):
         return 'pitch'
 
 
+class Eclipse(TelemData):
+    def __init__(self, model, data=None):
+        TelemData.__init__(self, model, 'aoeclips', 'eclipse', data)
+        self.n_mvals = 1
+    
+    @property
+    def dvals(self):
+        if not hasattr(self, '_dvals'):
+            if self.data is None:
+                aoeclips = self.model.fetch(self.msid, 'vals', 'nearest')
+                self._dvals = aoeclips == 'ECL '
+            elif self.data == 'cmd':
+                raise NotImplementedError()
+                #self._dvals = self.get_dvals_cmd()
+            else:
+                raise NotImplementedError()
+                #self._dvals = self.data
+        return self._dvals
+
+    def update(self):
+        self.mvals = np.where(self.dvals, 1, 0)
+
+    def __str__(self):
+        return 'eclipse'
+
+
 class SimZ(TelemData):
     def __init__(self, model, data=None):
         TelemData.__init__(self, model, 'sim_z', 'simpos', data)
@@ -146,7 +172,6 @@ class SimZ(TelemData):
                 self._dvals = self.get_dvals_cmd()
             else:
                 self._dvals = self.data
-            
         return self._dvals
 
 
@@ -163,11 +188,13 @@ class ActiveHeatPower(ModelComponent):
 
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)"""
-    def __init__(self, model, node, pitch_comp, P_pitches=None, Ps=None, dPs=None,
-                 tau=1732.0, ampl=0.05, epoch='2010:001'):
+    def __init__(self, model, node, pitch_comp, eclipse_comp,
+                 P_pitches=None, Ps=None, dPs=None,
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
+        self.eclipse_comp = self.model.get_comp(eclipse_comp)
 
         if P_pitches is None:
             P_pitches = [45, 65, 90, 130, 180]
@@ -190,6 +217,7 @@ class SolarHeat(PrecomputedHeatPower):
             self.add_par('dP_{0:.0f}'.format(float(pitch)), dpower)
         self.add_par('tau', tau)
         self.add_par('ampl', ampl)
+        self.add_par('bias', bias)
         self.n_mvals = 1
 
     @property
@@ -205,7 +233,7 @@ class SolarHeat(PrecomputedHeatPower):
             t_year = (self.pitch_comp.times - time2000) / secs_per_year
             self.t_phase = t_year * 2 * np.pi
 
-        Ps = self.parvals[0:self.n_pitches]
+        Ps = self.parvals[0:self.n_pitches] + self.bias
         dPs = self.parvals[self.n_pitches:2*self.n_pitches]
         Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='cubic')
         dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='cubic')
@@ -214,6 +242,8 @@ class SolarHeat(PrecomputedHeatPower):
         self.P_vals = P_vals
         self._dvals = (P_vals + dP_vals * (1 - np.exp(-self.t_days / self.tau))
                        + self.ampl * np.cos(self.t_phase)).reshape(-1)
+        # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
+        self._dvals[self.eclipse_comp.dvals] = 0.0
         return self._dvals
 
     def update(self):

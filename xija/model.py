@@ -85,13 +85,14 @@ class ThermalModel(object):
     def pars(self):
         return dict((k, v) for k, v in zip(self.parnames, self.parvals))
 
-    def fetch(self, msid):
+    def fetch(self, msid, attr='means', method='linear'):
         tpad = self.dt * 5
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
         logger.info('Fetching msid: %s over %s to %s' % (msid, datestart, datestop))
         tlm = fetch.MSID(msid, datestart, datestop, stat='5min', filter_bad=True)
-        return Ska.Numpy.interpolate(tlm.means, tlm.times, self.times, method='linear')
+        vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times, self.times, method=method)
+        return vals
 
     def add(self, ComponentClass, *args, **kwargs):
         comp = ComponentClass(self, *args, **kwargs)
