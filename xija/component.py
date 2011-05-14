@@ -2,6 +2,8 @@ import numpy as np
 from Chandra.Time import DateTime
 import scipy.interpolate
 
+from . import tmal
+
 class ModelComponent(object):
     """ Model component base class"""
     def __init__(self, model):
@@ -109,9 +111,17 @@ class Coupling(ModelComponent):
         self.node2 = self.model.get_comp(node2)
         self.add_par('tau', tau)
 
+    def update(self):
+        self.tmal_ints = (tmal.OPCODES['coupling'],
+                          self.node1.mvals_i,  # dy1/dt index
+                          self.node1.mvals_i,  # y1 index
+                          self.node2.mvals_i   # y2 index
+                          )
+        self.tmal_floats = (self.tau,)
+
     def __str__(self):
         return 'coupling__{0}__{1}'.format(self.node1, self.node2)
-        
+
 
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
@@ -120,6 +130,12 @@ class HeatSink(ModelComponent):
         self.add_par('T', T)
         self.add_par('tau', tau)
         self.node = self.model.get_comp(node)
+
+    def update(self):
+        self.tmal_ints = (tmal.OPCODES['heatsink'],
+                          self.node.mvals_i)  # dy1/dt index
+        self.tmal_floats = (self.T,
+                            self.tau)
 
     def __str__(self):
         return 'heatsink__{0}'.format(self.node)
@@ -177,7 +193,14 @@ class SimZ(TelemData):
 
 class PrecomputedHeatPower(ModelComponent):
     """Component that provides a static (precomputed) direct heat power input"""
-    pass
+
+    def update(self):
+        self.mvals = self.dvals
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                           self.node.mvals_i,  # dy1/dt index
+                           self.mvals_i,       # mvals row with precomputed heat input
+                          )
+        self.tmal_floats = ()
 
 
 class ActiveHeatPower(ModelComponent):
@@ -188,13 +211,14 @@ class ActiveHeatPower(ModelComponent):
 
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)"""
-    def __init__(self, model, node, pitch_comp, eclipse_comp,
+    def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None,
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
-        self.eclipse_comp = self.model.get_comp(eclipse_comp)
+        self.eclipse_comp = (None if eclipse_comp is None
+                             else self.model.get_comp(eclipse_comp))
 
         if P_pitches is None:
             P_pitches = [45, 65, 90, 130, 180]
@@ -243,11 +267,9 @@ class SolarHeat(PrecomputedHeatPower):
         self._dvals = (P_vals + dP_vals * (1 - np.exp(-self.t_days / self.tau))
                        + self.ampl * np.cos(self.t_phase)).reshape(-1)
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
-        self._dvals[self.eclipse_comp.dvals] = 0.0
+        if self.eclipse_comp is not None:
+            self._dvals[self.eclipse_comp.dvals] = 0.0
         return self._dvals
-
-    def update(self):
-        self.mvals = self.dvals
 
     def __str__(self):
         return 'solarheat__{0}'.format(self.node)
@@ -300,9 +322,6 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         self._dvals = self.heats[self.instrs, np.arange(self.heats.shape[1])]
         return self._dvals
 
-    def update(self):
-        self.mvals = self.dvals
-
     def __str__(self):
         return 'psmc_solarheat__{0}'.format(self.node)
         
@@ -342,5 +361,4 @@ class ThermostatHeater(ActiveHeatPower):
     """Thermostat heater (with configurable deadband)"""
     def __init__(self, model, name):
         ModelComponent.__init__(self, model, name)
-
 

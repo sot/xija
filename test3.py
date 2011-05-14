@@ -5,15 +5,16 @@ Replicate (mostly) the minusz TEPHIN node model.  (dPs set to zero though).
 import numpy as np
 import xija
 
-mdl = xija.ThermalModel(start='2010:001', stop='2010:180')
+mdl = xija.ThermalModel('test', start='2010:001', stop='2010:180')
 
 tephin = mdl.add(xija.Node, 'tephin')
 tcylaft6 = mdl.add(xija.Node, 'tcylaft6', predict=False)
 tmzp_my = mdl.add(xija.Node, 'tmzp_my', predict=False)
 coup__tephin__tcylaft6 = mdl.add(xija.Coupling, tephin, tcylaft6, tau=130.26)
 coup__tephin__tmzp_my = mdl.add(xija.Coupling, tephin, tmzp_my, tau=105.91)
-aosares1 = mdl.add(xija.TelemData, 'aosares1')
-tephin_solar = mdl.add(xija.SolarHeat, tephin, aosares1,
+pitch = mdl.add(xija.TelemData, 'aosares1')
+
+tephin_solar = mdl.add(xija.SolarHeat, tephin, pitch, 
                        P_pitches=[45, 60, 90, 120, 145, 170],
                        Ps=[0.970, 1.42, 1.91, 1.92, 1.42, 0.69],
                        ampl=0.0679)

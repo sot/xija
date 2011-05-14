@@ -11,6 +11,7 @@ from Chandra.Time import DateTime
 import clogging
 
 from . import component
+from . import tmal
 
 try:
     # Optional packages for model fitting or use on HEAD LAN
@@ -37,8 +38,8 @@ logger = clogging.config_logger('xija', level=clogging.INFO)
 
 
 class ThermalModel(object):
-    def __init__(self, start='2011:115:00:00:00', stop='2011:115:01:00:00', dt=328.0,
-                 model_spec=None, name='xijamod'):
+    def __init__(self, name, start='2011:115:00:00:00', stop='2011:116:00:00:00',
+                 dt=328.0, model_spec=None):
         if model_spec:
             dt = model_spec['dt']
         self.name = name
@@ -153,9 +154,7 @@ class ThermalModel(object):
     def make(self):
         self.make_pars()
         self.make_mvals()
-        self.make_mults()
-        self.make_heats()
-        self.make_heatsinks()
+        self.make_tmal()
 
     def make_pars(self):
         if not hasattr(self, '_parvals'):
@@ -198,60 +197,22 @@ class ThermalModel(object):
         self.mvals.shape = (len(comps), -1)
         self.cvals = self.mvals[:, 0::2]
 
-    def make_mults(self):
-        """
-        Iterate through Couplings to make mults: 2-d array containing rows
-        in the format:
-          [idx1, idx2, parvals_i]
-
-        This provides a derivative coupling term in the form:
-          d_mvals[idx1] /dt += mvals[idx2] / parvals[parvals_i]
-        """
-        mults = []
-        for comp in self.comps:
-            if isinstance(comp, component.Coupling):
-                i1 = comp.node1.mvals_i
-                i2 = comp.node2.mvals_i
-                mults.append((i1, i2, comp.parvals_i))
-
-        self.mults = np.array(mults)
-
-    def make_heats(self):
-        """
-        Iterate through PrecomputedHeatPower to make heats.
-        This provides a derivative heating term in the form:
-          d_mvals[i1] /dt += mvals[i2]
-        """
-        heats = []
-        for comp in self.comps:
-            if isinstance(comp, component.PrecomputedHeatPower):
-                i1 = comp.node.mvals_i   # Node being heated
-                i2 = comp.mvals_i        # mvals row with precomputed heat input
-                heats.append((i1, i2))
-
-        self.heats = np.array(heats)
-
-    def make_heatsinks(self):
-        """
-        """
-        heatsinks = []
-        for comp in self.comps:
-            if isinstance(comp, component.HeatSink):
-                i1 = comp.node.mvals_i   # Node being heated
-                T_parval_i = comp.parvals_i
-                tau_parval_i = comp.parvals_i + 1
-                heatsinks.append((i1, T_parval_i, tau_parval_i))
-
-        self.heatsinks = np.array(heatsinks)
-
-    def calc(self):
+    def make_tmal(self):
+        """ Make the TMAL "code" using components that generate TMAL statements"""
         for comp in self.comps:
             comp.update()
+        tmal_comps = [x for x in self.comps if hasattr(x, 'tmal_ints')]
+        self.tmal_ints = np.zeros((len(tmal_comps), tmal.N_INTS), dtype=np.int32)
+        self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS), dtype=np.float32)
+        for i, comp in enumerate(tmal_comps):
+            self.tmal_ints[i, 0:len(comp.tmal_ints)] = comp.tmal_ints
+            self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
 
+    def calc(self):
+        self.make_tmal()
         dt = self.dt_ksec * 2
         indexes = np.arange(0, self.n_times-2, 2)
-        calc_model(indexes, dt, self.n_preds, self.mvals, self.parvals, self.mults,
-                   self.heats, self.heatsinks)
+        calc_model(indexes, dt, self.n_preds, self.mvals, self.tmal_ints, self.tmal_floats)
 
     def calc_stat(self):
         self.calc()            # parvals already set with dummy_calc
