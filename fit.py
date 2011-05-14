@@ -161,7 +161,7 @@ def get_options():
                       default='minusz',
                       help="Model to predict (default=minusz)")
     parser.add_option("--thaw-pars",
-                      default='solarheat__tmzp_my__P_60',
+                      default='solarheat__tephin__P_.* solarheat__tephin__dP_.*',
                       help="List of parameters (space-separated) to thaw (default=none)")
     parser.add_option("--nproc",
                       default=0,
