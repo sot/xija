@@ -113,7 +113,6 @@ class Coupling(ModelComponent):
 
     def update(self):
         self.tmal_ints = (tmal.OPCODES['coupling'],
-                          self.node1.mvals_i,  # dy1/dt index
                           self.node1.mvals_i,  # y1 index
                           self.node2.mvals_i   # y2 index
                           )
