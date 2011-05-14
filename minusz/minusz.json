@@ -7,13 +7,17 @@
             "name": "pitch"
         }, 
         {
+            "class_name": "Eclipse", 
+            "init_args": [], 
+            "init_kwargs": {}, 
+            "name": "eclipse"
+        }, 
+        {
             "class_name": "Node", 
             "init_args": [
                 "tcylfmzm"
             ], 
-            "init_kwargs": {
-                "sigma": -20
-            }, 
+            "init_kwargs": {}, 
             "name": "tcylfmzm"
         }, 
         {
@@ -21,13 +25,14 @@
             "init_args": [
                 "tcylfmzm", 
                 "pitch", 
+                "eclipse", 
                 [
                     45, 
                     60, 
                     90, 
                     120, 
                     145, 
-                    170
+                    171
                 ], 
                 [
                     2.5909793928920073, 
@@ -59,9 +64,7 @@
             "init_args": [
                 "tmzp_my"
             ], 
-            "init_kwargs": {
-                "sigma": -20
-            }, 
+            "init_kwargs": {}, 
             "name": "tmzp_my"
         }, 
         {
@@ -69,13 +72,14 @@
             "init_args": [
                 "tmzp_my", 
                 "pitch", 
+                "eclipse", 
                 [
                     45, 
                     60, 
                     90, 
                     120, 
                     145, 
-                    170
+                    171
                 ], 
                 [
                     1.1608053172803638, 
@@ -107,9 +111,7 @@
             "init_args": [
                 "tfssbkt1"
             ], 
-            "init_kwargs": {
-                "sigma": -20
-            }, 
+            "init_kwargs": {}, 
             "name": "tfssbkt1"
         }, 
         {
@@ -117,13 +119,14 @@
             "init_args": [
                 "tfssbkt1", 
                 "pitch", 
+                "eclipse", 
                 [
                     45, 
                     60, 
                     90, 
                     120, 
                     145, 
-                    170
+                    171
                 ], 
                 [
                     23.005800378484899, 
@@ -155,9 +158,7 @@
             "init_args": [
                 "tephin"
             ], 
-            "init_kwargs": {
-                "sigma": -10
-            }, 
+            "init_kwargs": {}, 
             "name": "tephin"
         }, 
         {
@@ -165,13 +166,14 @@
             "init_args": [
                 "tephin", 
                 "pitch", 
+                "eclipse", 
                 [
                     45, 
                     60, 
                     90, 
                     120, 
                     145, 
-                    170
+                    171
                 ], 
                 [
                     0.96976110603706989, 
@@ -203,9 +205,7 @@
             "init_args": [
                 "tcylaft6"
             ], 
-            "init_kwargs": {
-                "sigma": -20
-            }, 
+            "init_kwargs": {}, 
             "name": "tcylaft6"
         }, 
         {
@@ -213,13 +213,14 @@
             "init_args": [
                 "tcylaft6", 
                 "pitch", 
+                "eclipse", 
                 [
                     45, 
                     60, 
                     90, 
                     120, 
                     145, 
-                    170
+                    171
                 ], 
                 [
                     -0.0010068180434237755, 
@@ -338,7 +339,7 @@
             -0.39794782490249514
         ], 
         [
-            "solarheat__tcylfmzm__P_170", 
+            "solarheat__tcylfmzm__P_171", 
             -0.92077712463389527
         ], 
         [
@@ -362,7 +363,7 @@
             0.0
         ], 
         [
-            "solarheat__tcylfmzm__dP_170", 
+            "solarheat__tcylfmzm__dP_171", 
             0.0
         ], 
         [
@@ -372,6 +373,10 @@
         [
             "solarheat__tcylfmzm__ampl", 
             0.055087173919677754
+        ], 
+        [
+            "solarheat__tcylfmzm__bias", 
+            0.0
         ], 
         [
             "heatsink__tcylfmzm__T", 
@@ -402,7 +407,7 @@
             0.42254226207095658
         ], 
         [
-            "solarheat__tmzp_my__P_170", 
+            "solarheat__tmzp_my__P_171", 
             -0.30455302151882246
         ], 
         [
@@ -426,7 +431,7 @@
             0.0
         ], 
         [
-            "solarheat__tmzp_my__dP_170", 
+            "solarheat__tmzp_my__dP_171", 
             0.0
         ], 
         [
@@ -436,6 +441,10 @@
         [
             "solarheat__tmzp_my__ampl", 
             0.029389582120490643
+        ], 
+        [
+            "solarheat__tmzp_my__bias", 
+            0.0
         ], 
         [
             "heatsink__tmzp_my__T", 
@@ -466,7 +475,7 @@
             17.254114241863981
         ], 
         [
-            "solarheat__tfssbkt1__P_170", 
+            "solarheat__tfssbkt1__P_171", 
             -7.594429820706516
         ], 
         [
@@ -490,7 +499,7 @@
             0.0
         ], 
         [
-            "solarheat__tfssbkt1__dP_170", 
+            "solarheat__tfssbkt1__dP_171", 
             0.0
         ], 
         [
@@ -502,6 +511,10 @@
             0.71928486824035631
         ], 
         [
+            "solarheat__tfssbkt1__bias", 
+            0.0
+        ], 
+        [
             "heatsink__tfssbkt1__T", 
             0.0
         ], 
@@ -511,51 +524,51 @@
         ], 
         [
             "solarheat__tephin__P_45", 
-            0.94957414267218443
+            0.96976110603706989
         ], 
         [
             "solarheat__tephin__P_60", 
-            1.3844925054565071
+            1.4221924089192244
         ], 
         [
             "solarheat__tephin__P_90", 
-            1.7068745095739966
+            1.9133045643725675
         ], 
         [
             "solarheat__tephin__P_120", 
-            1.7860204797668697
+            1.9183228014942686
         ], 
         [
             "solarheat__tephin__P_145", 
-            1.4453582085169772
+            1.4231235450884276
         ], 
         [
-            "solarheat__tephin__P_170", 
-            0.68721590186190817
+            "solarheat__tephin__P_171", 
+            0.69415616876670061
         ], 
         [
             "solarheat__tephin__dP_45", 
-            0.063527772482420836
+            0.0
         ], 
         [
             "solarheat__tephin__dP_60", 
-            0.31761772219003048
+            0.0
         ], 
         [
             "solarheat__tephin__dP_90", 
-            0.27657964574249172
+            0.0
         ], 
         [
             "solarheat__tephin__dP_120", 
-            0.39112788786217623
+            0.0
         ], 
         [
             "solarheat__tephin__dP_145", 
-            0.35456970342407779
+            0.0
         ], 
         [
-            "solarheat__tephin__dP_170", 
-            0.21811392919509842
+            "solarheat__tephin__dP_171", 
+            0.0
         ], 
         [
             "solarheat__tephin__tau", 
@@ -564,6 +577,10 @@
         [
             "solarheat__tephin__ampl", 
             0.067919468805023628
+        ], 
+        [
+            "solarheat__tephin__bias", 
+            0.0
         ], 
         [
             "heatsink__tephin__T", 
@@ -594,7 +611,7 @@
             0.052313883428031643
         ], 
         [
-            "solarheat__tcylaft6__P_170", 
+            "solarheat__tcylaft6__P_171", 
             0.086047015046623238
         ], 
         [
@@ -618,7 +635,7 @@
             0.0
         ], 
         [
-            "solarheat__tcylaft6__dP_170", 
+            "solarheat__tcylaft6__dP_171", 
             0.0
         ], 
         [
@@ -628,6 +645,10 @@
         [
             "solarheat__tcylaft6__ampl", 
             0.00341020788137107
+        ], 
+        [
+            "solarheat__tcylaft6__bias", 
+            0.0
         ], 
         [
             "heatsink__tcylaft6__T", 

@@ -57,7 +57,7 @@ class ThermalModel(object):
 
     def _set_from_model_spec(self, model_spec):
         for comp in model_spec['comps']:
-            ComponentClass = globals()[comp['class_name']]
+            ComponentClass = getattr(component, comp['class_name'])
             args = comp['init_args']
             kwargs = dict((str(k), v) for k, v in comp['init_kwargs'].items())
             self.add(ComponentClass, *args, **kwargs)
