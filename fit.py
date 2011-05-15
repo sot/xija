@@ -123,6 +123,8 @@ def fit_model(model,
             fit_logger.info('Thawing ' + parname)
             ui.thaw(getattr(xijamod, parname))
             fit_parnames.add(parname)
+            if 'tau' in parname:
+                getattr(xijamod, parname).min = 0.1
 
     ui.load_user_stat('xijastat', CalcStat(model, comm), lambda x: np.ones_like(x))
     ui.set_stat(xijastat)
@@ -217,7 +219,7 @@ src['outdir'] = opt.outdir
 src['pardir'] = opt.pardir or opt.model
 
 model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
-model = xija.ThermalModel(start, stop, name=opt.model, model_spec=model_spec)
+model = xija.ThermalModel(opt.model, start, stop, model_spec=model_spec)
 
 ### UGHH, need to clean this up, probably have model elements accumulate dynamically
 ### instead of a make step.

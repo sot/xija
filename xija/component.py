@@ -329,9 +329,9 @@ class AcisPsmcPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
-        self.node = node
-        self.k = k
+        self.node = self.model.get_comp(node)
         self.n_mvals = 1
+        self.add_par('k', k)
 
     def __str__(self):
         return 'psmc__{0}'.format(self.node)
@@ -346,9 +346,44 @@ class AcisPsmcPower(PrecomputedHeatPower):
             dpabv = self.model.fetch('1dp28bvo')
             dpabi = self.model.fetch('1dpicbcu')
             # maybe smooth? (already 5min telemetry, no need)
-            self._dvals = self.k * (deav * deai + dpaav * dpaai + dpabv * dpabi)
+            self._dvals = deav * deai + dpaav * dpaai + dpabv * dpabi
         return self._dvals
 
+    def update(self):
+        self.mvals = self.k * self.dvals
+    
+    
+class AcisDpaPower(PrecomputedHeatPower):
+    """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
+    def __init__(self, model, node, k=1.0):
+        ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
+        self.add_par('k', k)
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'dpa__{0}'.format(self.node)
+
+    @property
+    def dvals(self):
+        if not hasattr(self, '_dvals'):
+            deav = self.model.fetch('1de28avo')
+            deai = self.model.fetch('1deicacu')
+            dpaav = self.model.fetch('1dp28avo')
+            dpaai = self.model.fetch('1dpicacu')
+            dpabv = self.model.fetch('1dp28bvo')
+            dpabi = self.model.fetch('1dpicbcu')
+            # maybe smooth? (already 5min telemetry, no need)
+            self._dvals = deav * deai + dpaav * dpaai + dpabv * dpabi
+        return self._dvals
+
+    def update(self):
+        self.mvals = self.k * self.dvals / 10.0
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                           self.node.mvals_i,  # dy1/dt index
+                           self.mvals_i,       # mvals row with precomputed heat input
+                          )
+        self.tmal_floats = ()
     
 class ProportialHeater(ActiveHeatPower):
     """Proportional heater (P = k * (T - T_set) for T > T_set)"""
