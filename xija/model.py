@@ -82,11 +82,24 @@ class ThermalModel(object):
         i1 = int((DateTime(stop).secs - time0) / dt)
         return time0 + np.arange(i0, i1) * dt
 
+
     @property
+    def cmd_states(self):
+        import Ska.DBI
+        import Chandra.cmd_states
+        if not hasattr(self, '_cmd_states'):
+            db = Ska.DBI.DBI(dbi='sybase', database='aca', user='aca_read')
+            states = db.fetchall("""select * from cmd_states
+                                 where tstop >= {0} and tstart <= {1}
+                                 """.format(self.tstart, self.tstop))
+            self._cmd_states = Chandra.cmd_states.interpolate_states(states, self.times)
+        return self._cmd_states
+
+    @property   # HEY make this settable!
     def pars(self):
         return dict((k, v) for k, v in zip(self.parnames, self.parvals))
 
-    def fetch(self, msid, attr='means', method='linear'):
+    def fetch(self, msid, attr='vals', method='linear'):
         tpad = self.dt * 5
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
@@ -252,14 +265,14 @@ class ThermalModel(object):
             plt.ylabel('degC')
             plt.grid()
 
-            resid = (comp.dvals - comp.mvals) * 1.8
+            resid = (comp.dvals - comp.mvals)
             plt.subplot(2, 1, 2)
             plot_cxctime(times, resid, '-m')
             ylim = np.max(np.abs(resid)) * 1.1
             if ylim < 6:
                 ylim = 6
             plt.ylim(-ylim, ylim)
-            plt.ylabel('degF')
+            plt.ylabel('degC')
             plt.grid()
 
             plt.subplots_adjust(bottom=0.1, top=0.93, hspace=0.15)

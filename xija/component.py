@@ -1,6 +1,8 @@
 import numpy as np
 from Chandra.Time import DateTime
 import scipy.interpolate
+import Ska.DBI
+import Chandra.cmd_states
 
 from . import tmal
 
@@ -367,18 +369,52 @@ class AcisDpaPower(PrecomputedHeatPower):
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
-            deav = self.model.fetch('1de28avo')
-            deai = self.model.fetch('1deicacu')
             dpaav = self.model.fetch('1dp28avo')
             dpaai = self.model.fetch('1dpicacu')
             dpabv = self.model.fetch('1dp28bvo')
             dpabi = self.model.fetch('1dpicbcu')
             # maybe smooth? (already 5min telemetry, no need)
-            self._dvals = deav * deai + dpaav * dpaai + dpabv * dpabi
+            self._dvals = dpaav * dpaai + dpabv * dpabi
         return self._dvals
 
     def update(self):
         self.mvals = self.k * self.dvals / 10.0
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                           self.node.mvals_i,  # dy1/dt index
+                           self.mvals_i,       # mvals row with precomputed heat input
+                          )
+        self.tmal_floats = ()
+    
+class AcisDpaPower6(PrecomputedHeatPower):
+    """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
+    def __init__(self, model, node, k=1.0, dp611=0.0):
+        ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
+        self.add_par('k', k)
+        self.add_par('dp611', dp611)
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'dpa6__{0}'.format(self.node)
+
+    @property
+    def dvals(self):
+        if not hasattr(self, '_dvals'):
+            dpaav = self.model.fetch('1dp28avo')
+            dpaai = self.model.fetch('1dpicacu')
+            dpabv = self.model.fetch('1dp28bvo')
+            dpabi = self.model.fetch('1dpicbcu')
+            states = self.model.cmd_states
+            self.mask611 = ((states['fep_count'] == 6) &
+                            (states['clocking'] == 1) &
+                            (states['vid_board'] == 1))
+
+            self._dvals = dpaav * dpaai + dpabv * dpabi
+        return self._dvals
+
+    def update(self):
+        self.mvals = self.k * self.dvals / 10.0
+        self.mvals[self.mask611] += self.dp611
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
                            self.mvals_i,       # mvals row with precomputed heat input
