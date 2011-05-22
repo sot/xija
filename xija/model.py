@@ -119,7 +119,7 @@ class ThermalModel(object):
         logger.info('Fetching msid: %s over %s to %s' % (msid, datestart, datestop))
         tlm = fetch.MSID(msid, datestart, datestop, stat='5min', filter_bad=True)
         vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times, self.times, method=method)
-        return np.array(vals, dtype=np.float)
+        return vals
 
     def add(self, ComponentClass, *args, **kwargs):
         comp = ComponentClass(self, *args, **kwargs)
@@ -236,7 +236,9 @@ class ThermalModel(object):
             self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
 
     def calc(self):
-        self.make_tmal()
+        if not hasattr(self, 'diditalready'):
+            self.make_tmal()
+            self.diditalready = 1
         # int calc_model(int n_times, int n_preds, int n_tmals, float dt, 
         #                float **mvals, int **tmal_ints, float **tmal_floats)
 
