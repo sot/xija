@@ -3,6 +3,7 @@ from Chandra.Time import DateTime
 import scipy.interpolate
 import Ska.DBI
 import Chandra.cmd_states
+import Ska.Numpy
 
 from . import tmal
 
@@ -354,6 +355,11 @@ class AcisPsmcPower(PrecomputedHeatPower):
 
     def update(self):
         self.mvals = self.k * self.dvals
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                           self.node.mvals_i,  # dy1/dt index
+                           self.mvals_i,       # mvals row with precomputed heat input
+                          )
+        self.tmal_floats = ()
     
     
 class AcisDpaPower(PrecomputedHeatPower):
