@@ -38,7 +38,7 @@ k = 1. / c2
 tau12 = c1 / u12 
 tau21 = c2 / u12 
 
-mdl = xija.ThermalModel('psmc', start='2010:103:00:00:00.00', stop='2010:124:00:00:00')
+mdl = xija.ThermalModel('psmc', start='2010:103:00:00:00.00', stop='2011:124:00:00:00')
 
 pin1at = mdl.add(xija.Node, '1pin1at')
 pdeaat = mdl.add(xija.Node, '1pdeaat')

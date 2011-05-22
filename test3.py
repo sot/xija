@@ -45,6 +45,6 @@ pars_minusz = """
 """
 
 mdl.make()
-mdl.calc()
+# mdl.calc()
 
 # Plain core.pyx with no cython optimization. 1 loops, best of 3: 1.26 s per loop

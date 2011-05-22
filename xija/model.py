@@ -4,6 +4,8 @@ Next-generation thermal modeling framework for Chandra thermal modeling
 
 import os
 import json
+import ctypes
+
 from odict import OrderedDict
 import numpy as np
 import Ska.Numpy
@@ -22,7 +24,6 @@ except ImportError:
     pass
 
 import pyyaks.context as pyc
-from .core import calc_model
 from .files import files as xija_files
 
 src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
@@ -36,6 +37,18 @@ if 'debug' in globals():
 
 logger = clogging.config_logger('xija', level=clogging.INFO)
 
+core = np.ctypeslib.load_library('libcore', os.path.abspath(os.path.dirname(__file__)))
+core.calc_model.restype = ctypes.c_int
+core.calc_model.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_double,
+                            ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
+                            ctypes.POINTER(ctypes.POINTER(ctypes.c_double))]
+#int calc_model(int n_times, int n_preds, int n_tmals, double dt, 
+#               double **mvals, int **tmal_ints, double **tmal_floats)
+
+def convert_type_star_star(array, ctype_type):
+    f4ptr = ctypes.POINTER(ctype_type)
+    return (f4ptr * len(array))(*[row.ctypes.data_as(f4ptr) for row in array])
 
 class ThermalModel(object):
     def __init__(self, name, start='2011:115:00:00:00', stop='2011:116:00:00:00',
@@ -106,7 +119,7 @@ class ThermalModel(object):
         logger.info('Fetching msid: %s over %s to %s' % (msid, datestart, datestop))
         tlm = fetch.MSID(msid, datestart, datestop, stat='5min', filter_bad=True)
         vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times, self.times, method=method)
-        return vals
+        return np.array(vals, dtype=np.float)
 
     def add(self, ComponentClass, *args, **kwargs):
         comp = ComponentClass(self, *args, **kwargs)
@@ -207,8 +220,9 @@ class ThermalModel(object):
         # Stack the input dvals.  This *copies* the data values.
         self.n_preds = len(preds)
         self.mvals = np.hstack(comp.dvals for comp in preds + unpreds)
-        self.mvals.shape = (len(comps), -1)
+        self.mvals.shape = (len(comps), -1)  # why doesn't this use vstack?
         self.cvals = self.mvals[:, 0::2]
+        print 'HEJ dtype', self.mvals.dtype
 
     def make_tmal(self):
         """ Make the TMAL "code" using components that generate TMAL statements"""
@@ -216,16 +230,23 @@ class ThermalModel(object):
             comp.update()
         tmal_comps = [x for x in self.comps if hasattr(x, 'tmal_ints')]
         self.tmal_ints = np.zeros((len(tmal_comps), tmal.N_INTS), dtype=np.int32)
-        self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS), dtype=np.float32)
+        self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS), dtype=np.float)
         for i, comp in enumerate(tmal_comps):
             self.tmal_ints[i, 0:len(comp.tmal_ints)] = comp.tmal_ints
             self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
 
     def calc(self):
         self.make_tmal()
+        # int calc_model(int n_times, int n_preds, int n_tmals, float dt, 
+        #                float **mvals, int **tmal_ints, float **tmal_floats)
+
         dt = self.dt_ksec * 2
-        indexes = np.arange(0, self.n_times-2, 2)
-        calc_model(indexes, dt, self.n_preds, self.mvals, self.tmal_ints, self.tmal_floats)
+        mvals = convert_type_star_star(self.mvals, ctypes.c_double)
+        tmal_ints = convert_type_star_star(self.tmal_ints, ctypes.c_int)
+        tmal_floats = convert_type_star_star(self.tmal_floats, ctypes.c_double)
+
+        core.calc_model(self.n_times, self.n_preds, len(self.tmal_ints), dt,
+                        mvals, tmal_ints, tmal_floats)
 
     def calc_stat(self):
         self.calc()            # parvals already set with dummy_calc
