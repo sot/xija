@@ -11,3 +11,8 @@ fit
 fit.*
 *.json
 clogging.py
+dpa/
+dpa6/
+ctypes_example/
+*.so
+*.so.*
