@@ -6,7 +6,7 @@ import os
 import json
 import ctypes
 
-from odict import OrderedDict
+from collections import OrderedDict
 import numpy as np
 import Ska.Numpy
 from Chandra.Time import DateTime
