@@ -69,6 +69,7 @@ class CalcStat(object):
         self.model = model
         self.comm = comm
         self.cache_fit_stat = {}
+        self.min_fit_stat = None
         
     def __call__(self, data, model, staterror=None, syserror=None, weight=None):
         parvals_key = tuple('%.4e' % x for x in self.model.parvals)
@@ -89,6 +90,10 @@ class CalcStat(object):
         fit_logger.info('Fit statistic: %.4f' % fit_stat)
         self.cache_fit_stat[parvals_key] = fit_stat
         
+        if self.min_fit_stat is None or fit_stat < self.min_fit_stat:
+            self.min_fit_stat = fit_stat
+            self.min_parvals = self.model.parvals.copy()
+
         return fit_stat, np.ones(1)
 
 def fit_model(model,
@@ -126,7 +131,8 @@ def fit_model(model,
             if 'tau' in parname:
                 getattr(xijamod, parname).min = 0.1
 
-    ui.load_user_stat('xijastat', CalcStat(model, comm), lambda x: np.ones_like(x))
+    calc_stat = CalcStat(model, comm)
+    ui.load_user_stat('xijastat', calc_stat, lambda x: np.ones_like(x))
     ui.set_stat(xijastat)
 
     if fit_parnames and not nofit:

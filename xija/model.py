@@ -222,7 +222,6 @@ class ThermalModel(object):
         self.mvals = np.hstack(comp.dvals for comp in preds + unpreds)
         self.mvals.shape = (len(comps), -1)  # why doesn't this use vstack?
         self.cvals = self.mvals[:, 0::2]
-        print 'HEJ dtype', self.mvals.dtype
 
     def make_tmal(self):
         """ Make the TMAL "code" using components that generate TMAL statements"""
@@ -236,9 +235,7 @@ class ThermalModel(object):
             self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
 
     def calc(self):
-        if not hasattr(self, 'diditalready'):
-            self.make_tmal()
-            self.diditalready = 1
+        self.make_tmal()
         # int calc_model(int n_times, int n_preds, int n_tmals, float dt, 
         #                float **mvals, int **tmal_ints, float **tmal_floats)
 
