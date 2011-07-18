@@ -170,9 +170,6 @@ class FitWorker(object):
 class MainWindow(object):
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
-    def hello(self, widget, data=None):
-        print "Hello World"
-
     def destroy(self, widget, data=None):
         print "destroy signal occurred"
         gtk.main_quit()
