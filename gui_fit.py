@@ -278,8 +278,9 @@ class MainWindow(object):
         self.main_box.pack_start(main_left_panel, expand=True, fill=True)
         self.main_box.pack_start(main_right_panel, expand=True)
 
-        #self.button.connect("clicked", fit_worker.start)
-        # self.button2.connect("clicked", fit_worker.terminate)
+        bp = main_left_panel.control_buttons_panel
+        bp.button.connect("clicked", fit_worker.start)
+        bp.button2.connect("clicked", fit_worker.terminate)
 
         # and the window
         self.window.show_all()
@@ -374,7 +375,7 @@ src['model'] = opt.model
 src['outdir'] = opt.outdir
 src['pardir'] = opt.pardir or opt.model
 
-if 0:
+if 1:
     model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
     model = xija.ThermalModel(opt.model, start, stop, model_spec=model_spec)
     model.make()   
