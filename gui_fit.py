@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import multiprocessing
@@ -24,6 +26,8 @@ import pyyaks.context as pyc
 
 import xija
 import clogging   # get rid of this or something
+
+# from xija.fit import (FitTerminated, CalcModel, CalcStat, FitWorker)
 
 class FitTerminated(Exception):
     pass
@@ -89,7 +93,7 @@ class CalcStat(object):
 
 
 class FitWorker(object):
-    def __init__(self):
+    def __init__(self, freeze_pars, thaw_pars):
         self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
 
     def start(self, *args):
@@ -167,30 +171,115 @@ class FitWorker(object):
                 
         model.calc()
 
+
+# class HBox(gtk.HBox):
+#     def __init__(self, homogeneous=False, spacing=0):
+#         super(HBox, self).__init__(homogeneous, spacing)
+
+#     def pack_start(self, child, expand=False, fill=False, padding=0):
+#         return super(HBox, self).pack_start(child, expand, fill, padding)
+        
+#     def pack_end(self, child, expand=False, fill=False, padding=0):
+#         return super(HBox, self).pack_start(child, expand, fill, padding)
+        
+
+# class VBox(gtk.VBox):
+#     def __init__(self, homogeneous=False, spacing=0):
+#         super(VBox, self).__init__(homogeneous, spacing)
+
+#     def pack_start(self, child, expand=False, fill=False, padding=0):
+#         return super(VBox, self).pack_start(child, expand, fill, padding)
+        
+#     def pack_end(self, child, expand=False, fill=False, padding=0):
+#         return super(VBox, self).pack_start(child, expand, fill, padding)
+        
+
+class Panel(object):
+    def __init__(self, orient='h', homogeneous=False, spacing=0):
+        Box = gtk.HBox if orient == 'h' else gtk.VBox
+        self.box = Box(homogeneous, spacing)
+        self.orient = orient
+
+    def pack_start(self, child, expand=False, fill=False, padding=0):
+        if isinstance(child, Panel):
+            child = child.box
+        return self.box.pack_start(child, expand, fill, padding)
+        
+    def pack_end(self, child, expand=False, fill=False, padding=0):
+        if isinstance(child, Panel):
+            child = child.box
+        return self.pack_start(child, expand, fill, padding)
+        
+
+class PlotsPanel(Panel):
+    def __init__(self):
+        Panel.__init__(self, orient='v')
+        self.pack_start(gtk.Label('plots_panel'))
+
+
+class ParamsPanel(Panel):
+    def __init__(self):
+        Panel.__init__(self, orient='v')
+        self.pack_start(gtk.Label('params_panel'))
+
+
+class ConsolePanel(Panel):
+    def __init__(self):
+        Panel.__init__(self, orient='v')
+        self.pack_start(gtk.Label('console_panel'))
+
+
+class ControlButtonsPanel(Panel):
+    def __init__(self):
+        Panel.__init__(self, orient='h')
+        self.button = gtk.Button("Fit now")
+        self.button2 = gtk.Button("Stop!")
+        self.pack_start(gtk.Label('control_buttons_panel'))
+        self.pack_start(self.button)
+        self.pack_start(self.button2)
+
+
+class MainLeftPanel(Panel):
+    def __init__(self):
+        Panel.__init__(self, orient='v')
+        self.control_buttons_panel = ControlButtonsPanel()
+        self.plots_panel = PlotsPanel()
+
+        self.pack_start(self.control_buttons_panel)
+        self.pack_start(self.plots_panel)
+
+
+class MainRightPanel(Panel):
+    def __init__(self):
+        Panel.__init__(self, orient='v')
+        self.params_panel = ParamsPanel()
+        self.console_panel = ConsolePanel()
+
+        self.pack_start(self.params_panel)
+        self.pack_start(self.console_panel)
+
+
 class MainWindow(object):
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
-    def destroy(self, widget, data=None):
-        print "destroy signal occurred"
-        gtk.main_quit()
-
     def __init__(self):
         # create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.connect("destroy", self.destroy)
+        self.window.set_default_size(700, 500)
     
         # Sets the border width of the window.
         self.window.set_border_width(10)
-        self.main_box = gtk.HBox()
-        self.window.add(self.main_box)
+        self.main_box = Panel(orient='h')
+        self.window.add(self.main_box.box)
 
-        self.button = gtk.Button("Fit now")
-        self.button.connect("clicked", fit_worker.start)
-        self.main_box.pack_start(self.button)
-    
-        self.button2 = gtk.Button("Stop!")
-        self.button2.connect("clicked", fit_worker.terminate)
-        self.main_box.pack_start(self.button2)
+        main_left_panel = MainLeftPanel()
+        main_right_panel = MainRightPanel()
+        self.main_box.pack_start(main_left_panel, expand=True, fill=True)
+        self.main_box.pack_start(main_right_panel, expand=True)
+
+        #self.button.connect("clicked", fit_worker.start)
+        # self.button2.connect("clicked", fit_worker.terminate)
 
         # and the window
         self.window.show_all()
@@ -199,6 +288,9 @@ class MainWindow(object):
         # All PyGTK applications must have a gtk.main(). Control ends here
         # and waits for an event to occur (like a key press or mouse event).
         gtk.main()
+
+    def destroy(self, widget, data=None):
+        gtk.main_quit()
 
 # If the program is run directly or passed as an argument to the python
 # interpreter then create a HelloWorld instance and show it
@@ -224,6 +316,7 @@ def get_options():
                       default=30,
                       help="Number of days in fit interval (default=90")
     parser.add_option("--stop",
+                      default="2010:180",
                       help="Stop time of fit interval (default=NOW - 7 days)")
     parser.add_option("--method",
                       default='simplex',
@@ -259,15 +352,6 @@ def get_options():
 
 opt, args = get_options()
 
-fit_worker = FitWorker()
-
-# Default configurations for fit methods
-sherpa_configs = dict(
-    simplex = dict(ftol=1e-3,
-                   finalsimplex=0,   # converge based only on length of simplex
-                   maxfev=1000),
-    )
-
 src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
 files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
          pyc.ContextDict('files', basedir=os.getcwd()))
@@ -290,13 +374,20 @@ src['model'] = opt.model
 src['outdir'] = opt.outdir
 src['pardir'] = opt.pardir or opt.model
 
-model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
-model = xija.ThermalModel(opt.model, start, stop, model_spec=model_spec)
-model.make()   
+if 0:
+    model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
+    model = xija.ThermalModel(opt.model, start, stop, model_spec=model_spec)
+    model.make()   
 
-model.outdir = src['outdir'].val
-model.pardir = src['pardir'].val
+    model.outdir = src['outdir'].val
+    model.pardir = src['pardir'].val
 
+# Default configurations for fit methods
+sherpa_configs = dict(
+    simplex = dict(ftol=1e-3,
+                   finalsimplex=0,   # converge based only on length of simplex
+                   maxfev=1000),
+    )
 thaw_pars = opt.thaw_pars.split()
 freeze_pars = ('.*',
                '.*__T_e',
@@ -306,6 +397,7 @@ freeze_pars = ('.*',
                '.*__tau_sc',
                '.*__p_ampl',
                )
+fit_worker = FitWorker(freeze_pars, thaw_pars)
 
 # make_out_dir()
 

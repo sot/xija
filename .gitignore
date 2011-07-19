@@ -16,3 +16,4 @@ dpa6/
 ctypes_example/
 *.so
 *.so.*
+GUI_play/
