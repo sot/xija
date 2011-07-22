@@ -7,6 +7,7 @@ import time
 import pygtk
 pygtk.require('2.0')
 import gtk
+import gobject
 from itertools import count
 
 import re
@@ -72,25 +73,27 @@ class CalcStat(object):
         except KeyError:
             fit_stat = self.model.calc_stat()
             fit_logger.info('pars={}'.format('\n'.join(
-                    ["{}={}".format(x,y) for (x,y) in zip(self.model.parnames, self.model.parvals)])))
+                    ["{}={}".format(x, y) for (x, y) in zip(self.model.parnames,
+                                                          self.model.parvals)])))
         fit_logger.info('Fit statistic: %.4f' % fit_stat)
         self.cache_fit_stat[parvals_key] = fit_stat
-        fit_logger.info('Done with cache')
         
         if self.min_fit_stat is None or fit_stat < self.min_fit_stat:
             self.min_fit_stat = fit_stat
             self.min_parvals = self.model.parvals.copy()
 
-        fit_logger.info('Done with min_fit_stat')
+        self.pipe.send({'status': 'fitting',
+                        'time': time.time(),
+                        'parvals': self.model.parvals,
+                        'fit_stat': fit_stat,
+                        'min_parvals': self.min_parvals,
+                        'min_fit_stat': self.min_fit_stat})
 
         while self.pipe.poll():
             pipe_val = self.pipe.recv()
-            if pipe_val == 'get_pars':
-                self.pipe.send(self.min_parvals)
-            elif pipe_val == 'terminate':
+            if pipe_val == 'terminate':
                 raise FitTerminated('terminated')
 
-        fit_logger.info('Returning from fit_stat')
         return fit_stat, np.ones(1)
 
 
@@ -98,31 +101,25 @@ class FitWorker(object):
     def __init__(self, model, freeze_pars, thaw_pars):
         self.model = model
         self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
+        self.freeze_pars = freeze_pars
+        self.thaw_pars = thaw_pars
 
-    def start(self, *args):
+    def start(self, widget=None):
         """Start a Sherpa fit process as a spawned (non-blocking) process.
         """
         self.fit_process = multiprocessing.Process(target=self.fit)
         self.fit_process.start()
         logging.debug('Fit started')
 
-    def terminate(self, *args):
+    def terminate(self, widget=None):
         """Terminate a Sherpa fit process in a controlled way by sending a
         message.  Get the final parameter values if possible.
         """
-        self.parent_pipe.send('get_pars')
-        if self.parent_pipe.poll(1.0):
-            pars = self.parent_pipe.recv()
-            logging.debug('Got pars {}'.format(pars))
-        else:
-            pars = None
-            logging.debug('Could not get pars prior to terminate')
-
         self.parent_pipe.send('terminate')
         self.fit_process.join()
         logging.debug('Fit terminated')
 
-    def freeze_or_thaw_params(self):
+    def freeze_or_thaw_params(self, xijamod):
         """Go through each model parameter and either freeze or thaw it.
         Return a list of the thawed (fitted) parameters.
         """
@@ -130,11 +127,11 @@ class FitWorker(object):
         for parname, parval in zip(self.model.parnames, self.model.parvals):
             getattr(xijamod, parname).val = parval
             fit_parnames.add(parname)
-            if any([re.match(x + '$', parname) for x in freeze_pars]):
+            if any([re.match(x + '$', parname) for x in self.freeze_pars]):
                 fit_logger.info('Freezing ' + parname)
                 ui.freeze(getattr(xijamod, parname))
                 fit_parnames.remove(parname)
-            if any([re.match(x + '$', parname) for x in thaw_pars]):
+            if any([re.match(x + '$', parname) for x in self.thaw_pars]):
                 fit_logger.info('Thawing ' + parname)
                 ui.thaw(getattr(xijamod, parname))
                 fit_parnames.add(parname)
@@ -143,20 +140,16 @@ class FitWorker(object):
         return fit_parnames
 
     def fit(self):
-        comm = None
         method = 'simplex'
-        config = None
-        nofit = None
 
         dummy_data = np.zeros(1)
         dummy_times = np.arange(1)
         ui.load_arrays(1, dummy_times, dummy_data)
 
         ui.set_method(method)
-        ui.get_method().config.update(config or sherpa_configs.get(method, {}))
+        ui.get_method().config.update(sherpa_configs.get(method, {}))
 
-        xijamod = CalcModel(self.model)
-        ui.load_user_model(xijamod, 'xijamod')
+        ui.load_user_model(CalcModel(self.model), 'xijamod')  # sets global xijamod
         ui.add_user_pars('xijamod', self.model.parnames)
         ui.set_model(1, 'xijamod')
 
@@ -164,58 +157,16 @@ class FitWorker(object):
         ui.load_user_stat('xijastat', calc_stat, lambda x: np.ones_like(x))
         ui.set_stat(xijastat)
 
-        fit_parnames = self.freeze_or_thaw_params()
-        
-        if fit_parnames and not nofit:
+        if self.freeze_or_thaw_params(xijamod):
             try:
                 ui.fit(1)
-            except FitTerminated as e:
-                logging.debug('Got FitTerminated exception {}'.format(e))
-                
-        self.model.calc()
+                status = 'finished'
+                logging.debug('Fit finished normally')
+            except FitTerminated as err:
+                status = 'terminated'
+                logging.debug('Got FitTerminated exception {}'.format(err))
 
-
-# class HBox(gtk.HBox):
-#     def __init__(self, homogeneous=False, spacing=0):
-#         super(HBox, self).__init__(homogeneous, spacing)
-
-#     def pack_start(self, child, expand=False, fill=False, padding=0):
-#         return super(HBox, self).pack_start(child, expand, fill, padding)
-        
-#     def pack_end(self, child, expand=False, fill=False, padding=0):
-#         return super(HBox, self).pack_start(child, expand, fill, padding)
-        
-
-# class VBox(gtk.VBox):
-#     def __init__(self, homogeneous=False, spacing=0):
-#         super(VBox, self).__init__(homogeneous, spacing)
-
-#     def pack_start(self, child, expand=False, fill=False, padding=0):
-#         return super(VBox, self).pack_start(child, expand, fill, padding)
-        
-#     def pack_end(self, child, expand=False, fill=False, padding=0):
-#         return super(VBox, self).pack_start(child, expand, fill, padding)
-        
-
-class TableColumn(dict):
-    def __init__(self, table, name, col):
-        self.table = table
-        self.name = name
-        self.col = col
-        self.table.attach(gtk.Label(name.title()), self.col, self.col + 1, 0, 1)
-        dict.__init__(self)
-
-    def __setitem__(self, row, widget):
-        if row in self:
-            self.table.remove(self[row])
-        dict.__setitem__(self, row, widget)
-        self.table.attach(widget, self.col, self.col + 1, row + 1, row + 2, xoptions=gtk.SHRINK)
-        widget.show()
-
-    def clear(self):
-        for widget in self.values():
-            self.table.remove(widget)
-        dict.clear(self)
+        self.child_pipe.send({'status': status})
 
 
 class WidgetTable(dict):
@@ -303,6 +254,9 @@ class ParamsPanel(Panel):
             params_table[row, 1].set_alignment(0, 0.5)
         self.pack_start(params_table.box, padding=0)        
 
+    def update(self):
+        pass
+
 
 class ConsolePanel(Panel):
     def __init__(self, fit_worker):
@@ -344,6 +298,7 @@ class MainWindow(object):
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
     def __init__(self, fit_worker):
+        self.fit_worker = fit_worker
         # create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.connect("destroy", self.destroy)
@@ -361,6 +316,8 @@ class MainWindow(object):
 
         bp = main_left_panel.control_buttons_panel
         bp.fit_button.connect("clicked", fit_worker.start)
+        bp.fit_button.connect("clicked", lambda widget:
+                                  gobject.timeout_add(200, self.monitor_fit))
         bp.stop_button.connect("clicked", fit_worker.terminate)
 
         # and the window
@@ -373,6 +330,17 @@ class MainWindow(object):
 
     def destroy(self, widget, data=None):
         gtk.main_quit()
+
+    def monitor_fit(self):
+        print "here in monitor fit"
+        pipe = self.fit_worker.parent_pipe
+        while pipe.poll():
+            msg = pipe.recv()
+            print msg
+            if msg['status'] in ('terminated', 'finished'):
+                return False
+        return True
+        
 
 # If the program is run directly or passed as an argument to the python
 # interpreter then create a HelloWorld instance and show it
