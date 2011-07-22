@@ -49,7 +49,6 @@ class CalcModel(object):
                 fit_logger.info('  {0}: {1}'.format(parname, newparval))
         self.model.parvals[:] = parvals
 
-        time.sleep(1)
         return np.ones_like(x)
 
 
@@ -72,9 +71,9 @@ class CalcStat(object):
             fit_logger.info('nmass_model: Cache hit %s' % str(parvals_key))
         except KeyError:
             fit_stat = self.model.calc_stat()
-            fit_logger.info('pars={}'.format('\n'.join(
-                    ["{}={}".format(x, y) for (x, y) in zip(self.model.parnames,
-                                                          self.model.parvals)])))
+            #fit_logger.info('pars={}'.format('\n'.join(
+            #        ["{} = {}".format(x, y) for (x, y) in zip(self.model.parnames,
+            #                                              self.model.parvals)])))
         fit_logger.info('Fit statistic: %.4f' % fit_stat)
         self.cache_fit_stat[parvals_key] = fit_stat
         
@@ -82,16 +81,19 @@ class CalcStat(object):
             self.min_fit_stat = fit_stat
             self.min_parvals = self.model.parvals.copy()
 
-        self.pipe.send({'status': 'fitting',
+        self.message = {'status': 'fitting',
                         'time': time.time(),
                         'parvals': self.model.parvals,
                         'fit_stat': fit_stat,
                         'min_parvals': self.min_parvals,
-                        'min_fit_stat': self.min_fit_stat})
+                        'min_fit_stat': self.min_fit_stat}
+        self.pipe.send(self.message)
 
+        print 'len times = ', len(self.model.times)
         while self.pipe.poll():
             pipe_val = self.pipe.recv()
             if pipe_val == 'terminate':
+                self.model.parvals = self.min_parvals
                 raise FitTerminated('terminated')
 
         return fit_stat, np.ones(1)
@@ -157,16 +159,17 @@ class FitWorker(object):
         ui.load_user_stat('xijastat', calc_stat, lambda x: np.ones_like(x))
         ui.set_stat(xijastat)
 
+        # If any params are thawed then do the fit
         if self.freeze_or_thaw_params(xijamod):
             try:
                 ui.fit(1)
-                status = 'finished'
+                calc_stat.message['status'] = 'finished'
                 logging.debug('Fit finished normally')
             except FitTerminated as err:
-                status = 'terminated'
+                calc_stat.message['status'] = 'terminated'
                 logging.debug('Got FitTerminated exception {}'.format(err))
 
-        self.child_pipe.send({'status': status})
+        self.child_pipe.send(calc_stat.message)
 
 
 class WidgetTable(dict):
@@ -252,10 +255,13 @@ class ParamsPanel(Panel):
             params_table[row, 0].set_alignment(0, 0.5)
             params_table[row, 1] = gtk.Label(str(parval))
             params_table[row, 1].set_alignment(0, 0.5)
-        self.pack_start(params_table.box, padding=0)        
+        self.pack_start(params_table.box, padding=0)
+        self.params_table = params_table
 
-    def update(self):
-        pass
+    def update(self, fit_worker):
+        model = fit_worker.model
+        for row, parval in enumerate(model.parvals):
+            self.params_table[row, 1].set_text(str(parval))
 
 
 class ConsolePanel(Panel):
@@ -309,15 +315,15 @@ class MainWindow(object):
         self.main_box = Panel(orient='h')
         self.window.add(self.main_box.box)
 
-        main_left_panel = MainLeftPanel(fit_worker)
-        main_right_panel = MainRightPanel(fit_worker)
-        self.main_box.pack_start(main_left_panel)
-        self.main_box.pack_start(main_right_panel)
+        self.main_left_panel = MainLeftPanel(fit_worker)
+        self.main_right_panel = MainRightPanel(fit_worker)
+        self.main_box.pack_start(self.main_left_panel)
+        self.main_box.pack_start(self.main_right_panel)
 
-        bp = main_left_panel.control_buttons_panel
+        bp = self.main_left_panel.control_buttons_panel
         bp.fit_button.connect("clicked", fit_worker.start)
         bp.fit_button.connect("clicked", lambda widget:
-                                  gobject.timeout_add(200, self.monitor_fit))
+                                  gobject.timeout_add(200, self.fit_monitor))
         bp.stop_button.connect("clicked", fit_worker.terminate)
 
         # and the window
@@ -331,16 +337,26 @@ class MainWindow(object):
     def destroy(self, widget, data=None):
         gtk.main_quit()
 
-    def monitor_fit(self):
-        print "here in monitor fit"
-        pipe = self.fit_worker.parent_pipe
-        while pipe.poll():
-            msg = pipe.recv()
-            print msg
-            if msg['status'] in ('terminated', 'finished'):
-                return False
-        return True
-        
+    def fit_monitor(self):
+        fit_worker = self.fit_worker
+        msg = None
+        while fit_worker.parent_pipe.poll():
+            # Keep reading messages until there are no more or until getting
+            # a message indicating fit is stopped.
+            msg = fit_worker.parent_pipe.recv()
+            fit_stopped = msg['status'] in ('terminated', 'finished')
+            if fit_stopped:
+                fit_worker.fit_process.join()
+                break
+
+        if msg:
+            # Update the fit_worker model parameters and then the corresponding
+            # params table widget. 
+            fit_worker.model.parvals = msg['parvals']
+            self.main_right_panel.params_panel.update(fit_worker)
+            return not fit_stopped
+        else:
+            return True
 
 # If the program is run directly or passed as an argument to the python
 # interpreter then create a HelloWorld instance and show it
