@@ -4,6 +4,7 @@ import scipy.interpolate
 import Ska.DBI
 import Chandra.cmd_states
 import Ska.Numpy
+from Ska.Matplotlib import plot_cxctime
 
 from . import tmal
 
@@ -105,6 +106,11 @@ class Node(TelemData):
 
     def calc_stat(self):
         return np.sum((self.dvals - self.mvals)**2 / self.sigma**2)
+    
+    def plot_fit(self, fig=None, ax=None):
+        plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+        plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
+        
 
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""

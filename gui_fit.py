@@ -16,10 +16,9 @@ import shutil
 import logging
 import glob
 
-# Matplotlib setup: use Agg backend for command-line (non-interactive) operation
-import matplotlib
-if __name__ == '__main__':
-    matplotlib.use('Agg')
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
+from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg as NavigationToolbar
 
 import numpy as np
 import sherpa.ui as ui
@@ -71,9 +70,7 @@ class CalcStat(object):
             fit_logger.info('nmass_model: Cache hit %s' % str(parvals_key))
         except KeyError:
             fit_stat = self.model.calc_stat()
-            #fit_logger.info('pars={}'.format('\n'.join(
-            #        ["{} = {}".format(x, y) for (x, y) in zip(self.model.parnames,
-            #                                              self.model.parvals)])))
+
         fit_logger.info('Fit statistic: %.4f' % fit_stat)
         self.cache_fit_stat[parvals_key] = fit_stat
         
@@ -89,7 +86,6 @@ class CalcStat(object):
                         'min_fit_stat': self.min_fit_stat}
         self.pipe.send(self.message)
 
-        print 'len times = ', len(self.model.times)
         while self.pipe.poll():
             pipe_val = self.pipe.recv()
             if pipe_val == 'terminate':
@@ -235,11 +231,27 @@ class Panel(object):
         
 
 class PlotsPanel(Panel):
-    def __init__(self, fit_worker):
+    def __init__(self, fit_worker, main_window):
         Panel.__init__(self, orient='v')
-        self.fit_worker = fit_worker
-        self.pack_start(gtk.Label('plots_panel'))
+        self.model = fit_worker.model
 
+        fig = Figure(figsize=(6, 6))
+        canvas = FigureCanvas(fig)  # a gtk.DrawingArea
+        canvas.set_size_request(500, 500)
+        toolbar = NavigationToolbar(canvas, main_window)
+        self.pack_start(canvas)
+        self.pack_start(toolbar, False, False)
+
+        self.fig = fig
+        self.ax = fig.add_subplot(1, 1, 1)
+        self.canvas = canvas
+        self.canvas.show()
+
+    def update(self, widget=None):
+        self.model.calc()
+        self.ax.cla()     # just for testing now
+        self.model.comp['tephin'].plot_fit(fig=self.fig, ax=self.ax)
+        self.canvas.draw()
 
 class ParamsPanel(Panel):
     def __init__(self, fit_worker):
@@ -277,15 +289,19 @@ class ControlButtonsPanel(Panel):
         self.fit_worker = fit_worker
         self.fit_button = gtk.Button("Fit")
         self.stop_button = gtk.Button("Stop")
+        self.plot_button = gtk.Button("Plot")
+        self.quit_button = gtk.Button('Quit')
         self.pack_start(self.fit_button, False, False, 0)
         self.pack_start(self.stop_button, False, False, 0)
+        self.pack_start(self.plot_button, False, False, 0)
+        self.pack_start(self.quit_button, False, False, 0)
 
 
 class MainLeftPanel(Panel):
-    def __init__(self, fit_worker):
+    def __init__(self, fit_worker, main_window):
         Panel.__init__(self, orient='v')
         self.control_buttons_panel = ControlButtonsPanel(fit_worker)
-        self.plots_panel = PlotsPanel(fit_worker)
+        self.plots_panel = PlotsPanel(fit_worker, main_window)
         self.pack_start(self.control_buttons_panel, False, False, 0)
         self.pack_start(self.plots_panel, False, False, 0)
 
@@ -308,23 +324,26 @@ class MainWindow(object):
         # create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.connect("destroy", self.destroy)
-        self.window.set_default_size(700, 500)
+        self.window.set_default_size(1400, 800)
     
         # Sets the border width of the window.
         self.window.set_border_width(10)
         self.main_box = Panel(orient='h')
         self.window.add(self.main_box.box)
 
-        self.main_left_panel = MainLeftPanel(fit_worker)
+        self.main_left_panel = MainLeftPanel(fit_worker, self.window)
         self.main_right_panel = MainRightPanel(fit_worker)
         self.main_box.pack_start(self.main_left_panel)
         self.main_box.pack_start(self.main_right_panel)
 
-        bp = self.main_left_panel.control_buttons_panel
-        bp.fit_button.connect("clicked", fit_worker.start)
-        bp.fit_button.connect("clicked", lambda widget:
+        mlp = self.main_left_panel
+        cbp = mlp.control_buttons_panel
+        cbp.fit_button.connect("clicked", fit_worker.start)
+        cbp.fit_button.connect("clicked", lambda widget:
                                   gobject.timeout_add(200, self.fit_monitor))
-        bp.stop_button.connect("clicked", fit_worker.terminate)
+        cbp.stop_button.connect("clicked", fit_worker.terminate)
+        cbp.plot_button.connect("clicked", mlp.plots_panel.update)
+        cbp.quit_button.connect('clicked', self.destroy)
 
         # and the window
         self.window.show_all()
