@@ -107,10 +107,12 @@ class Node(TelemData):
     def calc_stat(self):
         return np.sum((self.dvals - self.mvals)**2 / self.sigma**2)
     
-    def plot_data_model(self, fig=None, ax=None):
+    def plot_data_model(self, fig, ax):
         plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
         plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
-        
+        ax.grid()
+        ax.set_title('{}: model (red) and data (blue)'.format(self.name))
+        ax.set_ylabel('Temperature (degC)')
 
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
@@ -282,6 +284,19 @@ class SolarHeat(PrecomputedHeatPower):
     def __str__(self):
         return 'solarheat__{0}'.format(self.node)
 
+    def plot_solar_heat(self, fig, ax):
+        Ps = self.parvals[0:self.n_pitches] + self.bias
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='cubic')
+        # dPs = self.parvals[self.n_pitches:2*self.n_pitches]
+        # dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='cubic')
+        pitches = np.linspace(self.P_pitches[0], self.P_pitches[-1], 100)
+        P_vals = Ps_interp(pitches)
+        ax.plot(self.P_pitches, Ps, 'or', markersize=3)
+        ax.plot(pitches, P_vals, '-b')
+        ax.set_title('{} solar heat input'.format(self.node.name))
+        ax.set_xlim(40, 180)
+        ax.grid()
+        
 
 class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
