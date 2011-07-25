@@ -234,24 +234,62 @@ class PlotsPanel(Panel):
     def __init__(self, fit_worker, main_window):
         Panel.__init__(self, orient='v')
         self.model = fit_worker.model
+        self.main_window = main_window
+        self.plot_panels = []
 
-        fig = Figure(figsize=(6, 6))
+    def add_plot_panel(self, plot_name):
+        plot_panel = PlotPanel(plot_name, self)
+        self.pack_start(plot_panel.box)
+        self.plot_panels.append(plot_panel)
+        self.main_window.show_all()
+
+    def delete_plot_panel(self, widget, plot_name):
+        plot_panels = []
+        for plot_panel in self.plot_panels:
+            if plot_panel.plot_name == plot_name:
+                self.box.remove(plot_panel.box)
+            else:
+                plot_panels.append(plot_panel)
+
+    def update(self, widget=None):
+        for plot_panel in self.plot_panels:
+            plot_panel.update()
+
+
+class PlotPanel(Panel):
+    def __init__(self, plot_name, plots_panel):
+        Panel.__init__(self, orient='v')
+        self.model = plots_panel.model
+
+        self.plot_name = plot_name
+        comp_name, plot_method = plot_name.split() # E.g. "tephin fit_resid"
+        self.comp = [comp for comp in self.model.comps if comp.name == comp_name][0]
+        self.plot_method = plot_method
+
+        fig = Figure()
         canvas = FigureCanvas(fig)  # a gtk.DrawingArea
-        canvas.set_size_request(500, 500)
-        toolbar = NavigationToolbar(canvas, main_window)
+        toolbar = NavigationToolbar(canvas, plots_panel.main_window)
+        delete_plot_button = gtk.Button('Delete')
+        delete_plot_button.connect('clicked', plots_panel.delete_plot_panel, plot_name)
+
+        toolbar_box = gtk.HBox() 
+        toolbar_box.pack_start(toolbar)
+        toolbar_box.pack_end(delete_plot_button, False, False, 0)
         self.pack_start(canvas)
-        self.pack_start(toolbar, False, False)
+        self.pack_start(toolbar_box, False, False)
 
         self.fig = fig
         self.ax = fig.add_subplot(1, 1, 1)
         self.canvas = canvas
         self.canvas.show()
 
-    def update(self, widget=None):
+    def update(self):
         self.model.calc()
         self.ax.cla()     # just for testing now
-        self.model.comp['tephin'].plot_fit(fig=self.fig, ax=self.ax)
+        plot_func = getattr(self.comp, 'plot_' + self.plot_method)
+        plot_func(fig=self.fig, ax=self.ax)
         self.canvas.draw()
+
 
 class ParamsPanel(Panel):
     def __init__(self, fit_worker):
@@ -287,14 +325,31 @@ class ControlButtonsPanel(Panel):
     def __init__(self, fit_worker):
         Panel.__init__(self, orient='h')
         self.fit_worker = fit_worker
+        
         self.fit_button = gtk.Button("Fit")
         self.stop_button = gtk.Button("Stop")
-        self.plot_button = gtk.Button("Plot")
+        self.add_plot_button = self.make_add_plot_button()
         self.quit_button = gtk.Button('Quit')
+
         self.pack_start(self.fit_button, False, False, 0)
         self.pack_start(self.stop_button, False, False, 0)
-        self.pack_start(self.plot_button, False, False, 0)
+        self.pack_start(self.add_plot_button, False, False, 0)
         self.pack_start(self.quit_button, False, False, 0)
+
+    def make_add_plot_button(self):
+        apb = gtk.combo_box_new_text()
+        apb.append_text('Add plot...')
+
+        plot_names = ('{} {}'.format(comp.name, attr[5:])
+                      for comp in self.fit_worker.model.comps
+                      for attr in dir(comp)
+                      if attr.startswith('plot_'))
+
+        for plot_name in plot_names:
+            apb.append_text(plot_name)
+
+        apb.set_active(0)
+        return apb
 
 
 class MainLeftPanel(Panel):
@@ -303,7 +358,7 @@ class MainLeftPanel(Panel):
         self.control_buttons_panel = ControlButtonsPanel(fit_worker)
         self.plots_panel = PlotsPanel(fit_worker, main_window)
         self.pack_start(self.control_buttons_panel, False, False, 0)
-        self.pack_start(self.plots_panel, False, False, 0)
+        self.pack_start(self.plots_panel)
 
 
 class MainRightPanel(Panel):
@@ -342,8 +397,8 @@ class MainWindow(object):
         cbp.fit_button.connect("clicked", lambda widget:
                                   gobject.timeout_add(200, self.fit_monitor))
         cbp.stop_button.connect("clicked", fit_worker.terminate)
-        cbp.plot_button.connect("clicked", mlp.plots_panel.update)
         cbp.quit_button.connect('clicked', self.destroy)
+        cbp.add_plot_button.connect('changed', self.add_plot)
 
         # and the window
         self.window.show_all()
@@ -356,6 +411,16 @@ class MainWindow(object):
     def destroy(self, widget, data=None):
         gtk.main_quit()
 
+    def add_plot(self, widget):
+        model = widget.get_model()
+        index = widget.get_active()
+        pp = self.main_left_panel.plots_panel
+        if index:
+            print "Add plot", model[index][0]
+            pp.add_plot_panel(model[index][0])
+            pp.update()
+        widget.set_active(0)
+            
     def fit_monitor(self):
         fit_worker = self.fit_worker
         msg = None
@@ -373,9 +438,11 @@ class MainWindow(object):
             # params table widget. 
             fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update(fit_worker)
+            self.main_left_panel.plots_panel.update()
             return not fit_stopped
         else:
             return True
+
 
 # If the program is run directly or passed as an argument to the python
 # interpreter then create a HelloWorld instance and show it
@@ -410,7 +477,7 @@ def get_options():
                       default='minusz',
                       help="Model to predict (default=minusz)")
     parser.add_option("--thaw-pars",
-                      default='solarheat__tephin__P_.*',
+                      default='solarheat__t.*__P_.*',
                       help="List of parameters (space-separated) to thaw (default=none)")
     parser.add_option("--nproc",
                       default=0,

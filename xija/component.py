@@ -107,7 +107,7 @@ class Node(TelemData):
     def calc_stat(self):
         return np.sum((self.dvals - self.mvals)**2 / self.sigma**2)
     
-    def plot_fit(self, fig=None, ax=None):
+    def plot_data_model(self, fig=None, ax=None):
         plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
         plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
         
