@@ -285,8 +285,8 @@ class SolarHeat(PrecomputedHeatPower):
 
         Ps = self.parvals[0:self.n_pitches] + self.bias
         dPs = self.parvals[self.n_pitches:2*self.n_pitches]
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='cubic')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='cubic')
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
@@ -302,9 +302,9 @@ class SolarHeat(PrecomputedHeatPower):
 
     def plot_solar_heat(self, fig, ax):
         Ps = self.parvals[0:self.n_pitches] + self.bias
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='cubic')
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
         # dPs = self.parvals[self.n_pitches:2*self.n_pitches]
-        # dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='cubic')
+        # dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
         pitches = np.linspace(self.P_pitches[0], self.P_pitches[-1], 100)
         P_vals = Ps_interp(pitches)
         lines = ax.get_lines()
