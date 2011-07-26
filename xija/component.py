@@ -4,7 +4,7 @@ import scipy.interpolate
 import Ska.DBI
 import Chandra.cmd_states
 import Ska.Numpy
-from Ska.Matplotlib import plot_cxctime
+from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
 
 from . import tmal
 
@@ -108,11 +108,17 @@ class Node(TelemData):
         return np.sum((self.dvals - self.mvals)**2 / self.sigma**2)
     
     def plot_data_model(self, fig, ax):
-        plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
-        plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
-        ax.grid()
-        ax.set_title('{}: model (red) and data (blue)'.format(self.name))
-        ax.set_ylabel('Temperature (degC)')
+        lines = ax.get_lines()
+        if not lines:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: model (red) and data (blue)'.format(self.name))
+            ax.set_ylabel('Temperature (degC)')
+        else:
+            lines[0].set_data(self.model_plotdate, self.dvals)
+            lines[1].set_data(self.model_plotdate, self.mvals)
 
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
@@ -291,11 +297,16 @@ class SolarHeat(PrecomputedHeatPower):
         # dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='cubic')
         pitches = np.linspace(self.P_pitches[0], self.P_pitches[-1], 100)
         P_vals = Ps_interp(pitches)
-        ax.plot(self.P_pitches, Ps, 'or', markersize=3)
-        ax.plot(pitches, P_vals, '-b')
-        ax.set_title('{} solar heat input'.format(self.node.name))
-        ax.set_xlim(40, 180)
-        ax.grid()
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(self.P_pitches, Ps)
+            lines[1].set_data(pitches, P_vals)
+        else:
+            ax.plot(self.P_pitches, Ps, 'or', markersize=3)
+            ax.plot(pitches, P_vals, '-b')
+            ax.set_title('{} solar heat input'.format(self.node.name))
+            ax.set_xlim(40, 180)
+            ax.grid()
         
 
 class EarthHeat(PrecomputedHeatPower):

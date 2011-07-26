@@ -285,33 +285,63 @@ class PlotPanel(Panel):
 
     def update(self):
         self.model.calc()
-        self.ax.cla()     # just for testing now
+        # self.ax.cla()     # just for testing now
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         plot_func(fig=self.fig, ax=self.ax)
         self.canvas.draw()
 
 
 class ParamsPanel(Panel):
-    def __init__(self, fit_worker):
+    def __init__(self, fit_worker, plots_panel):
         Panel.__init__(self, orient='v')
         self.fit_worker = fit_worker
+        self.plots_panel = plots_panel
         model = fit_worker.model
         params_table = WidgetTable(n_rows=len(model.parvals),
-                                   n_cols=2,
+                                   n_cols=3,
                                    colnames=['parname', 'parval'],
                                    show_header=True)
+        self.adj_handlers = {}
+        adjusts = {'.*__P_.*': (-2.0, 4.0, 0.01, 3),
+                   'coupling.*tau': (1.0, 200.0, 1.0, 10),
+                   'heatsink.*tau': (1.0, 200.0, 1.0, 10),
+                   }
         for row, parname, parval in zip(count(), model.parnames, model.parvals):
             params_table[row, 0] = gtk.Label(parname)
             params_table[row, 0].set_alignment(0, 0.5)
             params_table[row, 1] = gtk.Label(str(parval))
             params_table[row, 1].set_alignment(0, 0.5)
+            for regex, adjust in adjusts.items():
+                if re.match(regex, parname):
+                    adj = gtk.Adjustment(parval, adjust[0], adjust[1], adjust[2], 1.0, 1.0)
+                    slider = gtk.HScale(adj)
+                    slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
+                    slider.set_digits(adjust[3])
+                    slider.set_draw_value(False)
+                    params_table[row, 2] = slider
+                    handler = adj.connect('value_changed', self.slider_changed, row)
+                    self.adj_handlers[row] = handler
+
         self.pack_start(params_table.box, padding=0)
         self.params_table = params_table
 
+    def slider_changed(self, widget, row):
+        parval = widget.value  # widget is an adjustment
+        self.fit_worker.model.parvals[row] = parval
+        self.params_table[row, 1].set_text(str(parval))
+        self.plots_panel.update()
+        
     def update(self, fit_worker):
         model = fit_worker.model
         for row, parval in enumerate(model.parvals):
             self.params_table[row, 1].set_text(str(parval))
+            if (row, 2) in self.params_table:
+                adj = self.params_table[row, 2].get_adjustment()
+                if parval != adj.value:
+                    # Change the slider value but block the signal to update the plot
+                    adj.handler_block(self.adj_handlers[row])
+                    adj.set_value(parval)
+                    adj.handler_unblock(self.adj_handlers[row])
 
 
 class ConsolePanel(Panel):
@@ -362,9 +392,9 @@ class MainLeftPanel(Panel):
 
 
 class MainRightPanel(Panel):
-    def __init__(self, fit_worker):
+    def __init__(self, fit_worker, plots_panel):
         Panel.__init__(self, orient='v')
-        self.params_panel = ParamsPanel(fit_worker)
+        self.params_panel = ParamsPanel(fit_worker, plots_panel)
         self.console_panel = ConsolePanel(fit_worker)
 
         self.pack_start(self.params_panel)
@@ -387,11 +417,11 @@ class MainWindow(object):
         self.window.add(self.main_box.box)
 
         self.main_left_panel = MainLeftPanel(fit_worker, self.window)
-        self.main_right_panel = MainRightPanel(fit_worker)
+        mlp = self.main_left_panel
+        self.main_right_panel = MainRightPanel(fit_worker, mlp.plots_panel)
         self.main_box.pack_start(self.main_left_panel)
         self.main_box.pack_start(self.main_right_panel)
 
-        mlp = self.main_left_panel
         cbp = mlp.control_buttons_panel
         cbp.fit_button.connect("clicked", fit_worker.start)
         cbp.fit_button.connect("clicked", lambda widget:
