@@ -87,6 +87,16 @@ class TelemData(ModelComponent):
             
         return self._dvals
 
+    def plot_data(self, fig, ax):
+        lines = ax.get_lines()
+        if not lines:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data'.format(self.name))
+        else:
+            lines[0].set_data(self.model_plotdate, self.dvals)
+
     def __str__(self):
         return self.msid
 
@@ -107,7 +117,7 @@ class Node(TelemData):
     def calc_stat(self):
         return np.sum((self.dvals - self.mvals)**2 / self.sigma**2)
     
-    def plot_data_model(self, fig, ax):
+    def plot_data(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
             self.model_plotdate = cxctime2plotdate(self.model.times)
@@ -424,6 +434,18 @@ class AcisDpaPower(PrecomputedHeatPower):
                           )
         self.tmal_floats = ()
     
+    def plot_data(self, fig, ax):
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(self.model_plotdate, self.dvals)
+        else:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_ylabel('Power (W)')
+            
+
 class AcisDpaPower6(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
     def __init__(self, model, node, k=1.0, dp611=0.0):

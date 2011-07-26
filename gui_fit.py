@@ -303,6 +303,8 @@ class ParamsPanel(Panel):
                                    show_header=True)
         self.adj_handlers = {}
         adjusts = {'.*__P_.*': (-2.0, 4.0, 0.01, 3),
+                   'solarheat.*bias': (-4.0, 4.0, 0.01, 3),
+                   'dpa.*k': (0.0, 10.0, 0.01, 3),
                    'coupling.*tau': (1.0, 200.0, 1.0, 10),
                    'heatsink.*tau': (1.0, 200.0, 1.0, 10),
                    }
@@ -322,7 +324,7 @@ class ParamsPanel(Panel):
                     handler = adj.connect('value_changed', self.slider_changed, row)
                     self.adj_handlers[row] = handler
 
-        self.pack_start(params_table.box, padding=0)
+        self.pack_start(params_table.box, True, True, padding=10)
         self.params_table = params_table
 
     def slider_changed(self, widget, row):
@@ -398,7 +400,7 @@ class MainRightPanel(Panel):
         self.console_panel = ConsolePanel(fit_worker)
 
         self.pack_start(self.params_panel)
-        self.pack_start(self.console_panel, False, False, 0)
+        self.pack_start(self.console_panel, False)
 
 
 class MainWindow(object):
