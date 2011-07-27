@@ -53,7 +53,7 @@ P_vals = np.array([0.58, 0.50, 0.41, 0.7, 1.0, 0.9, 0.79])
 # mdl.add(xija.Coupling, node2, node1, tau=tau21)
 mdl.add(xija.DpaSolarHeat, node1, pitch_comp=pitch, simz_comp=simz, eclipse_comp=eclipse,
         P_pitches=P_pitches, Ps=P_vals.tolist())
-mdl.add(xija.HeatSink, node1, T=T_e, tau=tau_e)
+mdl.add(xija.HeatSinkRef, node1, T=T_e, tau=tau_e, T_ref=20.0)
 mdl.add(xija.AcisDpaPower, node1, k=k)
 
 mdl.make()

@@ -213,6 +213,36 @@ class HeatSink(ModelComponent):
         return 'heatsink__{0}'.format(self.node)
 
 
+class HeatSinkRef(ModelComponent):
+    """Fixed temperature external heat bath, reparameterized so that varying tau
+    does not affect the mean model temperature.  This requires an extra non-fitted
+    parameter T_ref which corresponds to a reference temperature for the node.::
+
+      dT/dt = U * (Te - T)
+            = P + U* (T_ref - T)   # reparameterization
+
+      P = U * (Te - T_ref)
+      Te = P / U + T_ref
+
+    In code below, "T" corresponds to "Te" above.  The "T" above is node.dvals.
+    """
+    def __init__(self, model, node, T, tau, T_ref):
+        ModelComponent.__init__(self, model)
+        self.add_par('P', (T - T_ref) / tau)
+        self.add_par('tau', tau)
+        self.add_par('T_ref', T_ref)
+        self.node = self.model.get_comp(node)
+
+    def update(self):
+        self.tmal_ints = (tmal.OPCODES['heatsink'],
+                          self.node.mvals_i)  # dy1/dt index
+        self.tmal_floats = (self.P * self.tau + self.T_ref,
+                            self.tau)
+
+    def __str__(self):
+        return 'heatsink__{0}'.format(self.node)
+
+
 class Pitch(TelemData):
     def __init__(self, model, data=None):
         TelemData.__init__(self, model, 'aosares1', 'pitch', data)
