@@ -36,11 +36,12 @@ tau21 = c2 / u12
 
 mdl = xija.ThermalModel('dpa', start='2011:001', stop='2011:010')
 
-node1 = mdl.add(xija.Node, '1dpamzt')
+simz = mdl.add(xija.SimZ)
+# simz_mask = mdl.add(xija.Mask, simz, 'gt', -2000000.0)
+node1 = mdl.add(xija.Node, '1dpamzt') # , mask=simz_mask
 # node2 = mdl.add(xija.Node, '1dpamyt')
 pitch = mdl.add(xija.Pitch)
 eclipse = mdl.add(xija.Eclipse)
-simz = mdl.add(xija.SimZ)
 
 tau12 = 5
 tau21 = 5
@@ -50,18 +51,12 @@ tau_e = 17.2
 P_vals = np.array([0.58, 0.50, 0.41, 0.7, 1.0, 0.9, 0.79])
 # mdl.add(xija.Coupling, node1, node2, tau=tau12)
 # mdl.add(xija.Coupling, node2, node1, tau=tau21)
-mdl.add(xija.SolarHeat, node1, pitch, eclipse, P_pitches=P_pitches, Ps=P_vals.tolist())
+mdl.add(xija.DpaSolarHeat, node1, pitch_comp=pitch, simz_comp=simz, eclipse_comp=eclipse,
+        P_pitches=P_pitches, Ps=P_vals.tolist())
 mdl.add(xija.HeatSink, node1, T=T_e, tau=tau_e)
-mdl.add(xija.AcisDpaPower6, node1, k=k)
+mdl.add(xija.AcisDpaPower, node1, k=k)
 
 mdl.make()
 mdl.write('dpa/dpa.json')
 
 
-out = {'time': model.times,
-       'data': model.comp['1dpamzt'].dvals,
-       'model': model.comp['1dpamzt'].mvals,
-       'pitch': model.comp['pitch'].dvals,
-       'simz': model.comp['sim_z'].dvals,
-       'power': model.comp['dpa__1dpamzt'].dvals,
-       }

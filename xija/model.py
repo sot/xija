@@ -135,7 +135,7 @@ class ThermalModel(object):
 
     def get_comp(self, name):
         """Get a model component.  Works with either a string or a component object"""
-        return self.comp[str(name)]
+        return None if name is None else self.comp[str(name)]
 
     def write(self, filename):
         """Write a full model specification for this model"""

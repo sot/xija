@@ -1,3 +1,4 @@
+import operator
 import numpy as np
 from Chandra.Time import DateTime
 import scipy.interpolate
@@ -56,6 +57,43 @@ class ModelComponent(object):
         pass
 
 
+class Mask(ModelComponent):
+    """Create object with a ``mask`` attribute corresponding to
+      node.dvals op val
+    where op is a binary operator in operator module that returns a np mask
+      "ge": >=
+      "gt": >
+      "le": <=
+      "lt": <
+      "eq": ==
+      "ne" !=
+    """
+    def __init__(self, model, node, op, val):
+        ModelComponent.__init__(self, model)
+        self.node = model.get_comp(node)
+        self.op = op
+        self.val = val
+        self.model = model
+
+    @property
+    def mask(self):
+        if not hasattr(self, '_mask'):
+            self._mask = getattr(operator, self.op)(self.node.dvals, self.val)
+        return self._mask
+
+    def __str__(self):
+        return "mask__{}_{}_{}".format(self.node, self.op, self.val)
+
+    def plot_data(self, fig, ax):
+        lines = ax.get_lines()
+        if not lines:
+            plot_cxctime(self.model.times,
+                         np.where(self.mask, 1, 0),
+                         '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_ylim(-0.1, 1.1)
+            ax.set_title('{}: data'.format(self.name))
+
 # RENAME TelemData to Data or ??
 class TelemData(ModelComponent):  
     times = property(lambda self: self.model.times)
@@ -102,11 +140,13 @@ class TelemData(ModelComponent):
 
 
 class Node(TelemData):
-    def __init__(self, model, msid, data=None, sigma=-10, quant=None, predict=True):
+    def __init__(self, model, msid, data=None, sigma=-10, quant=None,
+                 predict=True, mask=None):
         TelemData.__init__(self, model, msid, data)
         self._sigma = sigma
         self.quant = quant
         self.predict = predict
+        self.mask = model.get_comp(mask)
 
     @property
     def sigma(self):
@@ -115,7 +155,13 @@ class Node(TelemData):
         return self._sigma
 
     def calc_stat(self):
-        return np.sum((self.dvals - self.mvals)**2 / self.sigma**2)
+        if self.mask is None:
+            resid = self.dvals - self.mvals
+        else:
+            print np.flatnonzero(~self.mask.mask)
+            resid = self.dvals[self.mask.mask] - self.mvals[self.mask.mask]
+        return np.sum(resid**2 / self.sigma**2)
+
     
     def plot_data(self, fig, ax):
         lines = ax.get_lines()
@@ -243,8 +289,7 @@ class SolarHeat(PrecomputedHeatPower):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
-        self.eclipse_comp = (None if eclipse_comp is None
-                             else self.model.get_comp(eclipse_comp))
+        self.eclipse_comp = self.model.get_comp(eclipse_comp)
 
         if P_pitches is None:
             P_pitches = [45, 65, 90, 130, 180]
@@ -318,6 +363,54 @@ class SolarHeat(PrecomputedHeatPower):
             ax.set_xlim(40, 180)
             ax.grid()
         
+
+class DpaSolarHeat(SolarHeat):
+    """Solar heating (pitch dependent)"""
+    def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
+                 P_pitches=None, Ps=None, dPs=None,
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001', hrc_bias=0.0):
+        SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
+                           P_pitches, Ps, dPs, tau, ampl, bias, epoch)
+        self.simz_comp = model.get_comp(simz_comp)
+        self.add_par('hrc_bias', hrc_bias)
+
+    @property
+    def dvals(self):
+        if not hasattr(self, 'pitches'):
+            self.pitches = self.pitch_comp.dvals
+        if not hasattr(self, 't_days'):
+            self.t_days = (self.pitch_comp.times - DateTime(self.epoch).secs) / 86400.0
+        if not hasattr(self, 't_phase'):
+            time2000 = DateTime('2000:001:00:00:00').secs
+            time2010 = DateTime('2010:001:00:00:00').secs
+            secs_per_year = (time2010 - time2000) / 10.0
+            t_year = (self.pitch_comp.times - time2000) / secs_per_year
+            self.t_phase = t_year * 2 * np.pi
+        if not hasattr(self, 'hrc_mask'):
+            self.hrc_mask = self.simz_comp.dvals < 0
+
+        Ps = self.parvals[0:self.n_pitches] + self.bias
+        dPs = self.parvals[self.n_pitches:2*self.n_pitches]
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
+        P_vals = Ps_interp(self.pitches)
+        dP_vals = dPs_interp(self.pitches)
+        self.P_vals = P_vals
+        self._dvals = (P_vals + dP_vals * (1 - np.exp(-self.t_days / self.tau))
+                       + self.ampl * np.cos(self.t_phase)).reshape(-1)
+
+        # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
+        if self.eclipse_comp is not None:
+            self._dvals[self.eclipse_comp.dvals] = 0.0
+
+        # Apply a constant bias offset to power for times when SIM-Z is at HRC
+        self._dvals[self.hrc_mask] += self.hrc_bias
+
+        return self._dvals
+
+    def __str__(self):
+        return 'solarheat__{0}'.format(self.node)
+
 
 class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
