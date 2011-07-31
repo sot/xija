@@ -9,37 +9,56 @@ from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
 
 from . import tmal
 
+class Param(dict):
+    """Model component parameter.  Inherits from dict but adds attribute access
+    for convenience."""
+    def __init__(self, comp_name, name, val, min=-1e38, max=1e38,
+                 fmt="{}", frozen=False):
+        dict.__init__(self)
+        self.comp_name = comp_name
+        self.name = name
+        self.val = val
+        self.min = min
+        self.max = max
+        self.fmt = fmt
+        self.frozen = frozen
+
+    def __setattr__(self, attr, val):
+        dict.__setitem__(self, attr, val)
+
+    def __getattr__(self, attr):
+        return dict.__getitem__(self, attr)
+
+
 class ModelComponent(object):
     """ Model component base class"""
     def __init__(self, model):
         self.model = model
         self.n_mvals = 0
         self.predict = False  # Predict values for this model component
-        self.parnames = []
-        self.parvals = []
+        self.pars = []
 
     n_parvals = property(lambda self: len(self.parvals))
     times = property(lambda self: self.model.times)
 
-
     @staticmethod
     def get_par_func(index):
         def _func(self):
-            return self.parvals[index]
+            return self.pars[index].val
         return _func
 
     @staticmethod
     def set_par_func(index):
         def _func(self, val):
-            self.parvals[index] = val
+            self.pars[index].val = val
         return _func
 
-    def add_par(self, name, val=None):
+    def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{}", frozen=False):
         setattr(self.__class__, name,
                 property(ModelComponent.get_par_func(self.n_parvals),
                          ModelComponent.set_par_func(self.n_parvals)))
-        self.parnames.append(name)
-        self.parvals.append(val)
+        self.pars.append(Param(self.name, name, val, min=min, max=max,
+                               fmt=fmt, frozen=frozen))
 
     def _set_mvals(self, vals):
         self.model.mvals[self.mvals_i, :] = vals
@@ -52,6 +71,14 @@ class ModelComponent(object):
     @property
     def name(self):
         return self.__str__()
+
+    @property
+    def parvals(self):
+        return np.array([par.val for par in self.pars])
+
+    @property
+    def parnames(self):
+        return [par.name for par in self.pars]
 
     def update(self):
         pass
@@ -199,9 +226,9 @@ class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
     def __init__(self, model, node, T, tau):
         ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
         self.add_par('T', T)
         self.add_par('tau', tau)
-        self.node = self.model.get_comp(node)
 
     def update(self):
         self.tmal_ints = (tmal.OPCODES['heatsink'],
@@ -228,10 +255,10 @@ class HeatSinkRef(ModelComponent):
     """
     def __init__(self, model, node, T, tau, T_ref):
         ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
         self.add_par('P', (T - T_ref) / tau)
         self.add_par('tau', tau)
         self.add_par('T_ref', T_ref)
-        self.node = self.model.get_comp(node)
 
     def update(self):
         self.tmal_ints = (tmal.OPCODES['heatsink'],

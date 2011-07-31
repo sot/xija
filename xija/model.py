@@ -66,6 +66,7 @@ class ThermalModel(object):
         self.datestart = DateTime(self.tstart).date
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
+        self.pars = []
         if model_spec:
             self._set_from_model_spec(model_spec)
 
@@ -76,13 +77,13 @@ class ThermalModel(object):
             kwargs = dict((str(k), v) for k, v in comp['init_kwargs'].items())
             self.add(ComponentClass, *args, **kwargs)
 
-        self.make_pars()
-        parnames, parvals = zip(*model_spec['pars'])
-        parnames = [str(x) for x in parnames]
-        if self.parnames != parnames:
-            raise ValueError('Model spec parnames do not match model: \n{0}\n{1}'.format(
-                    parnames, self.parnames))
-        self.parvals[:] = parvals
+        pars = model_spec['pars']
+        if len(pars) != len(self.pars):
+            raise ValueError('Number of spec pars does not match model: \n{0}\n{1}'.format(
+                    len(pars), len(self.pars)))
+        for par, specpar in zip(self.pars, pars):
+            for attr in specpar:
+                setattr(par, attr, specpar[attr])
 
     @staticmethod
     def _eng_match_times(start, stop, dt):
@@ -94,7 +95,6 @@ class ThermalModel(object):
         i0 = int((DateTime(start).secs - time0) / dt) + 1
         i1 = int((DateTime(stop).secs - time0) / dt)
         return time0 + np.arange(i0, i1) * dt
-
 
     @property
     def cmd_states(self):
@@ -108,9 +108,10 @@ class ThermalModel(object):
             self._cmd_states = Chandra.cmd_states.interpolate_states(states, self.times)
         return self._cmd_states
 
-    @property   # HEY make this settable!
-    def pars(self):
-        return dict((k, v) for k, v in zip(self.parnames, self.parvals))
+    # API CHANGE!
+    #@property   # HEY make this settable!
+    #def pars(self):
+    #    return dict((k, v) for k, v in zip(self.parnames, self.parvals))
 
     def fetch(self, msid, attr='vals', method='linear'):
         tpad = self.dt * 5
@@ -128,6 +129,8 @@ class ThermalModel(object):
         comp.init_args = args
         comp.init_kwargs = kwargs
         self.comp[comp.name] = comp
+        for par in comp.pars:
+            self.pars.append(par)
         
         return comp
 
@@ -141,11 +144,12 @@ class ThermalModel(object):
         """Write a full model specification for this model"""
         model_spec = dict(name=self.name,
                           comps=[],
-                          pars=[(name, val) for name, val in zip(self.parnames, self.parvals)],
                           dt=self.dt,
                           tlm_code=None,
                           mval_names=[])
                
+        model_spec['pars'] = [dict(par) for par in self.pars]
+        
         stringify = lambda x: str(x) if isinstance(x, component.ModelComponent) else x
         for comp in self.comps:
             init_args = [stringify(x) for x in comp.init_args]
@@ -158,44 +162,27 @@ class ThermalModel(object):
             json.dump(model_spec, f, sort_keys=True, indent=4)
 
     def _get_parvals(self):
-        """For components that have parameter values make a view into the
-        global parameter values array.  But first count the total number of
-        parameters and make that global param vals array ``self.parvals``.
-        """
-        if not hasattr(self, '_parvals'):
-            self.make_pars()
-        return self._parvals
+        """Return a (read-only) tuple of parameter values."""
+        return tuple(par.val for par in self.pars)
     
     def _set_parvals(self, vals):
-        self.parvals[:] = vals
+        """Set the full list of parameter values.  No provision is made for setting
+        individual elements or slicing (use self.pars directly in this case)."""
+        if len(vals) != len(self.pars):
+            raise ValueError('Length mismatch setting parvals {} vs {}'.format(
+                    len(self.pars), len(vals)))
+        for par, val in zip(self.pars, vals):
+            par.val = val
         
     parvals = property(_get_parvals, _set_parvals)
 
     @property
     def parnames(self):
-        if not hasattr(self, '_parnames'):
-            self.make_pars()
-        return self._parnames
+        return tuple(par.comp_name + '__' + par.name for par in self.pars)
 
     def make(self):
-        self.make_pars()
         self.make_mvals()
         self.make_tmal()
-
-    def make_pars(self):
-        if not hasattr(self, '_parvals'):
-            comps = [x for x in self.comps if x.n_parvals]
-            n_parvals = sum(x.n_parvals for x in comps)
-            i_parvals = np.cumsum([0] + [x.n_parvals for x in comps])
-            self._parvals = np.zeros(n_parvals, dtype=np.float)
-            self._parnames = []
-            for comp, i0, i1 in zip(comps, i_parvals[:-1], i_parvals[1:]):
-                self._parnames.extend(comp.name + '__' + x for x in comp.parnames)
-                self._parvals[i0:i1] = comp.parvals  # copy existing values
-
-                # This hidden interaction is not really nice...
-                comp.parvals = self._parvals[i0:i1]  # make a local (view into global parvals
-                comp.parvals_i = i0
 
     def make_mvals(self):
         """Initialize the global mvals (model values) array.  This is an

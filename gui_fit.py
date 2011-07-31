@@ -46,7 +46,7 @@ class CalcModel(object):
         for parname, parval, newparval in zip(self.model.parnames, self.model.parvals, parvals):
             if parval != newparval:
                 fit_logger.info('  {0}: {1}'.format(parname, newparval))
-        self.model.parvals[:] = parvals
+        self.model.parvals = parvals
 
         return np.ones_like(x)
 
@@ -76,7 +76,7 @@ class CalcStat(object):
         
         if self.min_fit_stat is None or fit_stat < self.min_fit_stat:
             self.min_fit_stat = fit_stat
-            self.min_parvals = self.model.parvals.copy()
+            self.min_parvals = self.model.parvals
 
         self.message = {'status': 'fitting',
                         'time': time.time(),
@@ -329,7 +329,7 @@ class ParamsPanel(Panel):
 
     def slider_changed(self, widget, row):
         parval = widget.value  # widget is an adjustment
-        self.fit_worker.model.parvals[row] = parval
+        self.fit_worker.model.pars[row].val = parval
         self.params_table[row, 1].set_text(str(parval))
         self.plots_panel.update()
         
