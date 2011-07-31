@@ -56,7 +56,7 @@ class CalcModel(object):
         for parname, parval, newparval in zip(self.model.parnames, self.model.parvals, parvals):
             if parval != newparval:
                 fit_logger.info('  {0}: {1}'.format(parname, newparval))
-        self.model.parvals[:] = parvals
+        self.model.parvals = parvals
 
         if self.comm:
             self.comm.bcast(dict(cmd='calc_model', parvals=parvals), root=MPI.ROOT)

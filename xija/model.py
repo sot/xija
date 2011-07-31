@@ -144,14 +144,11 @@ class ThermalModel(object):
         """Write a full model specification for this model"""
         model_spec = dict(name=self.name,
                           comps=[],
-                          # pars=[(name, val) for name, val in zip(self.parnames, self.parvals)],
                           dt=self.dt,
                           tlm_code=None,
                           mval_names=[])
                
-        pars = [{attr: getattr(par, attr) for attr in dir(par) if not attr.startswith('_')}
-                for par in self.pars]
-        model_spec['pars'] = pars
+        model_spec['pars'] = [dict(par) for par in self.pars]
         
         stringify = lambda x: str(x) if isinstance(x, component.ModelComponent) else x
         for comp in self.comps:
@@ -165,13 +162,12 @@ class ThermalModel(object):
             json.dump(model_spec, f, sort_keys=True, indent=4)
 
     def _get_parvals(self):
-        """For components that have parameter values make a view into the
-        global parameter values array.  But first count the total number of
-        parameters and make that global param vals array ``self.parvals``.
-        """
+        """Return a (read-only) tuple of parameter values."""
         return tuple(par.val for par in self.pars)
     
     def _set_parvals(self, vals):
+        """Set the full list of parameter values.  No provision is made for setting
+        individual elements or slicing (use self.pars directly in this case)."""
         if len(vals) != len(self.pars):
             raise ValueError('Length mismatch setting parvals {} vs {}'.format(
                     len(self.pars), len(vals)))
@@ -182,30 +178,11 @@ class ThermalModel(object):
 
     @property
     def parnames(self):
-        if not hasattr(self, '_parnames'):
-            self._parnames = tuple(par.comp_name + '__' + par.name
-                                   for par in self.pars)
-        return self._parnames
+        return tuple(par.comp_name + '__' + par.name for par in self.pars)
 
     def make(self):
         self.make_mvals()
         self.make_tmal()
-
-    # KILL IT!
-    def __make_pars(self):
-        if not hasattr(self, '_parvals'):
-            comps = [x for x in self.comps if x.n_parvals]
-            n_parvals = sum(x.n_parvals for x in comps)
-            i_parvals = np.cumsum([0] + [x.n_parvals for x in comps])
-            self._parvals = np.zeros(n_parvals, dtype=np.float)
-            self._parnames = []
-            for comp, i0, i1 in zip(comps, i_parvals[:-1], i_parvals[1:]):
-                self._parnames.extend(comp.name + '__' + x for x in comp.parnames)
-                self._parvals[i0:i1] = comp.parvals  # copy existing values
-
-                # This hidden interaction is not really nice...
-                comp.parvals = self._parvals[i0:i1]  # make a local (view into global parvals
-                comp.parvals_i = i0
 
     def make_mvals(self):
         """Initialize the global mvals (model values) array.  This is an
