@@ -178,7 +178,7 @@ class ThermalModel(object):
 
     @property
     def parnames(self):
-        return tuple(par.comp_name + '__' + par.name for par in self.pars)
+        return tuple(par.full_name for par in self.pars)
 
     def make(self):
         self.make_mvals()

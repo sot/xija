@@ -297,53 +297,83 @@ class ParamsPanel(Panel):
         self.fit_worker = fit_worker
         self.plots_panel = plots_panel
         model = fit_worker.model
-        params_table = WidgetTable(n_rows=len(model.parvals),
-                                   n_cols=3,
-                                   colnames=['parname', 'parval'],
+        params_table = WidgetTable(n_rows=len(model.pars),
+                                   n_cols=6,
+                                   colnames=['name', 'val', 'thawed', 'min', 'max'],
                                    show_header=True)
         self.adj_handlers = {}
-        adjusts = {'.*__P_.*': (-2.0, 4.0, 0.01, 3),
-                   'solarheat.*bias': (-4.0, 4.0, 0.01, 3),
-                   'dpa.*k': (0.0, 10.0, 0.01, 3),
-                   'coupling.*tau': (1.0, 200.0, 1.0, 10),
-                   'heatsink.*tau': (1.0, 200.0, 1.0, 10),
-                   }
-        for row, parname, parval in zip(count(), model.parnames, model.parvals):
-            params_table[row, 0] = gtk.Label(parname)
+        for row, par in zip(count(), model.pars):
+            # par full name
+            params_table[row, 0] = gtk.Label(par.full_name)
             params_table[row, 0].set_alignment(0, 0.5)
-            params_table[row, 1] = gtk.Label(str(parval))
-            params_table[row, 1].set_alignment(0, 0.5)
-            for regex, adjust in adjusts.items():
-                if re.match(regex, parname):
-                    adj = gtk.Adjustment(parval, adjust[0], adjust[1], adjust[2], 1.0, 1.0)
-                    slider = gtk.HScale(adj)
-                    slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
-                    slider.set_digits(adjust[3])
-                    slider.set_draw_value(False)
-                    params_table[row, 2] = slider
-                    handler = adj.connect('value_changed', self.slider_changed, row)
-                    self.adj_handlers[row] = handler
+
+            # Thawed (i.e. fit the parameter)
+            params_table[row, 1] = gtk.CheckButton()
+            params_table[row, 1].set_active(not par.frozen)
+
+            # Value
+            params_table[row, 2] = gtk.Label(par.fmt.format(par.val))
+            params_table[row, 2].set_alignment(0, 0.5)
+
+            # Slider
+            incr = (par.max - par.min) / 100.0
+            adj = gtk.Adjustment(par.val, par.min, par.max, incr, incr, 0.0)
+            slider = gtk.HScale(adj)
+            slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
+            slider.set_draw_value(False)
+            params_table[row, 4] = slider
+            handler = adj.connect('value_changed', self.slider_changed, row)
+            self.adj_handlers[row] = handler
+
+            # Min of slider
+            entry = params_table[row, 3] = gtk.Entry()
+            entry.set_text(par.fmt.format(par.min))
+            entry.set_width_chars(4)
+            entry.connect('activate', self.minmax_changed, adj, par, 'min')
+
+            # Max of slider
+            entry = params_table[row, 5] = gtk.Entry()
+            entry.set_text(par.fmt.format(par.max))
+            entry.set_width_chars(6)
+            entry.connect('activate', self.minmax_changed, adj, par, 'max')
 
         self.pack_start(params_table.box, True, True, padding=10)
         self.params_table = params_table
 
+    def minmax_changed(self, widget, adj, par, minmax):
+        """Min or max Entry box value changed.  Update the slider (adj)
+        limits and the par min/max accordingly.
+        """
+        try:
+            val = float(widget.get_text())
+        except ValueError:
+            pass
+        else:
+            (adj.set_lower if minmax == 'min' else adj.set_upper)(val)
+            incr = (adj.get_upper() - adj.get_lower()) / 100.0
+            adj.set_step_increment(incr)
+            adj.set_page_increment(incr)
+            setattr(par, minmax, val)
+
     def slider_changed(self, widget, row):
         parval = widget.value  # widget is an adjustment
-        self.fit_worker.model.pars[row].val = parval
-        self.params_table[row, 1].set_text(str(parval))
+        par = self.fit_worker.model.pars[row]
+        par.val = parval
+        self.params_table[row, 2].set_text(par.fmt.format(parval))
         self.plots_panel.update()
         
     def update(self, fit_worker):
         model = fit_worker.model
-        for row, parval in enumerate(model.parvals):
-            self.params_table[row, 1].set_text(str(parval))
-            if (row, 2) in self.params_table:
-                adj = self.params_table[row, 2].get_adjustment()
-                if parval != adj.value:
-                    # Change the slider value but block the signal to update the plot
-                    adj.handler_block(self.adj_handlers[row])
-                    adj.set_value(parval)
-                    adj.handler_unblock(self.adj_handlers[row])
+        for row, par in enumerate(model.pars):
+            val_label = self.params_table[row, 2]
+            par_val_text = par.fmt.format(par.val)
+            if val_label.get_text() != par_val_text:
+                val_label.set_text(par_val_text)
+                # Change the slider value but block the signal to update the plot
+                adj = self.params_table[row, 4].get_adjustment()
+                adj.handler_block(self.adj_handlers[row])
+                adj.set_value(par.val)
+                adj.handler_unblock(self.adj_handlers[row])
 
 
 class ConsolePanel(Panel):
@@ -475,9 +505,6 @@ class MainWindow(object):
         else:
             return True
 
-
-# If the program is run directly or passed as an argument to the python
-# interpreter then create a HelloWorld instance and show it
 
 def make_out_dir():
     out_dir = files['out_dir'].abs

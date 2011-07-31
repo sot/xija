@@ -13,7 +13,7 @@ class Param(dict):
     """Model component parameter.  Inherits from dict but adds attribute access
     for convenience."""
     def __init__(self, comp_name, name, val, min=-1e38, max=1e38,
-                 fmt="{}", frozen=False):
+                 fmt="{:.4g}", frozen=False):
         dict.__init__(self)
         self.comp_name = comp_name
         self.name = name
@@ -22,6 +22,7 @@ class Param(dict):
         self.max = max
         self.fmt = fmt
         self.frozen = frozen
+        self.full_name = comp_name + '__' + name
 
     def __setattr__(self, attr, val):
         dict.__setitem__(self, attr, val)
@@ -53,7 +54,7 @@ class ModelComponent(object):
             self.pars[index].val = val
         return _func
 
-    def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{}", frozen=False):
+    def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{:.4g}", frozen=False):
         setattr(self.__class__, name,
                 property(ModelComponent.get_par_func(self.n_parvals),
                          ModelComponent.set_par_func(self.n_parvals)))
@@ -209,7 +210,7 @@ class Coupling(ModelComponent):
         ModelComponent.__init__(self, model)
         self.node1 = self.model.get_comp(node1)
         self.node2 = self.model.get_comp(node2)
-        self.add_par('tau', tau)
+        self.add_par('tau', tau, min=2.0, max=200.0)
 
     def update(self):
         self.tmal_ints = (tmal.OPCODES['coupling'],
@@ -227,8 +228,8 @@ class HeatSink(ModelComponent):
     def __init__(self, model, node, T, tau):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('T', T)
-        self.add_par('tau', tau)
+        self.add_par('T', T, min=-100.0, max=100.0)
+        self.add_par('tau', tau, min=2.0, max=200.0)
 
     def update(self):
         self.tmal_ints = (tmal.OPCODES['heatsink'],
@@ -256,9 +257,9 @@ class HeatSinkRef(ModelComponent):
     def __init__(self, model, node, T, tau, T_ref):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('P', (T - T_ref) / tau)
-        self.add_par('tau', tau)
-        self.add_par('T_ref', T_ref)
+        self.add_par('P', (T - T_ref) / tau, min=-10.0, max=10.0)
+        self.add_par('tau', tau, min=2.0, max=200.0)
+        self.add_par('T_ref', T_ref, min=-100, max=100)
 
     def update(self):
         self.tmal_ints = (tmal.OPCODES['heatsink'],
@@ -364,12 +365,12 @@ class SolarHeat(PrecomputedHeatPower):
         self.epoch=epoch
 
         for pitch, power in zip(self.P_pitches, self.Ps):
-            self.add_par('P_{0:.0f}'.format(float(pitch)), power)
+            self.add_par('P_{0:.0f}'.format(float(pitch)), power, min=-10.0, max=10.0)
         for pitch, dpower in zip(self.P_pitches, self.dPs):
-            self.add_par('dP_{0:.0f}'.format(float(pitch)), dpower)
-        self.add_par('tau', tau)
-        self.add_par('ampl', ampl)
-        self.add_par('bias', bias)
+            self.add_par('dP_{0:.0f}'.format(float(pitch)), dpower, min=-1.0, max=1.0)
+        self.add_par('tau', tau, min=1000., max=3000.)
+        self.add_par('ampl', ampl, min=-1.0, max=1.0)
+        self.add_par('bias', bias, min=-1.0, max=1.0)
         self.n_mvals = 1
 
     @property
@@ -429,7 +430,7 @@ class DpaSolarHeat(SolarHeat):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, tau, ampl, bias, epoch)
         self.simz_comp = model.get_comp(simz_comp)
-        self.add_par('hrc_bias', hrc_bias)
+        self.add_par('hrc_bias', hrc_bias, min=-1.0, max=1.0)
 
     @property
     def dvals(self):
@@ -491,7 +492,8 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         self.instr_names = ['hrcs', 'hrci', 'acis']
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
-                self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)), P_vals[i, j])
+                self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)), P_vals[i, j],
+                             min=-10.0, max=10.0)
         
     @property
     def dvals(self):
@@ -527,7 +529,7 @@ class AcisPsmcPower(PrecomputedHeatPower):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.n_mvals = 1
-        self.add_par('k', k)
+        self.add_par('k', k, min=0.0, max=2.0)
 
     def __str__(self):
         return 'psmc__{0}'.format(self.node)
@@ -559,7 +561,7 @@ class AcisDpaPower(PrecomputedHeatPower):
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('k', k)
+        self.add_par('k', k, min=0.0, max=2.0)
         self.n_mvals = 1
 
     def __str__(self):
@@ -601,8 +603,8 @@ class AcisDpaPower6(PrecomputedHeatPower):
     def __init__(self, model, node, k=1.0, dp611=0.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('k', k)
-        self.add_par('dp611', dp611)
+        self.add_par('k', k, min=0.0, max=2.0)
+        self.add_par('dp611', dp611, min=-100.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
