@@ -96,11 +96,9 @@ class CalcStat(object):
 
 
 class FitWorker(object):
-    def __init__(self, model, freeze_pars, thaw_pars):
+    def __init__(self, model):
         self.model = model
         self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
-        self.freeze_pars = freeze_pars
-        self.thaw_pars = thaw_pars
 
     def start(self, widget=None):
         """Start a Sherpa fit process as a spawned (non-blocking) process.
@@ -116,26 +114,6 @@ class FitWorker(object):
         self.parent_pipe.send('terminate')
         self.fit_process.join()
         logging.debug('Fit terminated')
-
-    def freeze_or_thaw_params(self, xijamod):
-        """Go through each model parameter and either freeze or thaw it.
-        Return a list of the thawed (fitted) parameters.
-        """
-        fit_parnames = set()
-        for parname, parval in zip(self.model.parnames, self.model.parvals):
-            getattr(xijamod, parname).val = parval
-            fit_parnames.add(parname)
-            if any([re.match(x + '$', parname) for x in self.freeze_pars]):
-                fit_logger.info('Freezing ' + parname)
-                ui.freeze(getattr(xijamod, parname))
-                fit_parnames.remove(parname)
-            if any([re.match(x + '$', parname) for x in self.thaw_pars]):
-                fit_logger.info('Thawing ' + parname)
-                ui.thaw(getattr(xijamod, parname))
-                fit_parnames.add(parname)
-                if 'tau' in parname:
-                    getattr(xijamod, parname).min = 0.1
-        return fit_parnames
 
     def fit(self):
         method = 'simplex'
@@ -155,8 +133,15 @@ class FitWorker(object):
         ui.load_user_stat('xijastat', calc_stat, lambda x: np.ones_like(x))
         ui.set_stat(xijastat)
 
-        # If any params are thawed then do the fit
-        if self.freeze_or_thaw_params(xijamod):
+        # Set frozen, min, and max attributes for each xijamod parameter
+        for par in self.model.pars:
+            xijamod_par = getattr(xijamod, par.full_name)
+            xijamod_par.val = par.val
+            xijamod_par.frozen = par.frozen
+            xijamod_par.min = par.min
+            xijamod_par.max = par.max
+
+        if any(not par.frozen for par in self.model.pars):
             try:
                 ui.fit(1)
                 calc_stat.message['status'] = 'finished'
@@ -303,13 +288,14 @@ class ParamsPanel(Panel):
                                    show_header=True)
         self.adj_handlers = {}
         for row, par in zip(count(), model.pars):
-            # par full name
-            params_table[row, 0] = gtk.Label(par.full_name)
-            params_table[row, 0].set_alignment(0, 0.5)
-
             # Thawed (i.e. fit the parameter)
-            params_table[row, 1] = gtk.CheckButton()
-            params_table[row, 1].set_active(not par.frozen)
+            frozen = params_table[row, 0] = gtk.CheckButton()
+            frozen.set_active(not par.frozen)
+            frozen.connect('toggled', self.frozen_toggled, par)
+
+            # par full name
+            params_table[row, 1] = gtk.Label(par.full_name)
+            params_table[row, 1].set_alignment(0, 0.5)
 
             # Value
             params_table[row, 2] = gtk.Label(par.fmt.format(par.val))
@@ -339,6 +325,9 @@ class ParamsPanel(Panel):
 
         self.pack_start(params_table.box, True, True, padding=10)
         self.params_table = params_table
+
+    def frozen_toggled(self, widget, par):
+        par.frozen = not widget.get_active()
 
     def minmax_changed(self, widget, adj, par, minmax):
         """Min or max Entry box value changed.  Update the slider (adj)
@@ -390,14 +379,44 @@ class ControlButtonsPanel(Panel):
         
         self.fit_button = gtk.Button("Fit")
         self.stop_button = gtk.Button("Stop")
+        self.save_button = gtk.Button("Save")
         self.add_plot_button = self.make_add_plot_button()
         self.quit_button = gtk.Button('Quit')
 
+        self.save_button.connect('clicked', self.save_file)
+
         self.pack_start(self.fit_button, False, False, 0)
         self.pack_start(self.stop_button, False, False, 0)
+        self.pack_start(self.save_button, False, False, 0)
         self.pack_start(self.add_plot_button, False, False, 0)
         self.pack_start(self.quit_button, False, False, 0)
 
+    def save_file(self, widget):
+        chooser = gtk.FileChooserDialog(title=None,action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                                        buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser.set_default_response(gtk.RESPONSE_OK)
+        filter = gtk.FileFilter()
+        filter.set_name("Model files")
+        filter.add_pattern("*.json")
+        chooser.add_filter(filter)
+
+        filter = gtk.FileFilter()
+        filter.set_name("All files")
+        filter.add_pattern("*")
+        chooser.add_filter(filter)
+        
+        response = chooser.run()
+        filename = chooser.get_filename()
+        chooser.destroy()
+
+        if response == gtk.RESPONSE_OK:
+            try:
+                fit_worker.model.write(filename)
+            except IOError:
+                print "Error writing {}".format(filename)
+                # Raise a dialog box here.
+        
     def make_add_plot_button(self):
         apb = gtk.combo_box_new_text()
         apb.append_text('Add plot...')
@@ -597,18 +616,8 @@ sherpa_configs = dict(
                    finalsimplex=0,   # converge based only on length of simplex
                    maxfev=1000),
     )
-thaw_pars = opt.thaw_pars.split()
-freeze_pars = ('.*',
-               '.*__T_e',
-               '.*__pi_.*',
-               '.*__pf_.*',
-               '.*__tau_.*',
-               '.*__tau_sc',
-               '.*__p_ampl',
-               )
-fit_worker = FitWorker(model, freeze_pars, thaw_pars)
 
-# make_out_dir()
+fit_worker = FitWorker(model)
 
 hdlr = logging.FileHandler(files['fit_log'].abs, 'w')
 hdlr.setLevel(logging.INFO)
