@@ -10,6 +10,7 @@ import gtk
 import gobject
 from itertools import count
 import argparse
+import fnmatch
 
 import re
 import json
@@ -383,11 +384,18 @@ class ControlButtonsPanel(Panel):
         self.save_button = gtk.Button("Save")
         self.add_plot_button = self.make_add_plot_button()
         self.quit_button = gtk.Button('Quit')
+        self.command_entry = gtk.Entry()
+        self.command_entry.set_width_chars(10)
+        self.command_entry.set_text('freeze *')
+        self.command_panel = Panel()
+        self.command_panel.pack_start(gtk.Label('Command:'), False, False, 0)
+        self.command_panel.pack_start(self.command_entry, False, False, 0)
 
         self.pack_start(self.fit_button, False, False, 0)
         self.pack_start(self.stop_button, False, False, 0)
         self.pack_start(self.save_button, False, False, 0)
         self.pack_start(self.add_plot_button, False, False, 0)
+        self.pack_start(self.command_panel, False, False, 0)
         self.pack_start(self.quit_button, False, False, 0)
 
     def make_add_plot_button(self):
@@ -454,6 +462,7 @@ class MainWindow(object):
         cbp.save_button.connect("clicked", self.save_model_file)
         cbp.quit_button.connect('clicked', self.destroy)
         cbp.add_plot_button.connect('changed', self.add_plot)
+        cbp.command_entry.connect('activate', self.command_activated)
 
         # and the window
         self.window.show_all()
@@ -497,6 +506,34 @@ class MainWindow(object):
             return not fit_stopped
         else:
             return True
+
+    def command_activated(self, widget):
+        """Respond to a command like "freeze solarheat*dP*" submitted via the
+        command entry box.  The first word is either "freeze" or "thaw" (with
+        possibility for other commands later) and the subsequent args are
+        space-delimited parameter globs using the UNIX file-globbing syntax.
+        This then sets the corresponding params_table checkbuttons.
+        """
+        command = widget.get_text().strip()
+        print repr(command)
+        vals = command.split()
+        cmd = vals[0]  # currently freeze or thaw
+        if cmd not in ('freeze', 'thaw') or len(vals) <= 1:
+            # dialog box..
+            print command, cmd
+            return
+        par_regexes = [fnmatch.translate(x) for x in vals[1:]]
+
+        print cmd, par_regexes
+        params_table = self.main_right_panel.params_panel.params_table
+        for row, par in enumerate(self.fit_worker.model.pars):
+            for par_regex in par_regexes:
+                print par_regex, par.full_name
+                if re.match(par_regex, par.full_name):
+                    print 'MATCH'
+                    checkbutton = params_table[row, 0]
+                    checkbutton.set_active(cmd == 'thaw')
+        widget.set_text('')
 
     def save_model_file(self, widget):
         chooser = gtk.FileChooserDialog(title=None,action=gtk.FILE_CHOOSER_ACTION_SAVE,
