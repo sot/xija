@@ -9,6 +9,7 @@ pygtk.require('2.0')
 import gtk
 import gobject
 from itertools import count
+import argparse
 
 import re
 import json
@@ -383,40 +384,12 @@ class ControlButtonsPanel(Panel):
         self.add_plot_button = self.make_add_plot_button()
         self.quit_button = gtk.Button('Quit')
 
-        self.save_button.connect('clicked', self.save_file)
-
         self.pack_start(self.fit_button, False, False, 0)
         self.pack_start(self.stop_button, False, False, 0)
         self.pack_start(self.save_button, False, False, 0)
         self.pack_start(self.add_plot_button, False, False, 0)
         self.pack_start(self.quit_button, False, False, 0)
 
-    def save_file(self, widget):
-        chooser = gtk.FileChooserDialog(title=None,action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                                        buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-        chooser.set_default_response(gtk.RESPONSE_OK)
-        filter = gtk.FileFilter()
-        filter.set_name("Model files")
-        filter.add_pattern("*.json")
-        chooser.add_filter(filter)
-
-        filter = gtk.FileFilter()
-        filter.set_name("All files")
-        filter.add_pattern("*")
-        chooser.add_filter(filter)
-        
-        response = chooser.run()
-        filename = chooser.get_filename()
-        chooser.destroy()
-
-        if response == gtk.RESPONSE_OK:
-            try:
-                fit_worker.model.write(filename)
-            except IOError:
-                print "Error writing {}".format(filename)
-                # Raise a dialog box here.
-        
     def make_add_plot_button(self):
         apb = gtk.combo_box_new_text()
         apb.append_text('Add plot...')
@@ -478,6 +451,7 @@ class MainWindow(object):
         cbp.fit_button.connect("clicked", lambda widget:
                                   gobject.timeout_add(200, self.fit_monitor))
         cbp.stop_button.connect("clicked", fit_worker.terminate)
+        cbp.save_button.connect("clicked", self.save_model_file)
         cbp.quit_button.connect('clicked', self.destroy)
         cbp.add_plot_button.connect('changed', self.add_plot)
 
@@ -524,6 +498,32 @@ class MainWindow(object):
         else:
             return True
 
+    def save_model_file(self, widget):
+        chooser = gtk.FileChooserDialog(title=None,action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                                        buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser.set_default_response(gtk.RESPONSE_OK)
+        filter = gtk.FileFilter()
+        filter.set_name("Model files")
+        filter.add_pattern("*.json")
+        chooser.add_filter(filter)
+
+        filter = gtk.FileFilter()
+        filter.set_name("All files")
+        filter.add_pattern("*")
+        chooser.add_filter(filter)
+        
+        response = chooser.run()
+        filename = chooser.get_filename()
+        chooser.destroy()
+
+        if response == gtk.RESPONSE_OK:
+            try:
+                self.fit_worker.model.write(filename)
+            except IOError:
+                print "Error writing {}".format(filename)
+                # Raise a dialog box here.
+        
 
 def make_out_dir():
     out_dir = files['out_dir'].abs
@@ -539,48 +539,28 @@ def make_out_dir():
     os.makedirs(out_dir)
 
 def get_options():
-    from optparse import OptionParser
-    parser = OptionParser()
-    parser.add_option("--days",
-                      type='float',
+    parser = argparse.ArgumentParser()
+    parser.add_argument("model",
+                      help="Model file")
+    parser.add_argument("--days",
+                      type=float,
                       default=15,
                       help="Number of days in fit interval (default=90")
-    parser.add_option("--stop",
+    parser.add_argument("--stop",
                       default="2010:180",
                       help="Stop time of fit interval (default=NOW - 7 days)")
-    parser.add_option("--method",
-                      default='simplex',
-                      help="Fit method (default=simple)")
-    parser.add_option("--model",
-                      default='minusz',
-                      help="Model to predict (default=minusz)")
-    parser.add_option("--thaw-pars",
-                      default='solarheat__t.*__P_.*',
-                      help="List of parameters (space-separated) to thaw (default=none)")
-    parser.add_option("--nproc",
+    parser.add_argument("--nproc",
                       default=0,
-                      type='int',
+                      type=int,
                       help="Number of processors (default=1)")
-    parser.add_option("--ftol",
-                      default=1e-4,
-                      type='float',
-                      help="ftol convergence parameter (default=1e-4")
-    parser.add_option("--outdir",
-                      default='fit',
-                      help="Output directory within <msid> root (default=fit)")
-    parser.add_option("--pardir",
-                      help="Directory containing model params file (default=<model>)")
-    parser.add_option("--quiet",
+    parser.add_argument("--quiet",
                       default=False,
                       action='store_true',
                       help="Suppress screen output")
-    parser.add_option("--nofit",
-                      action="store_true",
-                      help="Do not fit (default=False)")
-    (opt, args) = parser.parse_args()
-    return (opt, args)
 
-opt, args = get_options()
+    return parser.parse_args()
+
+opt = get_options()
 
 src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
 files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
@@ -601,14 +581,10 @@ stop = opt.stop or DateTime(DateTime().secs - 7 * 86400).date[:8]
 start = DateTime(DateTime(stop).secs - opt.days * 86400).date[:8]
 
 src['model'] = opt.model
-src['outdir'] = opt.outdir
-src['pardir'] = opt.pardir or opt.model
 
-model_spec = json.load(open(files['model_spec.json'].abs, 'r'))
-model = xija.ThermalModel(opt.model, start, stop, model_spec=model_spec)
+model_spec = json.load(open(opt.model, 'r'))
+model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
 model.make()   
-model.outdir = src['outdir'].val
-model.pardir = src['pardir'].val
 
 # Default configurations for fit methods
 sherpa_configs = dict(
@@ -619,18 +595,6 @@ sherpa_configs = dict(
 
 fit_worker = FitWorker(model)
 
-hdlr = logging.FileHandler(files['fit_log'].abs, 'w')
-hdlr.setLevel(logging.INFO)
-hdlr.setFormatter(logging.Formatter('%(message)s'))
-for logger in loggers:
-    logger.addHandler(hdlr)
-
-fit_logger.info('Running: ' + ' '.join(sys.argv))
-fit_logger.info('Start: {0}'.format(start))
-fit_logger.info('Stop: {0}'.format(stop))
-fit_logger.info('Options: {0}'.format(opt))
-fit_logger.info('')
-fit_logger.info('Start time: {0}'.format(time.ctime()))
 
 main_window = MainWindow(fit_worker)
 main_window.main()
