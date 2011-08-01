@@ -525,19 +525,6 @@ class MainWindow(object):
                 # Raise a dialog box here.
         
 
-def make_out_dir():
-    out_dir = files['out_dir'].abs
-    out_dirs = glob.glob(out_dir + '.*')
-    out_dirs_search = re.compile(r'{0}\.(\d+)'.format(out_dir)).search
-    out_indexes = [int(out_dirs_search(x).group(1)) for x in out_dirs if out_dirs_search(x)]
-    if out_indexes:
-        n_outs = max(out_indexes)
-    else:
-        n_outs = 0
-    if os.path.exists(out_dir):
-        os.rename(out_dir, out_dir + '.%d' % (n_outs + 1))
-    os.makedirs(out_dir)
-
 def get_options():
     parser = argparse.ArgumentParser()
     parser.add_argument("model",
@@ -547,8 +534,7 @@ def get_options():
                       default=15,
                       help="Number of days in fit interval (default=90")
     parser.add_argument("--stop",
-                      default="2010:180",
-                      help="Stop time of fit interval (default=NOW - 7 days)")
+                      help="Stop time of fit interval (default=model values)")
     parser.add_argument("--nproc",
                       default=0,
                       type=int,
@@ -576,13 +562,18 @@ if opt.quiet:
         for h in logger.handlers:
             logger.removeHandler(h)
 
-# Use supplied stop time or NOW - 7 days (truncated to nearest day)
-stop = opt.stop or DateTime(DateTime().secs - 7 * 86400).date[:8]
-start = DateTime(DateTime(stop).secs - opt.days * 86400).date[:8]
-
 src['model'] = opt.model
 
 model_spec = json.load(open(opt.model, 'r'))
+
+# Use supplied stop time and days OR use model_spec values if stop not supplied
+if opt.stop:
+    start = DateTime(DateTime(opt.stop).secs - opt.days * 86400).date[:8]
+    stop = opt.stop
+else:
+    start = model_spec['datestart']
+    stop = model_spec['datestop']
+
 model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
 model.make()   
 

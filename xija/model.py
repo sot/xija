@@ -50,11 +50,9 @@ def convert_type_star_star(array, ctype_type):
     f4ptr = ctypes.POINTER(ctype_type)
     return (f4ptr * len(array))(*[row.ctypes.data_as(f4ptr) for row in array])
 
+
 class ThermalModel(object):
-    def __init__(self, name, start='2011:115:00:00:00', stop='2011:116:00:00:00',
-                 dt=328.0, model_spec=None):
-        if model_spec:
-            dt = model_spec['dt']
+    def __init__(self, name, start='2011:001', stop='2011:005', dt=328.0, model_spec=None):
         self.name = name
         self.comp = OrderedDict()
         self.dt = dt
@@ -145,6 +143,8 @@ class ThermalModel(object):
         model_spec = dict(name=self.name,
                           comps=[],
                           dt=self.dt,
+                          datestart=self.datestart,
+                          datestop=self.datestop,
                           tlm_code=None,
                           mval_names=[])
                
