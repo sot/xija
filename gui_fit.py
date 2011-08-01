@@ -503,6 +503,7 @@ class MainWindow(object):
                                         buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                                                  gtk.STOCK_SAVE, gtk.RESPONSE_OK))
         chooser.set_default_response(gtk.RESPONSE_OK)
+        chooser.set_current_name(self.fit_worker.model.filename)
         filter = gtk.FileFilter()
         filter.set_name("Model files")
         filter.add_pattern("*.json")
@@ -520,6 +521,7 @@ class MainWindow(object):
         if response == gtk.RESPONSE_OK:
             try:
                 self.fit_worker.model.write(filename)
+                self.fit_worker.model.filename = filename
             except IOError:
                 print "Error writing {}".format(filename)
                 # Raise a dialog box here.
@@ -527,7 +529,7 @@ class MainWindow(object):
 
 def get_options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("model",
+    parser.add_argument("filename",
                       help="Model file")
     parser.add_argument("--days",
                       type=float,
@@ -562,9 +564,8 @@ if opt.quiet:
         for h in logger.handlers:
             logger.removeHandler(h)
 
-src['model'] = opt.model
-
-model_spec = json.load(open(opt.model, 'r'))
+model_spec = json.load(open(opt.filename, 'r'))
+src['model'] = model_spec['name']
 
 # Use supplied stop time and days OR use model_spec values if stop not supplied
 if opt.stop:
@@ -576,6 +577,7 @@ else:
 
 model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
 model.make()   
+model.filename = os.path.abspath(opt.filename)
 
 # Default configurations for fit methods
 sherpa_configs = dict(
