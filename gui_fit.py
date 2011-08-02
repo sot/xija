@@ -241,6 +241,7 @@ class PlotsPanel(Panel):
         self.plot_panels = plot_panels
 
     def update(self, widget=None):
+        self.model.calc()
         for plot_panel in self.plot_panels:
             plot_panel.update()
 
@@ -283,8 +284,6 @@ class PlotPanel(Panel):
         self.canvas.show()
 
     def update(self):
-        self.model.calc()
-        # self.ax.cla()     # just for testing now
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         plot_func(fig=self.fig, ax=self.ax)
         self.canvas.draw()
@@ -470,8 +469,7 @@ class MainWindow(object):
 
         cbp = mlp.control_buttons_panel
         cbp.fit_button.connect("clicked", fit_worker.start)
-        cbp.fit_button.connect("clicked", lambda widget:
-                                  gobject.timeout_add(200, self.fit_monitor))
+        cbp.fit_button.connect("clicked", self.fit_monitor)
         cbp.stop_button.connect("clicked", fit_worker.terminate)
         cbp.save_button.connect("clicked", self.save_model_file)
         cbp.quit_button.connect('clicked', self.destroy)
@@ -509,9 +507,10 @@ class MainWindow(object):
             pp.update()
         widget.set_active(0)
             
-    def fit_monitor(self):
+    def fit_monitor(self, widget=None):
         fit_worker = self.fit_worker
         msg = None
+        fit_stopped = False
         while fit_worker.parent_pipe.poll():
             # Keep reading messages until there are no more or until getting
             # a message indicating fit is stopped.
@@ -527,9 +526,13 @@ class MainWindow(object):
             fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update(fit_worker)
             self.main_left_panel.plots_panel.update()
-            return not fit_stopped
-        else:
-            return True
+
+        # If fit has not stopped then set another timeout 200 msec from now
+        if not fit_stopped:
+            gobject.timeout_add(200, self.fit_monitor)
+            
+        # Terminate the current timeout
+        return False
 
     def command_activated(self, widget):
         """Respond to a command like "freeze solarheat*dP*" submitted via the
