@@ -112,7 +112,7 @@ class Mask(ModelComponent):
     def __str__(self):
         return "mask__{}_{}_{}".format(self.node, self.op, self.val)
 
-    def plot_data(self, fig, ax):
+    def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
             plot_cxctime(self.model.times,
@@ -153,7 +153,7 @@ class TelemData(ModelComponent):
             
         return self._dvals
 
-    def plot_data(self, fig, ax):
+    def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
             self.model_plotdate = cxctime2plotdate(self.model.times)
@@ -191,7 +191,7 @@ class Node(TelemData):
         return np.sum(resid**2 / self.sigma**2)
 
     
-    def plot_data(self, fig, ax):
+    def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
             self.model_plotdate = cxctime2plotdate(self.model.times)
@@ -403,7 +403,7 @@ class SolarHeat(PrecomputedHeatPower):
     def __str__(self):
         return 'solarheat__{0}'.format(self.node)
 
-    def plot_solar_heat(self, fig, ax):
+    def plot_solar_heat__pitch(self, fig, ax):
         Ps = self.parvals[0:self.n_pitches] + self.bias
         Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
         # dPs = self.parvals[self.n_pitches:2*self.n_pitches]
@@ -586,7 +586,7 @@ class AcisDpaPower(PrecomputedHeatPower):
                           )
         self.tmal_floats = ()
     
-    def plot_data(self, fig, ax):
+    def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)

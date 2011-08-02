@@ -223,6 +223,7 @@ class PlotsPanel(Panel):
         self.model = fit_worker.model
         self.main_window = main_window
         self.plot_panels = []
+        self.sharex = {}        # Shared x-axes keyed by x-axis type
 
     def add_plot_panel(self, plot_name):
         plot_panel = PlotPanel(plot_name, self)
@@ -266,7 +267,26 @@ class PlotPanel(Panel):
         self.pack_start(toolbar_box, False, False)
 
         self.fig = fig
-        self.ax = fig.add_subplot(1, 1, 1)
+
+#         axis_types = plot_method.split('__')
+#         if len(axis_types) == 1:
+#             self.ax = fig.add_subplot(1, 1, 1)
+#         else:
+#             xaxis_type = axis_types[1]
+#             if xaxis_type in plots_panel.sharex:
+#                 self.ax = fig.add_subplot(1, 1, 1, sharex=plots_panel.sharex[xaxis_type])
+#             else:
+#                 self.ax = fig.add_subplot(1, 1, 1)
+#                 plots_panel.sharex[xaxis_type] = self.ax
+
+        try:
+            xaxis_type = plot_method.split('__')[1]
+        except IndexError:
+            xaxis_type = None
+        self.ax = fig.add_subplot(111, sharex=plots_panel.sharex.get(xaxis_type, None))
+        if xaxis_type:
+            plots_panel.sharex.setdefault(xaxis_type, self.ax)
+
         self.canvas = canvas
         self.canvas.show()
 
@@ -386,7 +406,7 @@ class ControlButtonsPanel(Panel):
         self.quit_button = gtk.Button('Quit')
         self.command_entry = gtk.Entry()
         self.command_entry.set_width_chars(10)
-        self.command_entry.set_text('freeze *')
+        self.command_entry.set_text('')
         self.command_panel = Panel()
         self.command_panel.pack_start(gtk.Label('Command:'), False, False, 0)
         self.command_panel.pack_start(self.command_entry, False, False, 0)
