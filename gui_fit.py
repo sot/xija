@@ -238,6 +238,7 @@ class PlotsPanel(Panel):
                 self.box.remove(plot_panel.box)
             else:
                 plot_panels.append(plot_panel)
+        self.plot_panels = plot_panels
 
     def update(self, widget=None):
         for plot_panel in self.plot_panels:
