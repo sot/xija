@@ -402,11 +402,12 @@ class ControlButtonsPanel(Panel):
         apb = gtk.combo_box_new_text()
         apb.append_text('Add plot...')
 
-        plot_names = ('{} {}'.format(comp.name, attr[5:])
+        plot_names = ['{} {}'.format(comp.name, attr[5:])
                       for comp in self.fit_worker.model.comps
                       for attr in dir(comp)
-                      if attr.startswith('plot_'))
+                      if attr.startswith('plot_')]
 
+        self.plot_names = plot_names
         for plot_name in plot_names:
             apb.append_text(plot_name)
 
@@ -438,10 +439,11 @@ class MainWindow(object):
     # in this example. More on callbacks below.
     def __init__(self, fit_worker):
         self.fit_worker = fit_worker
+
         # create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.connect("destroy", self.destroy)
-        self.window.set_default_size(1400, 800)
+        self.window.set_default_size(*gui_config.get('size', (1400, 800)))
     
         # Sets the border width of the window.
         self.window.set_border_width(10)
@@ -464,7 +466,17 @@ class MainWindow(object):
         cbp.add_plot_button.connect('changed', self.add_plot)
         cbp.command_entry.connect('activate', self.command_activated)
 
-        # and the window
+        # Add plots from previous Save
+        for plot_name in gui_config.get('plot_names', []):
+            try:
+                plot_index = cbp.plot_names.index(plot_name) + 1
+                cbp.add_plot_button.set_active(plot_index)
+                print "Adding plot {} {}".format(plot_name, plot_index)
+                time.sleep(0.05)  # is it needed?
+            except ValueError:
+                print "ERROR: Unexpected plot_name {}".format(plot_name)
+
+        # Show everything finally
         self.window.show_all()
 
     def main(self):
@@ -515,24 +527,20 @@ class MainWindow(object):
         This then sets the corresponding params_table checkbuttons.
         """
         command = widget.get_text().strip()
-        print repr(command)
         vals = command.split()
         cmd = vals[0]  # currently freeze or thaw
         if cmd not in ('freeze', 'thaw') or len(vals) <= 1:
             # dialog box..
-            print command, cmd
+            print "ERROR: bad command: {}".format(command)
             return
         par_regexes = [fnmatch.translate(x) for x in vals[1:]]
 
-        print cmd, par_regexes
         params_table = self.main_right_panel.params_panel.params_table
         for row, par in enumerate(self.fit_worker.model.pars):
             for par_regex in par_regexes:
-                print par_regex, par.full_name
                 if re.match(par_regex, par.full_name):
-                    print 'MATCH'
-                    checkbutton = params_table[row, 0]
-                    checkbutton.set_active(cmd == 'thaw')
+                     checkbutton = params_table[row, 0]
+                     checkbutton.set_active(cmd == 'thaw')
         widget.set_text('')
 
     def save_model_file(self, widget):
@@ -540,7 +548,7 @@ class MainWindow(object):
                                         buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                                                  gtk.STOCK_SAVE, gtk.RESPONSE_OK))
         chooser.set_default_response(gtk.RESPONSE_OK)
-        chooser.set_current_name(self.fit_worker.model.filename)
+        chooser.set_current_name(gui_config['filename'])
         filter = gtk.FileFilter()
         filter.set_name("Model files")
         filter.add_pattern("*.json")
@@ -556,9 +564,14 @@ class MainWindow(object):
         chooser.destroy()
 
         if response == gtk.RESPONSE_OK:
+            model_spec = self.fit_worker.model.model_spec
+            gui_config['plot_names'] = [x.plot_name
+                                        for x in self.main_left_panel.plots_panel.plot_panels]
+            gui_config['size'] = self.window.get_size()
+            model_spec['gui_config'] = gui_config
             try:
-                self.fit_worker.model.write(filename)
-                self.fit_worker.model.filename = filename
+                self.fit_worker.model.write(filename, model_spec)
+                gui_config['filename'] = filename
             except IOError:
                 print "Error writing {}".format(filename)
                 # Raise a dialog box here.
@@ -614,7 +627,9 @@ else:
 
 model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
 model.make()   
-model.filename = os.path.abspath(opt.filename)
+
+gui_config = model_spec.get('gui_config', {})
+gui_config['filename'] = os.path.abspath(opt.filename)
 
 # Default configurations for fit methods
 sherpa_configs = dict(

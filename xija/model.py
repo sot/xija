@@ -138,8 +138,9 @@ class ThermalModel(object):
         """Get a model component.  Works with either a string or a component object"""
         return None if name is None else self.comp[str(name)]
 
-    def write(self, filename):
-        """Write a full model specification for this model"""
+    @property
+    def model_spec(self):
+        """Generate a full model specification data structure for this model"""
         model_spec = dict(name=self.name,
                           comps=[],
                           dt=self.dt,
@@ -158,6 +159,14 @@ class ThermalModel(object):
                                             name=comp.name,
                                             init_args=init_args,
                                             init_kwargs=init_kwargs))
+        return model_spec
+    
+    def write(self, filename, model_spec=None):
+        """Write the model specification as JSON to a file
+        """
+        if model_spec is None:
+            model_spec = self.model_spec
+            
         with open(filename, 'w') as f:
             json.dump(model_spec, f, sort_keys=True, indent=4)
 
