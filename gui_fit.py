@@ -268,25 +268,16 @@ class PlotPanel(Panel):
 
         self.fig = fig
 
-#         axis_types = plot_method.split('__')
-#         if len(axis_types) == 1:
-#             self.ax = fig.add_subplot(1, 1, 1)
-#         else:
-#             xaxis_type = axis_types[1]
-#             if xaxis_type in plots_panel.sharex:
-#                 self.ax = fig.add_subplot(1, 1, 1, sharex=plots_panel.sharex[xaxis_type])
-#             else:
-#                 self.ax = fig.add_subplot(1, 1, 1)
-#                 plots_panel.sharex[xaxis_type] = self.ax
-
+        # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
+        # First such plot has sharex=None, subsequent ones use the first axis.
         try:
             xaxis_type = plot_method.split('__')[1]
         except IndexError:
-            xaxis_type = None
-        self.ax = fig.add_subplot(111, sharex=plots_panel.sharex.get(xaxis_type, None))
-        if xaxis_type:
+            self.ax = fig.add_subplot(111)
+        else:
+            self.ax = fig.add_subplot(111, sharex=plots_panel.sharex.get(xaxis_type))
             plots_panel.sharex.setdefault(xaxis_type, self.ax)
-
+            
         self.canvas = canvas
         self.canvas.show()
 
