@@ -1,3 +1,4 @@
+import re
 import operator
 import numpy as np
 from Chandra.Time import DateTime
@@ -265,7 +266,7 @@ class HeatSinkRef(ModelComponent):
 
     In code below, "T" corresponds to "Te" above.  The "T" above is node.dvals.
     """
-    def __init__(self, model, node, T, tau, T_ref):
+    def __init__(self, model, node, T=0.0, tau=20.0, T_ref=20.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.add_par('P', (T - T_ref) / tau, min=-10.0, max=10.0)
@@ -608,6 +609,94 @@ class AcisDpaPower(PrecomputedHeatPower):
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
             
+
+class AcisDpaStatePower(PrecomputedHeatPower):
+    """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc).
+    Use commanded states and assign an effective power for each "unique" power
+    state.  See dpa/NOTES.power.
+    """
+    def __init__(self, model, node, mult=1.0):
+        ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
+        self.add_par('pow_0xxx', 21.5, min=10, max=60)
+        self.add_par('pow_1xxx', 29.2, min=15, max=60)
+        self.add_par('pow_2x1x', 39.1, min=20, max=80)
+        self.add_par('pow_3xx0', 55.9, min=20, max=100)
+        self.add_par('pow_3xx1', 47.9, min=20, max=100)
+        self.add_par('pow_4xxx', 57.0, min=20, max=120)
+        self.add_par('pow_5xxx', 66.5, min=20, max=120)
+        self.add_par('pow_66x0', 73.7, min=20, max=140)
+        self.add_par('pow_6611', 76.5, min=20, max=140)
+        self.add_par('pow_6xxx', 75.0, min=20, max=140)
+        self.add_par('mult', mult, min=0.0, max=2.0)
+        self.add_par('bias', 70, min=10, max=100)
+
+        self.power_pars = [par for par in self.pars if par.name.startswith('pow_')]
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'dpa_state'
+
+    @property
+    def dvals(self):
+        """Model dvals is just the telemetered power.  This is not actually
+        used by the model, but is useful for diagnostics.  The real output of
+        this call is self.par_idxs which provides a mapping to the correct
+        power parameter to use at each time step.
+        """
+        if not hasattr(self, '_dvals'):
+            par_idxs = []
+            # Make a regex corresponding to the last bit of each power parameter
+            # name.  E.g. "pow_1xxx" => "1...".
+            power_par_res = [par.name[4:].replace('x', '.') for par in self.power_pars]
+            for state in self.model.cmd_states:
+                for i, power_par_re in enumerate(power_par_res):
+                    state_str = "{}{}{}{}".format(state['fep_count'], state['ccd_count'],
+                                                  state['vid_board'], state['clocking'])
+                    if re.match(power_par_re, state_str):
+                        par_idxs.append(i)
+                        break
+                else:
+                    raise ValueError('Error - no match for power state {}'.format(state_str))
+                     
+            self.par_idxs = np.array(par_idxs)
+
+            dpaav = self.model.fetch('1dp28avo')
+            dpaai = self.model.fetch('1dpicacu')
+            dpabv = self.model.fetch('1dp28bvo')
+            dpabi = self.model.fetch('1dpicbcu')
+            self._dvals = dpaav * dpaai + dpabv * dpabi
+                
+        return self._dvals
+
+    def update(self):
+        """Update the model prediction as a precomputed heat.  Make an array of
+        the current power parameters, then slice that with self.par_idxs to
+        generate the predicted power (based on the parameter specifying state
+        power) at each time step.
+        """
+        power_parvals = np.array([par.val for par in self.power_pars])
+        powers = power_parvals[self.par_idxs]
+        self.mvals = self.mult / 100. * (powers - self.bias)
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                           self.node.mvals_i,  # dy1/dt index
+                           self.mvals_i,       # mvals row with precomputed heat input
+                          )
+        self.tmal_floats = ()
+    
+    def plot_data__time(self, fig, ax):
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(self.model_plotdate, self.dvals)
+        else:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            powers = self.mvals * 100. / self.mult + self.bias 
+            plot_cxctime(self.model.times, powers, '-r', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_ylabel('Power (W)')
+
 
 class AcisDpaPower6(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
