@@ -204,6 +204,17 @@ class Node(TelemData):
             lines[0].set_data(self.model_plotdate, self.dvals)
             lines[1].set_data(self.model_plotdate, self.mvals)
 
+    def plot_resid__time(self, fig, ax):
+        lines = ax.get_lines()
+        if not lines:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.dvals - self.mvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: residuals (model - data)'.format(self.name))
+            ax.set_ylabel('Temperature (degC)')
+        else:
+            lines[0].set_data(self.model_plotdate, self.dvals - self.mvals)
+
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
     def __init__(self, model, node1, node2, tau):
