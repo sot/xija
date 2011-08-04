@@ -98,8 +98,9 @@ class CalcStat(object):
 
 
 class FitWorker(object):
-    def __init__(self, model):
+    def __init__(self, model, method='simplex'):
         self.model = model
+        self.method = method
         self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
 
     def start(self, widget=None):
@@ -118,14 +119,12 @@ class FitWorker(object):
         logging.debug('Fit terminated')
 
     def fit(self):
-        method = 'simplex'
-
         dummy_data = np.zeros(1)
         dummy_times = np.arange(1)
         ui.load_arrays(1, dummy_times, dummy_data)
 
-        ui.set_method(method)
-        ui.get_method().config.update(sherpa_configs.get(method, {}))
+        ui.set_method(self.method)
+        ui.get_method().config.update(sherpa_configs.get(self.method, {}))
 
         ui.load_user_model(CalcModel(self.model), 'xijamod')  # sets global xijamod
         ui.add_user_pars('xijamod', self.model.parnames)
@@ -606,6 +605,11 @@ def get_options():
                       default=0,
                       type=int,
                       help="Number of processors (default=1)")
+    parser.add_argument("--fit-method",
+                        default="simplex",
+                        help="Sherpa fit method (simplex|moncar|levmar)")
+    parser.add_argument("--inherit-from",
+                      help="Inherit par values from model spec file")
     parser.add_argument("--quiet",
                       default=False,
                       action='store_true',
@@ -641,7 +645,19 @@ else:
     stop = model_spec['datestop']
 
 model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
-model.make()   
+model.make()
+
+if opt.inherit_from:
+    inherit_spec = json.load(open(opt.inherit_from, 'r'))
+    inherit_pars = {par['full_name']: par for par in inherit_spec['pars']}
+    for par in model.pars:
+        if par.full_name in inherit_pars:
+            print "Inheriting par {}".format(par.full_name)
+            par.val = inherit_pars[par.full_name]['val']
+            par.min = inherit_pars[par.full_name]['min']
+            par.max = inherit_pars[par.full_name]['max']
+            par.frozen = inherit_pars[par.full_name]['frozen']
+            par.fmt = inherit_pars[par.full_name]['fmt']
 
 gui_config = model_spec.get('gui_config', {})
 gui_config['filename'] = os.path.abspath(opt.filename)
@@ -653,8 +669,7 @@ sherpa_configs = dict(
                    maxfev=1000),
     )
 
-fit_worker = FitWorker(model)
-
+fit_worker = FitWorker(model, opt.fit_method)
 
 main_window = MainWindow(fit_worker)
 main_window.main()

@@ -685,13 +685,14 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         self.tmal_floats = ()
     
     def plot_data__time(self, fig, ax):
+        powers = self.mvals * 100. / self.mult + self.bias 
         lines = ax.get_lines()
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)
+            lines[1].set_data(self.model_plotdate, powers)
         else:
             self.model_plotdate = cxctime2plotdate(self.model.times)
             plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
-            powers = self.mvals * 100. / self.mult + self.bias 
             plot_cxctime(self.model.times, powers, '-r', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
