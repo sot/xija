@@ -5,12 +5,13 @@ Next-generation thermal modeling framework for Chandra thermal modeling
 import os
 import json
 import ctypes
-
 from collections import OrderedDict
+
 import numpy as np
 import Ska.Numpy
 from Chandra.Time import DateTime
 import clogging
+import asciitable
 
 from . import component
 from . import tmal
@@ -160,6 +161,22 @@ class ThermalModel(object):
                                             init_args=init_args,
                                             init_kwargs=init_kwargs))
         return model_spec
+    
+    def write_vals(self, filename):
+        """Write dvals and mvals for each model component (as applicable) to an
+        ascii table file.  Some component have neither (couplings), some have
+        just dvals (TelemData), others have both (Node, AcisDpaPower).
+        Everything is guaranteed to be time synced, so write a single time column.
+        """
+        colvals = OrderedDict(time=self.times)
+        for comp in self.comps:
+            print 'HEJ', comp.name, comp.predict, type(comp)
+            if hasattr(comp, 'dvals'):
+                colvals[comp.name + '_data'] = comp.dvals
+            if hasattr(comp, 'mvals') and comp.predict:
+                colvals[comp.name + '_model'] = comp.mvals
+
+        asciitable.write(colvals, filename, names=colvals.keys())
     
     def write(self, filename, model_spec=None):
         """Write the model specification as JSON to a file
