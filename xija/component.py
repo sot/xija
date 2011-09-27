@@ -97,21 +97,31 @@ class Mask(ModelComponent):
       "eq": ==
       "ne" !=
     """
-    def __init__(self, model, node, op, val):
+    def __init__(self, model, node, op, val, min_=-1e38, max_=1e38):
         ModelComponent.__init__(self, model)
-        self.node = model.get_comp(node)
+        # Usually do self.node = model.get_comp(node) right away.  But here
+        # allow for a forward reference to a not-yet-existent node and check
+        # only when self.mask is actually used. This allows for masking in a node
+        # based on data for that same node.
+        self.node = node
         self.op = op
         self.val = val
         self.model = model
+        self.add_par('val', val, min=min_, max=max_, frozen=True)
+        self.mask_val = None
 
     @property
     def mask(self):
-        if not hasattr(self, '_mask'):
+        if not isinstance(self.node, ModelComponent):
+            self.node = self.model.get_comp(self.node)
+        # cache latest version of mask
+        if self.val != self.mask_val:  
+            self.mask_val = self.val
             self._mask = getattr(operator, self.op)(self.node.dvals, self.val)
         return self._mask
 
     def __str__(self):
-        return "mask__{}_{}_{}".format(self.node, self.op, self.val)
+        return "mask__{}_{}".format(self.node, self.op)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
@@ -189,7 +199,6 @@ class Node(TelemData):
         else:
             resid = self.dvals[self.mask.mask] - self.mvals[self.mask.mask]
         return np.sum(resid**2 / self.sigma**2)
-
     
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
@@ -206,14 +215,18 @@ class Node(TelemData):
 
     def plot_resid__time(self, fig, ax):
         lines = ax.get_lines()
+        resids = self.dvals - self.mvals
+        if self.mask:
+            resids[~self.mask.mask] = np.nan
+
         if not lines:
             self.model_plotdate = cxctime2plotdate(self.model.times)
-            plot_cxctime(self.model.times, self.dvals - self.mvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, resids, '-b', fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: residuals (model - data)'.format(self.name))
+            ax.set_title('{}: residuals (data - model)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
         else:
-            lines[0].set_data(self.model_plotdate, self.dvals - self.mvals)
+            lines[0].set_data(self.model_plotdate, resids)
 
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
@@ -236,7 +249,7 @@ class Coupling(ModelComponent):
 
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
-    def __init__(self, model, node, T, tau):
+    def __init__(self, model, node, T=0.0, tau=20.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.add_par('T', T, min=-100.0, max=100.0)

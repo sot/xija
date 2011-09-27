@@ -53,7 +53,11 @@ def convert_type_star_star(array, ctype_type):
 
 
 class ThermalModel(object):
-    def __init__(self, name, start='2011:001', stop='2011:005', dt=328.0, model_spec=None):
+    def __init__(self, name, start=None, stop=None, dt=328.0, model_spec=None):
+        if stop is None:
+            stop = DateTime().secs - 30 * 86400
+        if start is None:
+            start = DateTime(stop).secs - 45 * 86400
         self.name = name
         self.comp = OrderedDict()
         self.dt = dt
@@ -70,6 +74,11 @@ class ThermalModel(object):
             self._set_from_model_spec(model_spec)
 
     def _set_from_model_spec(self, model_spec):
+        try:
+            model_spec = json.load(open(model_spec, 'r'))
+        except:
+            pass
+
         for comp in model_spec['comps']:
             ComponentClass = getattr(component, comp['class_name'])
             args = comp['init_args']
@@ -83,6 +92,26 @@ class ThermalModel(object):
         for par, specpar in zip(self.pars, pars):
             for attr in specpar:
                 setattr(par, attr, specpar[attr])
+
+    def inherit_from_model_spec(self, inherit_spec):
+        """Inherit parameter values from any like-named parameters within the
+        inherit_spec model specification.  This is useful for making a new
+        variation of an existing model.
+        """
+        try:
+            inherit_spec = json.load(open(inherit_spec, 'r'))
+        except:
+            pass
+
+        inherit_pars = {par['full_name']: par for par in inherit_spec['pars']}
+        for par in self.pars:
+            if par.full_name in inherit_pars:
+                logger.info("Inheriting par {}".format(par.full_name))
+                par.val = inherit_pars[par.full_name]['val']
+                par.min = inherit_pars[par.full_name]['min']
+                par.max = inherit_pars[par.full_name]['max']
+                par.frozen = inherit_pars[par.full_name]['frozen']
+                par.fmt = inherit_pars[par.full_name]['fmt']
 
     @staticmethod
     def _eng_match_times(start, stop, dt):
