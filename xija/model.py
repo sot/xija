@@ -38,14 +38,17 @@ if 'debug' in globals():
 
 logger = clogging.config_logger('xija', level=clogging.INFO)
 
-core = np.ctypeslib.load_library('libcore', os.path.abspath(os.path.dirname(__file__)))
+core = np.ctypeslib.load_library('libcore',
+                                 os.path.abspath(os.path.dirname(__file__)))
 core.calc_model.restype = ctypes.c_int
-core.calc_model.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_double,
+core.calc_model.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                            ctypes.c_double,
                             ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                             ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
                             ctypes.POINTER(ctypes.POINTER(ctypes.c_double))]
-#int calc_model(int n_times, int n_preds, int n_tmals, double dt, 
+#int calc_model(int n_times, int n_preds, int n_tmals, double dt,
 #               double **mvals, int **tmal_ints, double **tmal_floats)
+
 
 def convert_type_star_star(array, ctype_type):
     f4ptr = ctypes.POINTER(ctype_type)
@@ -87,8 +90,8 @@ class ThermalModel(object):
 
         pars = model_spec['pars']
         if len(pars) != len(self.pars):
-            raise ValueError('Number of spec pars does not match model: \n{0}\n{1}'.format(
-                    len(pars), len(self.pars)))
+            raise ValueError('Number of spec pars does not match model: \n'
+                             '{0}\n{1}'.format(len(pars), len(self.pars)))
         for par, specpar in zip(self.pars, pars):
             for attr in specpar:
                 setattr(par, attr, specpar[attr])
@@ -115,9 +118,9 @@ class ThermalModel(object):
 
     @staticmethod
     def _eng_match_times(start, stop, dt):
-        """Return an array of times between ``start`` and ``stop`` at ``dt`` sec
-        intervals.  The times are roughly aligned (within 1 sec) to the timestamps
-        in the '5min' (328 sec) Ska eng archive data.
+        """Return an array of times between ``start`` and ``stop`` at ``dt``
+        sec intervals.  The times are roughly aligned (within 1 sec) to the
+        timestamps in the '5min' (328 sec) Ska eng archive data.
         """
         time0 = 410270764.0
         i0 = int((DateTime(start).secs - time0) / dt) + 1
@@ -133,7 +136,8 @@ class ThermalModel(object):
             states = db.fetchall("""select * from cmd_states
                                  where tstop >= {0} and tstart <= {1}
                                  """.format(self.tstart, self.tstop))
-            self._cmd_states = Chandra.cmd_states.interpolate_states(states, self.times)
+            self._cmd_states = Chandra.cmd_states.interpolate_states(
+                states, self.times)
         return self._cmd_states
 
     # API CHANGE!
@@ -145,9 +149,12 @@ class ThermalModel(object):
         tpad = self.dt * 5
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
-        logger.info('Fetching msid: %s over %s to %s' % (msid, datestart, datestop))
-        tlm = fetch.MSID(msid, datestart, datestop, stat='5min', filter_bad=True)
-        vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times, self.times, method=method)
+        logger.info('Fetching msid: %s over %s to %s' %
+                    (msid, datestart, datestop))
+        tlm = fetch.MSID(msid, datestart, datestop, stat='5min',
+                         filter_bad=True)
+        vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times,
+                                     self.times, method=method)
         return vals
 
     def add(self, ComponentClass, *args, **kwargs):
@@ -159,18 +166,20 @@ class ThermalModel(object):
         self.comp[comp.name] = comp
         for par in comp.pars:
             self.pars.append(par)
-        
+
         return comp
 
     comps = property(lambda self: self.comp.values())
 
     def get_comp(self, name):
-        """Get a model component.  Works with either a string or a component object"""
+        """Get a model component.  Works with either a string or a component
+        object"""
         return None if name is None else self.comp[str(name)]
 
     @property
     def model_spec(self):
-        """Generate a full model specification data structure for this model"""
+        """Generate a full model specification data structure for this
+        model"""
         model_spec = dict(name=self.name,
                           comps=[],
                           dt=self.dt,
@@ -178,24 +187,27 @@ class ThermalModel(object):
                           datestop=self.datestop,
                           tlm_code=None,
                           mval_names=[])
-               
+
         model_spec['pars'] = [dict(par) for par in self.pars]
-        
-        stringify = lambda x: str(x) if isinstance(x, component.ModelComponent) else x
+
+        stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent)
+                              else x)
         for comp in self.comps:
-            init_args = [stringify(x) for x in comp.init_args]
-            init_kwargs = dict((k, stringify(v)) for k, v in comp.init_kwargs.items())
+            init_args = [stringfy(x) for x in comp.init_args]
+            init_kwargs = dict((k, stringfy(v))
+                               for k, v in comp.init_kwargs.items())
             model_spec['comps'].append(dict(class_name=comp.__class__.__name__,
                                             name=comp.name,
                                             init_args=init_args,
                                             init_kwargs=init_kwargs))
         return model_spec
-    
+
     def write_vals(self, filename):
         """Write dvals and mvals for each model component (as applicable) to an
         ascii table file.  Some component have neither (couplings), some have
         just dvals (TelemData), others have both (Node, AcisDpaPower).
-        Everything is guaranteed to be time synced, so write a single time column.
+        Everything is guaranteed to be time synced, so write a single time
+        column.
         """
         colvals = OrderedDict(time=self.times)
         for comp in self.comps:
@@ -206,29 +218,30 @@ class ThermalModel(object):
                 colvals[comp.name + '_model'] = comp.mvals
 
         asciitable.write(colvals, filename, names=colvals.keys())
-    
+
     def write(self, filename, model_spec=None):
         """Write the model specification as JSON to a file
         """
         if model_spec is None:
             model_spec = self.model_spec
-            
+
         with open(filename, 'w') as f:
             json.dump(model_spec, f, sort_keys=True, indent=4)
 
     def _get_parvals(self):
         """Return a (read-only) tuple of parameter values."""
         return tuple(par.val for par in self.pars)
-    
+
     def _set_parvals(self, vals):
-        """Set the full list of parameter values.  No provision is made for setting
-        individual elements or slicing (use self.pars directly in this case)."""
+        """Set the full list of parameter values.  No provision is made for
+        setting individual elements or slicing (use self.pars directly in this
+        case)."""
         if len(vals) != len(self.pars):
             raise ValueError('Length mismatch setting parvals {} vs {}'.format(
                     len(self.pars), len(vals)))
         for par, val in zip(self.pars, vals):
             par.val = val
-        
+
     parvals = property(_get_parvals, _set_parvals)
 
     @property
@@ -247,8 +260,8 @@ class ThermalModel(object):
         external temperatures, etc).  In the model calculation some
         rows will be overwritten with predictions.
         """
-        # Select components with data values, and from those select ones that get
-        # predicted and those that do not get predicted
+        # Select components with data values, and from those select ones that
+        # get predicted and those that do not get predicted
         comps = [x for x in self.comps if x.n_mvals]
         preds = [x for x in comps if x.predict]
         unpreds = [x for x in comps if not x.predict]
@@ -266,19 +279,22 @@ class ThermalModel(object):
         self.cvals = self.mvals[:, 0::2]
 
     def make_tmal(self):
-        """ Make the TMAL "code" using components that generate TMAL statements"""
+        """ Make the TMAL "code" using components that generate TMAL
+        statements"""
         for comp in self.comps:
             comp.update()
         tmal_comps = [x for x in self.comps if hasattr(x, 'tmal_ints')]
-        self.tmal_ints = np.zeros((len(tmal_comps), tmal.N_INTS), dtype=np.int32)
-        self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS), dtype=np.float)
+        self.tmal_ints = np.zeros((len(tmal_comps), tmal.N_INTS),
+                                  dtype=np.int32)
+        self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS),
+                                    dtype=np.float)
         for i, comp in enumerate(tmal_comps):
             self.tmal_ints[i, 0:len(comp.tmal_ints)] = comp.tmal_ints
             self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
 
     def calc(self):
         self.make_tmal()
-        # int calc_model(int n_times, int n_preds, int n_tmals, float dt, 
+        # int calc_model(int n_times, int n_preds, int n_tmals, float dt,
         #                float **mvals, int **tmal_ints, float **tmal_floats)
 
         dt = self.dt_ksec * 2
@@ -295,7 +311,7 @@ class ThermalModel(object):
         return fit_stat
 
     def calc_staterror(self, data):
-        return numpy.ones_like(data)
+        return np.ones_like(data)
 
     @property
     def date_range(self):
@@ -308,7 +324,7 @@ class ThermalModel(object):
         src['model'] = self.name
         if 'outdir' not in src:
             src['outdir'] = '.'
-        
+
         self.calc()
         times = self.times
         comps = (comp for comp in self.comps
@@ -317,7 +333,7 @@ class ThermalModel(object):
         for i, comp in enumerate(comps):
             if names and comp.name not in names:
                 continue
-            plt.figure(i+10, figsize=(10,5))
+            plt.figure(i + 10, figsize=(10, 5))
             plt.clf()
 
             plt.subplot(2, 1, 1)
@@ -342,4 +358,3 @@ class ThermalModel(object):
                 src['date_range'] = self.date_range
                 src['msid'] = comp.name
                 plt.savefig(files['fit_resid.png'].abs)
-    
