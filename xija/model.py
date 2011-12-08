@@ -129,8 +129,6 @@ class ThermalModel(object):
 
     @property
     def cmd_states(self):
-        import Ska.DBI
-        import Chandra.cmd_states
         if not hasattr(self, '_cmd_states'):
             db = Ska.DBI.DBI(dbi='sybase', database='aca', user='aca_read')
             states = db.fetchall("""select * from cmd_states

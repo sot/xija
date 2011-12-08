@@ -10,6 +10,7 @@ from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
 
 from . import tmal
 
+
 class Param(dict):
     """Model component parameter.  Inherits from dict but adds attribute access
     for convenience."""
@@ -55,7 +56,8 @@ class ModelComponent(object):
             self.pars[index].val = val
         return _func
 
-    def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{:.4g}", frozen=False):
+    def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{:.4g}",
+                frozen=False):
         setattr(self.__class__, name,
                 property(ModelComponent.get_par_func(self.n_parvals),
                          ModelComponent.set_par_func(self.n_parvals)))
@@ -64,10 +66,10 @@ class ModelComponent(object):
 
     def _set_mvals(self, vals):
         self.model.mvals[self.mvals_i, :] = vals
-        
+
     def _get_mvals(self):
         return self.model.mvals[self.mvals_i, :]
-        
+
     mvals = property(_get_mvals, _set_mvals)
 
     @property
@@ -101,8 +103,8 @@ class Mask(ModelComponent):
         ModelComponent.__init__(self, model)
         # Usually do self.node = model.get_comp(node) right away.  But here
         # allow for a forward reference to a not-yet-existent node and check
-        # only when self.mask is actually used. This allows for masking in a node
-        # based on data for that same node.
+        # only when self.mask is actually used. This allows for masking in a
+        # node based on data for that same node.
         self.node = node
         self.op = op
         self.val = val
@@ -115,7 +117,7 @@ class Mask(ModelComponent):
         if not isinstance(self.node, ModelComponent):
             self.node = self.model.get_comp(self.node)
         # cache latest version of mask
-        if self.val != self.mask_val:  
+        if self.val != self.mask_val:
             self.mask_val = self.val
             self._mask = getattr(operator, self.op)(self.node.dvals, self.val)
         return self._mask
@@ -133,8 +135,8 @@ class Mask(ModelComponent):
             ax.set_ylim(-0.1, 1.1)
             ax.set_title('{}: data'.format(self.name))
 
-# RENAME TelemData to Data or ??
-class TelemData(ModelComponent):  
+
+class TelemData(ModelComponent):
     times = property(lambda self: self.model.times)
 
     def __init__(self, model, msid, cmd_states_col=None, data=None):
@@ -161,7 +163,7 @@ class TelemData(ModelComponent):
                 self._dvals = self.get_dvals_cmd()
             else:
                 self._dvals = self.data
-            
+
         return self._dvals
 
     def plot_data__time(self, fig, ax):
@@ -199,7 +201,7 @@ class Node(TelemData):
         else:
             resid = self.dvals[self.mask.mask] - self.mvals[self.mask.mask]
         return np.sum(resid**2 / self.sigma**2)
-    
+
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
@@ -227,6 +229,7 @@ class Node(TelemData):
             ax.set_ylabel('Temperature (degC)')
         else:
             lines[0].set_data(self.model_plotdate, resids)
+
 
 class Coupling(ModelComponent):
     """Couple two nodes together (one-way coupling)"""
@@ -266,9 +269,10 @@ class HeatSink(ModelComponent):
 
 
 class HeatSinkRef(ModelComponent):
-    """Fixed temperature external heat bath, reparameterized so that varying tau
-    does not affect the mean model temperature.  This requires an extra non-fitted
-    parameter T_ref which corresponds to a reference temperature for the node.::
+    """Fixed temperature external heat bath, reparameterized so that varying
+    tau does not affect the mean model temperature.  This requires an extra
+    non-fitted parameter T_ref which corresponds to a reference temperature for
+    the node.::
 
       dT/dt = U * (Te - T)
             = P + U* (T_ref - T)   # reparameterization
@@ -298,7 +302,7 @@ class HeatSinkRef(ModelComponent):
 class Pitch(TelemData):
     def __init__(self, model, data=None):
         TelemData.__init__(self, model, 'aosares1', 'pitch', data)
-    
+
     def __str__(self):
         return 'pitch'
 
@@ -307,7 +311,7 @@ class Eclipse(TelemData):
     def __init__(self, model, data=None):
         TelemData.__init__(self, model, 'aoeclips', 'eclipse', data)
         self.n_mvals = 1
-    
+
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
@@ -332,7 +336,7 @@ class Eclipse(TelemData):
 class SimZ(TelemData):
     def __init__(self, model, data=None):
         TelemData.__init__(self, model, 'sim_z', 'simpos', data)
-    
+
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
@@ -346,13 +350,13 @@ class SimZ(TelemData):
 
 
 class PrecomputedHeatPower(ModelComponent):
-    """Component that provides a static (precomputed) direct heat power input"""
+    """Component that provides static (precomputed) direct heat power input"""
 
     def update(self):
         self.mvals = self.dvals
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,       # mvals row with precomputed heat input
+                           self.mvals_i,
                           )
         self.tmal_floats = ()
 
@@ -386,12 +390,14 @@ class SolarHeat(PrecomputedHeatPower):
             dPs = np.zeros_like(self.P_pitches)
         self.dPs = np.array(dPs, dtype=np.float)
 
-        self.epoch=epoch
+        self.epoch = epoch
 
         for pitch, power in zip(self.P_pitches, self.Ps):
-            self.add_par('P_{0:.0f}'.format(float(pitch)), power, min=-10.0, max=10.0)
+            self.add_par('P_{0:.0f}'.format(float(pitch)), power, min=-10.0,
+                         max=10.0)
         for pitch, dpower in zip(self.P_pitches, self.dPs):
-            self.add_par('dP_{0:.0f}'.format(float(pitch)), dpower, min=-1.0, max=1.0)
+            self.add_par('dP_{0:.0f}'.format(float(pitch)), dpower, min=-1.0,
+                         max=1.0)
         self.add_par('tau', tau, min=1000., max=3000.)
         self.add_par('ampl', ampl, min=-1.0, max=1.0)
         self.add_par('bias', bias, min=-1.0, max=1.0)
@@ -402,7 +408,8 @@ class SolarHeat(PrecomputedHeatPower):
         if not hasattr(self, 'pitches'):
             self.pitches = self.pitch_comp.dvals
         if not hasattr(self, 't_days'):
-            self.t_days = (self.pitch_comp.times - DateTime(self.epoch).secs) / 86400.0
+            self.t_days = (self.pitch_comp.times
+                           - DateTime(self.epoch).secs) / 86400.0
         if not hasattr(self, 't_phase'):
             time2000 = DateTime('2000:001:00:00:00').secs
             time2010 = DateTime('2010:001:00:00:00').secs
@@ -411,9 +418,11 @@ class SolarHeat(PrecomputedHeatPower):
             self.t_phase = t_year * 2 * np.pi
 
         Ps = self.parvals[0:self.n_pitches] + self.bias
-        dPs = self.parvals[self.n_pitches:2*self.n_pitches]
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
+        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
+                                               kind='linear')
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
+                                                kind='linear')
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
@@ -429,9 +438,11 @@ class SolarHeat(PrecomputedHeatPower):
 
     def plot_solar_heat__pitch(self, fig, ax):
         Ps = self.parvals[0:self.n_pitches] + self.bias
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
+                                               kind='linear')
         # dPs = self.parvals[self.n_pitches:2*self.n_pitches]
-        # dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
+        # dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
+        #                                        kind='linear')
         pitches = np.linspace(self.P_pitches[0], self.P_pitches[-1], 100)
         P_vals = Ps_interp(pitches)
         lines = ax.get_lines()
@@ -444,13 +455,14 @@ class SolarHeat(PrecomputedHeatPower):
             ax.set_title('{} solar heat input'.format(self.node.name))
             ax.set_xlim(40, 180)
             ax.grid()
-        
+
 
 class DpaSolarHeat(SolarHeat):
     """Solar heating (pitch dependent)"""
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None,
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001', hrc_bias=0.0):
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 hrc_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, tau, ampl, bias, epoch)
         self.simz_comp = model.get_comp(simz_comp)
@@ -461,7 +473,8 @@ class DpaSolarHeat(SolarHeat):
         if not hasattr(self, 'pitches'):
             self.pitches = self.pitch_comp.dvals
         if not hasattr(self, 't_days'):
-            self.t_days = (self.pitch_comp.times - DateTime(self.epoch).secs) / 86400.0
+            self.t_days = (self.pitch_comp.times
+                           - DateTime(self.epoch).secs) / 86400.0
         if not hasattr(self, 't_phase'):
             time2000 = DateTime('2000:001:00:00:00').secs
             time2010 = DateTime('2010:001:00:00:00').secs
@@ -472,9 +485,11 @@ class DpaSolarHeat(SolarHeat):
             self.hrc_mask = self.simz_comp.dvals < 0
 
         Ps = self.parvals[0:self.n_pitches] + self.bias
-        dPs = self.parvals[self.n_pitches:2*self.n_pitches]
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
+        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
+                                               kind='linear')
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
+                                                kind='linear')
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
@@ -499,26 +514,27 @@ class EarthHeat(PrecomputedHeatPower):
     def __init__(self, model, name):
         ModelComponent.__init__(self, model, name)
 
-    
+
 class AcisPsmcSolarHeat(PrecomputedHeatPower):
     """Solar heating of PSMC box.  This is dependent on SIM-Z"""
-    def __init__(self, model, node, pitch_comp, simz_comp, P_pitches=None, P_vals=None):
+    def __init__(self, model, node, pitch_comp, simz_comp, P_pitches=None,
+                 P_vals=None):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = node
         self.pitch_comp = self.model.get_comp(pitch_comp)
         self.simz_comp = self.model.get_comp(simz_comp)
-        self.P_pitches = np.array([50., 90., 150.] if (P_pitches is None) else P_pitches,
-                                  dtype=np.float)
+        self.P_pitches = np.array([50., 90., 150.] if (P_pitches is None)
+                                  else P_pitches, dtype=np.float)
         self.simz_lims = ((-400000.0, -85000.0),  # HRC-S
                           (-85000.0, 0.0),        # HRC-I
                           (0.0, 400000.0))        # ACIS
         self.instr_names = ['hrcs', 'hrci', 'acis']
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
-                self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)), P_vals[i, j],
-                             min=-10.0, max=10.0)
-        
+                self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)),
+                             P_vals[i, j], min=-10.0, max=10.0)
+
     @property
     def dvals(self):
         if not hasattr(self, 'pitches'):
@@ -531,21 +547,24 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
                 ok = (self.simzs > lims[0]) & (self.simzs <= lims[1])
                 self.instrs[ok] = i
 
-        # Interpolate power(pitch) for each instrument separately and make 2d stack
+        # Interpolate power(pitch) for each instrument separately and make 2d
+        # stack
         n_p = len(self.P_pitches)
         heats = []
         for i in range(len(self.instr_names)):
-            P_vals = self.parvals[i*n_p : (i+1)*n_p]
-            heats.append(Ska.Numpy.interpolate(P_vals, self.P_pitches, self.pitches))
+            P_vals = self.parvals[i * n_p:(i + 1) * n_p]
+            heats.append(Ska.Numpy.interpolate(P_vals, self.P_pitches,
+                                               self.pitches))
         self.heats = np.vstack(heats)
 
-        # Now pick out the power(pitch) for the appropriate instrument at each time
+        # Now pick out the power(pitch) for the appropriate instrument at each
+        # time
         self._dvals = self.heats[self.instrs, np.arange(self.heats.shape[1])]
         return self._dvals
 
     def __str__(self):
         return 'psmc_solarheat__{0}'.format(self.node)
-        
+
 
 class AcisPsmcPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
@@ -575,11 +594,11 @@ class AcisPsmcPower(PrecomputedHeatPower):
         self.mvals = self.k * self.dvals
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,       # mvals row with precomputed heat input
+                           self.mvals_i,  # mvals with precomputed heat input
                           )
         self.tmal_floats = ()
-    
-    
+
+
 class AcisDpaPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
     def __init__(self, model, node, k=1.0):
@@ -606,10 +625,10 @@ class AcisDpaPower(PrecomputedHeatPower):
         self.mvals = self.k * self.dvals / 10.0
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,       # mvals row with precomputed heat input
+                           self.mvals_i,  # mvals with precomputed heat input
                           )
         self.tmal_floats = ()
-    
+
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if lines:
@@ -620,7 +639,7 @@ class AcisDpaPower(PrecomputedHeatPower):
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
-            
+
 
 class AcisDpaPowerClipped(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
@@ -650,10 +669,10 @@ class AcisDpaPowerClipped(PrecomputedHeatPower):
         self.mvals = self.k * clipped_power / 10.0
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,       # mvals row with precomputed heat input
+                           self.mvals_i,  # mvals with precomputed heat input
                           )
         self.tmal_floats = ()
-    
+
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if lines:
@@ -664,7 +683,7 @@ class AcisDpaPowerClipped(PrecomputedHeatPower):
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
-            
+
 
 class AcisDeaPower(PrecomputedHeatPower):
     """Heating from ACIS DEA"""
@@ -689,10 +708,10 @@ class AcisDeaPower(PrecomputedHeatPower):
         self.mvals = self.k * self.dvals / 10.0
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,       # mvals row with precomputed heat input
+                           self.mvals_i,
                           )
         self.tmal_floats = ()
-    
+
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if lines:
@@ -703,7 +722,7 @@ class AcisDeaPower(PrecomputedHeatPower):
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
-            
+
 
 class AcisDpaStatePower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc).
@@ -726,7 +745,8 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         self.add_par('mult', mult, min=0.0, max=2.0)
         self.add_par('bias', 70, min=10, max=100)
 
-        self.power_pars = [par for par in self.pars if par.name.startswith('pow_')]
+        self.power_pars = [par for par in self.pars
+                           if par.name.startswith('pow_')]
         self.n_mvals = 1
 
     def __str__(self):
@@ -741,19 +761,22 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         """
         if not hasattr(self, '_dvals'):
             par_idxs = []
-            # Make a regex corresponding to the last bit of each power parameter
-            # name.  E.g. "pow_1xxx" => "1...".
-            power_par_res = [par.name[4:].replace('x', '.') for par in self.power_pars]
+            # Make a regex corresponding to the last bit of each power
+            # parameter name.  E.g. "pow_1xxx" => "1...".
+            power_par_res = [par.name[4:].replace('x', '.')
+                             for par in self.power_pars]
             for state in self.model.cmd_states:
                 for i, power_par_re in enumerate(power_par_res):
-                    state_str = "{}{}{}{}".format(state['fep_count'], state['ccd_count'],
-                                                  state['vid_board'], state['clocking'])
+                    state_str = "{}{}{}{}".format(
+                        state['fep_count'], state['ccd_count'],
+                        state['vid_board'], state['clocking'])
                     if re.match(power_par_re, state_str):
                         par_idxs.append(i)
                         break
                 else:
-                    raise ValueError('Error - no match for power state {}'.format(state_str))
-                     
+                    raise ValueError('Error - no match for power state {}'
+                                     .format(state_str))
+
             self.par_idxs = np.array(par_idxs)
 
             dpaav = self.model.fetch('1dp28avo')
@@ -761,7 +784,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             dpabv = self.model.fetch('1dp28bvo')
             dpabi = self.model.fetch('1dpicbcu')
             self._dvals = dpaav * dpaai + dpabv * dpabi
-                
+
         return self._dvals
 
     def update(self):
@@ -775,12 +798,12 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         self.mvals = self.mult / 100. * (powers - self.bias)
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,       # mvals row with precomputed heat input
+                           self.mvals_i,
                           )
         self.tmal_floats = ()
-    
+
     def plot_data__time(self, fig, ax):
-        powers = self.mvals * 100. / self.mult + self.bias 
+        powers = self.mvals * 100. / self.mult + self.bias
         lines = ax.get_lines()
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)
@@ -826,18 +849,18 @@ class AcisDpaPower6(PrecomputedHeatPower):
         self.mvals[self.mask611] += self.dp611
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,       # mvals row with precomputed heat input
+                           self.mvals_i,
                           )
         self.tmal_floats = ()
-    
+
+
 class ProportialHeater(ActiveHeatPower):
     """Proportional heater (P = k * (T - T_set) for T > T_set)"""
     def __init__(self, model, name):
         ModelComponent.__init__(self, model, name)
 
-        
+
 class ThermostatHeater(ActiveHeatPower):
     """Thermostat heater (with configurable deadband)"""
     def __init__(self, model, name):
         ModelComponent.__init__(self, model, name)
-
