@@ -4,7 +4,6 @@ import numpy as np
 from Chandra.Time import DateTime
 import scipy.interpolate
 import Ska.DBI
-import Chandra.cmd_states
 import Ska.Numpy
 from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
 
@@ -139,31 +138,36 @@ class Mask(ModelComponent):
 class TelemData(ModelComponent):
     times = property(lambda self: self.model.times)
 
-    def __init__(self, model, msid, cmd_states_col=None, data=None):
+    def __init__(self, model, msid, data=None, data_times=None):
         ModelComponent.__init__(self, model)
         self.msid = msid
-        self.cmd_states_col = cmd_states_col or msid
         self.n_mvals = 1
         self.predict = False
         self.data = data
+        self.data_times = data_times
 
     def get_dvals_tlm(self):
         return self.model.fetch(self.msid)
-
-    def get_dvals_cmd(self):
-        return Chandra.cmd_states.interpolate_states(
-            self.model.cmd_states[self.cmd_states_col], self.model.times)
 
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
             if self.data is None:
-                self._dvals = self.get_dvals_tlm()
-            elif self.data == 'cmd':
-                self._dvals = self.get_dvals_cmd()
+                dvals = self.get_dvals_tlm()
+            elif isinstance(self.data, np.ndarray):
+                dvals = self.model.interpolate_data(self.data, self.data_times,
+                                                    str(self))
+            elif isinstance(self.data, (int, long, float, bool, basestring)):
+                if isinstance(self.data, basestring):
+                    dtype = 'S{}'.format(len(self.data))
+                else:
+                    dtype = type(self.data)
+                dvals = np.empty(self.model.n_times, dtype=dtype)
+                dvals[:] = self.data
             else:
-                self._dvals = self.data
-
+                raise ValueError("Data value '{}' for '{}' component "
+                                 "not allowed ".format(self.data, self))
+            self._dvals = dvals
         return self._dvals
 
     def plot_data__time(self, fig, ax):
@@ -300,31 +304,25 @@ class HeatSinkRef(ModelComponent):
 
 
 class Pitch(TelemData):
-    def __init__(self, model, data=None):
-        TelemData.__init__(self, model, 'aosares1', 'pitch', data)
+    def __init__(self, model, data=None, data_times=None):
+        TelemData.__init__(self, model, 'aosares1', data=data,
+                           data_times=data_times)
 
     def __str__(self):
         return 'pitch'
 
 
 class Eclipse(TelemData):
-    def __init__(self, model, data=None):
-        TelemData.__init__(self, model, 'aoeclips', 'eclipse', data)
+    def __init__(self, model, data=None, data_times=None):
+        TelemData.__init__(self, model, 'aoeclips', data=data,
+                           data_times=data_times)
         self.n_mvals = 1
+        self.fetch_attr = 'midvals'
+        self.fetch_method = 'nearest'
 
-    @property
-    def dvals(self):
-        if not hasattr(self, '_dvals'):
-            if self.data is None:
-                aoeclips = self.model.fetch(self.msid, 'vals', 'nearest')
-                self._dvals = aoeclips == 'ECL '
-            elif self.data == 'cmd':
-                raise NotImplementedError()
-                #self._dvals = self.get_dvals_cmd()
-            else:
-                raise NotImplementedError()
-                #self._dvals = self.data
-        return self._dvals
+    def get_dvals_tlm(self):
+        aoeclips = self.model.fetch(self.msid, 'vals', 'nearest')
+        return aoeclips == 'ECL '
 
     def update(self):
         self.mvals = np.where(self.dvals, 1, 0)
@@ -334,19 +332,13 @@ class Eclipse(TelemData):
 
 
 class SimZ(TelemData):
-    def __init__(self, model, data=None):
-        TelemData.__init__(self, model, 'sim_z', 'simpos', data)
+    def __init__(self, model, data=None, data_times=None):
+        TelemData.__init__(self, model, 'sim_z', data=data,
+                           data_times=data_times)
 
-    @property
-    def dvals(self):
-        if not hasattr(self, '_dvals'):
-            if self.data is None:
-                self._dvals = np.rint(self.get_dvals_tlm() * -397.7225924607)
-            elif self.data == 'cmd':
-                self._dvals = self.get_dvals_cmd()
-            else:
-                self._dvals = self.data
-        return self._dvals
+    def get_dvals_tlm(self):
+        sim_z_mm = self.model.fetch(self.msid)
+        return np.rint(sim_z_mm * -397.7225924607)
 
 
 class PrecomputedHeatPower(ModelComponent):

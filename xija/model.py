@@ -56,7 +56,8 @@ def convert_type_star_star(array, ctype_type):
 
 
 class ThermalModel(object):
-    def __init__(self, name, start=None, stop=None, dt=328.0, model_spec=None):
+    def __init__(self, name, start=None, stop=None, dt=328.0, model_spec=None,
+                 cmd_states=None):
         if stop is None:
             stop = DateTime().secs - 30 * 86400
         if start is None:
@@ -75,6 +76,7 @@ class ThermalModel(object):
         self.pars = []
         if model_spec:
             self._set_from_model_spec(model_spec)
+        self.cmd_states = cmd_states
 
     def _set_from_model_spec(self, model_spec):
         try:
@@ -127,10 +129,13 @@ class ThermalModel(object):
         i1 = int((DateTime(stop).secs - time0) / dt)
         return time0 + np.arange(i0, i1) * dt
 
-    @property
-    def cmd_states(self):
+    def _get_cmd_states(self):
         if not hasattr(self, '_cmd_states'):
-            db = Ska.DBI.DBI(dbi='sybase', database='aca', user='aca_read')
+            try:
+                db = Ska.DBI.DBI(dbi='sybase', database='aca', user='aca_read')
+            except Exception as err:
+                raise RuntimeError(
+                    'Unable to connect to sybase cmd_states: {}'.format(err))
             states = db.fetchall("""select * from cmd_states
                                  where tstop >= {0} and tstart <= {1}
                                  """.format(self.tstart, self.tstop))
@@ -138,10 +143,23 @@ class ThermalModel(object):
                 states, self.times)
         return self._cmd_states
 
-    # API CHANGE!
-    #@property   # HEY make this settable!
-    #def pars(self):
-    #    return dict((k, v) for k, v in zip(self.parnames, self.parvals))
+    def _set_cmd_states(self, states):
+        """Set the states that define component data inputs.
+
+        :param states: numpy structured array
+        """
+        if states is not None:
+            if (states[0]['tstart'] >= self.times[0] or
+                states[-1]['tstop'] <= self.times[-1]):
+                raise ValueError('cmd_states time range too small:\n'
+                                 '{} : {} versus {} : {}'.format(
+                        states[0]['tstart'], states[-1]['tstop'],
+                        self.times[0], self.times[-1]))
+
+            indexes = np.searchsorted(states['tstop'], self.times)
+            self._cmd_states = states[indexes]
+
+    cmd_states = property(_get_cmd_states, _set_cmd_states)
 
     def fetch(self, msid, attr='vals', method='linear'):
         tpad = self.dt * 5
@@ -153,6 +171,42 @@ class ThermalModel(object):
                          filter_bad=True)
         vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times,
                                      self.times, method=method)
+        return vals
+
+    def interpolate_data(self, data, times, comp=None):
+        """Interpolate supplied ``data`` values at the model times using
+        nearest-neighbor or state value interpolation.
+
+        The ``times`` arg can be either a 1-d or 2-d ndarray.  If 1-d,
+        then ``data`` is interpreted as a set of values at the specified
+        ``times``.  If 2-d then ``data`` is interpreted as a set of binned
+        state values with ``tstarts = times[0, :]`` and
+        ``tstops = times[1, :]``.
+        """
+        if times is None:
+            if len(data) != self.n_times:
+                raise ValueError('Data length not equal to model times'
+                                 ' for {} component'.format(comp))
+            return data
+
+        if len(data) != times.shape[-1]:
+            raise ValueError('Data length not equal to data times'
+                             ' for {} component'.format(comp))
+
+        if times.ndim == 1:  # Data value specification
+            vals = Ska.Numpy.interpolate(data, times, self.times,
+                                         method='nearest')
+        elif times.ndim == 2:  # State-value specification
+            tstarts = times[0]
+            tstops = times[1]
+            if self.times[0] < tstarts[0] or self.times[-1] > tstops[-1]:
+                raise ValueError('Model times extend outside the state value'
+                                 ' data_times for component {}'.format(comp))
+            indexes = np.searchsorted(tstops, self.times)
+            vals = data[indexes]
+        else:
+            raise ValueError('data_times for {} has {} dimensions, '
+                             ' must be either 1 or 2'.format(comp, times.ndim))
         return vals
 
     def add(self, ComponentClass, *args, **kwargs):
