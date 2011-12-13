@@ -87,6 +87,32 @@ class ModelComponent(object):
     def update(self):
         pass
 
+    def set_data(self, data, times=None):
+        self.data = data
+        if times is not None:
+            self.data_times = times
+
+    @property
+    def dvals(self):
+        if not hasattr(self, '_dvals'):
+            if self.data is None:
+                dvals = self.get_dvals_tlm()
+            elif isinstance(self.data, np.ndarray):
+                dvals = self.model.interpolate_data(self.data, self.data_times,
+                                                    str(self))
+            elif isinstance(self.data, (int, long, float, bool, basestring)):
+                if isinstance(self.data, basestring):
+                    dtype = 'S{}'.format(len(self.data))
+                else:
+                    dtype = type(self.data)
+                dvals = np.empty(self.model.n_times, dtype=dtype)
+                dvals[:] = self.data
+            else:
+                raise ValueError("Data value '{}' for '{}' component "
+                                 "not allowed ".format(self.data, self))
+            self._dvals = dvals
+        return self._dvals
+
 
 class Mask(ModelComponent):
     """Create object with a ``mask`` attribute corresponding to
@@ -139,37 +165,16 @@ class Mask(ModelComponent):
 class TelemData(ModelComponent):
     times = property(lambda self: self.model.times)
 
-    def __init__(self, model, msid, data=None, data_times=None):
-        ModelComponent.__init__(self, model)
+    def __init__(self, model, msid):
+        super(TelemData, self).__init__(model)
         self.msid = msid
         self.n_mvals = 1
         self.predict = False
-        self.data = data
-        self.data_times = data_times
+        self.data = None
+        self.data_times = None
 
     def get_dvals_tlm(self):
         return self.model.fetch(self.msid)
-
-    @property
-    def dvals(self):
-        if not hasattr(self, '_dvals'):
-            if self.data is None:
-                dvals = self.get_dvals_tlm()
-            elif isinstance(self.data, np.ndarray):
-                dvals = self.model.interpolate_data(self.data, self.data_times,
-                                                    str(self))
-            elif isinstance(self.data, (int, long, float, bool, basestring)):
-                if isinstance(self.data, basestring):
-                    dtype = 'S{}'.format(len(self.data))
-                else:
-                    dtype = type(self.data)
-                dvals = np.empty(self.model.n_times, dtype=dtype)
-                dvals[:] = self.data
-            else:
-                raise ValueError("Data value '{}' for '{}' component "
-                                 "not allowed ".format(self.data, self))
-            self._dvals = dvals
-        return self._dvals
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
@@ -191,9 +196,9 @@ class CmdStatesData(TelemData):
 
 
 class Node(TelemData):
-    def __init__(self, model, msid, data=None, sigma=-10, quant=None,
+    def __init__(self, model, msid, sigma=-10, quant=None,
                  predict=True, mask=None):
-        TelemData.__init__(self, model, msid, data)
+        TelemData.__init__(self, model, msid)
         self._sigma = sigma
         self.quant = quant
         self.predict = predict
@@ -310,18 +315,16 @@ class HeatSinkRef(ModelComponent):
 
 
 class Pitch(TelemData):
-    def __init__(self, model, data=None, data_times=None):
-        TelemData.__init__(self, model, 'aosares1', data=data,
-                           data_times=data_times)
+    def __init__(self, model):
+        TelemData.__init__(self, model, 'aosares1')
 
     def __str__(self):
         return 'pitch'
 
 
 class Eclipse(TelemData):
-    def __init__(self, model, data=None, data_times=None):
-        TelemData.__init__(self, model, 'aoeclips', data=data,
-                           data_times=data_times)
+    def __init__(self, model):
+        TelemData.__init__(self, model, 'aoeclips')
         self.n_mvals = 1
         self.fetch_attr = 'midvals'
         self.fetch_method = 'nearest'
@@ -338,9 +341,8 @@ class Eclipse(TelemData):
 
 
 class SimZ(TelemData):
-    def __init__(self, model, data=None, data_times=None):
-        TelemData.__init__(self, model, 'sim_z', data=data,
-                           data_times=data_times)
+    def __init__(self, model):
+        TelemData.__init__(self, model, 'sim_z')
 
     def get_dvals_tlm(self):
         sim_z_mm = self.model.fetch(self.msid)
@@ -730,7 +732,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     def __init__(self, model, node, mult=1.0,
                  fep_count=None, ccd_count=None,
                  vid_board=None, clocking=None):
-        ModelComponent.__init__(self, model)
+        super(AcisDpaStatePower, self).__init__(model)
         self.node = self.model.get_comp(node)
         self.fep_count = self.model.get_comp(fep_count)
         self.ccd_count = self.model.get_comp(ccd_count)
@@ -752,9 +754,11 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         self.power_pars = [par for par in self.pars
                            if par.name.startswith('pow_')]
         self.n_mvals = 1
+        self.data = None
+        self.data_times = None
 
     def __str__(self):
-        return 'dpa_state'
+        return 'dpa_power'
 
     @property
     def par_idxs(self):
@@ -781,20 +785,15 @@ class AcisDpaStatePower(PrecomputedHeatPower):
 
         return self._par_idxs
 
-    @property
-    def dvals(self):
-        """Model dvals is just the telemetered power.  This is not actually
-        used by the model, but is useful for diagnostics.  The real output of
-        this call is self.par_idxs which provides a mapping to the correct
-        power parameter to use at each time step.
+    def get_dvals_tlm(self):
+        """Model dvals is set to the telemetered power.  This is not actually
+        used by the model, but is useful for diagnostics.
         """
-        if not hasattr(self, '_dvals'):
-            try:
-                self._dvals = self.model.fetch('dp_dpa_power')
-            except ValueError:
-                self._dvals = np.zeros_like(self.model.times)
-
-        return self._dvals
+        try:
+            dvals = self.model.fetch('dp_dpa_power')
+        except ValueError:
+            dvals = np.zeros_like(self.model.times)
+        return dvals
 
     def update(self):
         """Update the model prediction as a precomputed heat.  Make an array of
