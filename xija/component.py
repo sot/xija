@@ -5,7 +5,6 @@ from itertools import izip
 
 from Chandra.Time import DateTime
 import scipy.interpolate
-import Ska.DBI
 import Ska.Numpy
 from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
 
@@ -790,11 +789,10 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         power parameter to use at each time step.
         """
         if not hasattr(self, '_dvals'):
-            dpaav = self.model.fetch('1dp28avo')
-            dpaai = self.model.fetch('1dpicacu')
-            dpabv = self.model.fetch('1dp28bvo')
-            dpabi = self.model.fetch('1dpicbcu')
-            self._dvals = dpaav * dpaai + dpabv * dpabi
+            try:
+                self._dvals = self.model.fetch('dp_dpa_power')
+            except ValueError:
+                self._dvals = np.zeros_like(self.model.times)
 
         return self._dvals
 

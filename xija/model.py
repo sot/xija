@@ -55,6 +55,10 @@ def convert_type_star_star(array, ctype_type):
     return (f4ptr * len(array))(*[row.ctypes.data_as(f4ptr) for row in array])
 
 
+class FetchError(Exception):
+    pass
+
+
 class ThermalModel(object):
     def __init__(self, name, start=None, stop=None, dt=328.0, model_spec=None,
                  cmd_states=None):
@@ -169,8 +173,13 @@ class ThermalModel(object):
         datestop = DateTime(self.tstop + tpad).date
         logger.info('Fetching msid: %s over %s to %s' %
                     (msid, datestart, datestop))
-        tlm = fetch.MSID(msid, datestart, datestop, stat='5min',
-                         filter_bad=True)
+        try:
+            tlm = fetch.MSID(msid, datestart, datestop, stat='5min')
+        except NameError:
+            raise ValueError('Ska.engarchive.fetch not available')
+        if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
+            raise ValueError('Fetched telemetry does not span model start and '
+                             'stop times for {}'.format(msid))
         vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times,
                                      self.times, method=method)
         return vals
