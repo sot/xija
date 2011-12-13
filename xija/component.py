@@ -1,6 +1,8 @@
 import re
 import operator
 import numpy as np
+from itertools import izip
+
 from Chandra.Time import DateTime
 import scipy.interpolate
 import Ska.DBI
@@ -182,6 +184,11 @@ class TelemData(ModelComponent):
 
     def __str__(self):
         return self.msid
+
+
+class CmdStatesData(TelemData):
+    def get_dvals_tlm(self):
+        return self.model.cmd_states[self.msid]
 
 
 class Node(TelemData):
@@ -721,9 +728,15 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     Use commanded states and assign an effective power for each "unique" power
     state.  See dpa/NOTES.power.
     """
-    def __init__(self, model, node, mult=1.0):
+    def __init__(self, model, node, mult=1.0,
+                 fep_count=None, ccd_count=None,
+                 vid_board=None, clocking=None):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
+        self.fep_count = self.model.get_comp(fep_count)
+        self.ccd_count = self.model.get_comp(ccd_count)
+        self.vid_board = self.model.get_comp(vid_board)
+        self.clocking = self.model.get_comp(clocking)
         self.add_par('pow_0xxx', 21.5, min=10, max=60)
         self.add_par('pow_1xxx', 29.2, min=15, max=60)
         self.add_par('pow_2x1x', 39.1, min=20, max=80)
@@ -745,23 +758,19 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         return 'dpa_state'
 
     @property
-    def dvals(self):
-        """Model dvals is just the telemetered power.  This is not actually
-        used by the model, but is useful for diagnostics.  The real output of
-        this call is self.par_idxs which provides a mapping to the correct
-        power parameter to use at each time step.
-        """
-        if not hasattr(self, '_dvals'):
+    def par_idxs(self):
+        if not hasattr(self, '_par_idxs'):
             par_idxs = []
             # Make a regex corresponding to the last bit of each power
             # parameter name.  E.g. "pow_1xxx" => "1...".
             power_par_res = [par.name[4:].replace('x', '.')
                              for par in self.power_pars]
-            for state in self.model.cmd_states:
+            for dpa_attrs in izip(self.fep_count.dvals,
+                                  self.ccd_count.dvals,
+                                  self.vid_board.dvals,
+                                  self.clocking.dvals):
                 for i, power_par_re in enumerate(power_par_res):
-                    state_str = "{}{}{}{}".format(
-                        state['fep_count'], state['ccd_count'],
-                        state['vid_board'], state['clocking'])
+                    state_str = "{}{}{}{}".format(*dpa_attrs)
                     if re.match(power_par_re, state_str):
                         par_idxs.append(i)
                         break
@@ -769,8 +778,18 @@ class AcisDpaStatePower(PrecomputedHeatPower):
                     raise ValueError('Error - no match for power state {}'
                                      .format(state_str))
 
-            self.par_idxs = np.array(par_idxs)
+            self._par_idxs = np.array(par_idxs)
 
+        return self._par_idxs
+
+    @property
+    def dvals(self):
+        """Model dvals is just the telemetered power.  This is not actually
+        used by the model, but is useful for diagnostics.  The real output of
+        this call is self.par_idxs which provides a mapping to the correct
+        power parameter to use at each time step.
+        """
+        if not hasattr(self, '_dvals'):
             dpaav = self.model.fetch('1dp28avo')
             dpaai = self.model.fetch('1dpicacu')
             dpabv = self.model.fetch('1dp28bvo')

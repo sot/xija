@@ -131,6 +131,8 @@ class ThermalModel(object):
 
     def _get_cmd_states(self):
         if not hasattr(self, '_cmd_states'):
+            logger.info('Reading commanded states DB over %s to %s' %
+                        (self.datestart, self.datestop))
             try:
                 db = Ska.DBI.DBI(dbi='sybase', database='aca', user='aca_read')
             except Exception as err:
