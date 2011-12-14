@@ -133,19 +133,19 @@ class Mask(ModelComponent):
         # node based on data for that same node.
         self.node = node
         self.op = op
-        self.val = val
         self.model = model
         self.add_par('val', val, min=min_, max=max_, frozen=True)
-        self.mask_val = None
+        self.cache_val = None
 
     @property
     def mask(self):
         if not isinstance(self.node, ModelComponent):
             self.node = self.model.get_comp(self.node)
         # cache latest version of mask
-        if self.val != self.mask_val:
-            self.mask_val = self.val
-            self._mask = getattr(operator, self.op)(self.node.dvals, self.val)
+        if self.val != self.cache_val:
+            self.cache_val = self.val
+            self._mask = getattr(operator, self.op)(self.node.dvals,
+                                                    self.val)
         return self._mask
 
     def __str__(self):
@@ -610,16 +610,15 @@ class AcisDpaPower(PrecomputedHeatPower):
     def __str__(self):
         return 'dpa__{0}'.format(self.node)
 
-    @property
-    def dvals(self):
-        if not hasattr(self, '_dvals'):
-            dpaav = self.model.fetch('1dp28avo')
-            dpaai = self.model.fetch('1dpicacu')
-            dpabv = self.model.fetch('1dp28bvo')
-            dpabi = self.model.fetch('1dpicbcu')
-            # maybe smooth? (already 5min telemetry, no need)
-            self._dvals = dpaav * dpaai + dpabv * dpabi
-        return self._dvals
+    def get_dvals_tlm(self):
+        """Model dvals is set to the telemetered power.  This is not actually
+        used by the model, but is useful for diagnostics.
+        """
+        try:
+            dvals = self.model.fetch('dp_dpa_power')
+        except ValueError:
+            dvals = np.zeros_like(self.model.times)
+        return dvals
 
     def update(self):
         self.mvals = self.k * self.dvals / 10.0
