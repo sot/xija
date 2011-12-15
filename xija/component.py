@@ -40,6 +40,8 @@ class ModelComponent(object):
         self.n_mvals = 0
         self.predict = False  # Predict values for this model component
         self.pars = []
+        self.data = None
+        self.data_times = None
 
     n_parvals = property(lambda self: len(self.parvals))
     times = property(lambda self: self.model.times)
@@ -370,7 +372,7 @@ class ActiveHeatPower(ModelComponent):
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)"""
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
-                 P_pitches=None, Ps=None, dPs=None,
+                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
@@ -402,6 +404,15 @@ class SolarHeat(PrecomputedHeatPower):
         self.add_par('ampl', ampl, min=-1.0, max=1.0)
         self.add_par('bias', bias, min=-1.0, max=1.0)
         self.n_mvals = 1
+        self.var_func = getattr(self, var_func)
+
+    @staticmethod
+    def linear(days, k_inv):
+        return days / k_inv
+
+    @staticmethod
+    def exp(days, tau):
+        return 1 - np.exp(-days / tau)
 
     @property
     def dvals(self):
@@ -426,7 +437,7 @@ class SolarHeat(PrecomputedHeatPower):
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
-        self._dvals = (P_vals + dP_vals * (1 - np.exp(-self.t_days / self.tau))
+        self._dvals = (P_vals + dP_vals * self.var_func(self.t_days, self.tau)
                        + self.ampl * np.cos(self.t_phase)).reshape(-1)
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:
@@ -460,11 +471,11 @@ class SolarHeat(PrecomputedHeatPower):
 class DpaSolarHeat(SolarHeat):
     """Solar heating (pitch dependent)"""
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
-                 P_pitches=None, Ps=None, dPs=None,
+                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
                  hrc_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
-                           P_pitches, Ps, dPs, tau, ampl, bias, epoch)
+                           P_pitches, Ps, dPs, var_func, tau, ampl, bias, epoch)
         self.simz_comp = model.get_comp(simz_comp)
         self.add_par('hrc_bias', hrc_bias, min=-1.0, max=1.0)
 
@@ -493,7 +504,7 @@ class DpaSolarHeat(SolarHeat):
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
-        self._dvals = (P_vals + dP_vals * (1 - np.exp(-self.t_days / self.tau))
+        self._dvals = (P_vals + dP_vals * self.var_func(self.t_days, self.tau)
                        + self.ampl * np.cos(self.t_phase)).reshape(-1)
 
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
