@@ -368,6 +368,9 @@ class ThermalModel(object):
         core.calc_model(self.n_times, self.n_preds, len(self.tmal_ints), dt,
                         mvals, tmal_ints, tmal_floats)
 
+        # hackish fix to ensure last value is computed
+        self.mvals[:, -1] = self.mvals[:, -2]
+
     def calc_stat(self):
         self.calc()            # parvals already set with dummy_calc
         fit_stat = sum(comp.calc_stat() for comp in self.comps if comp.predict)

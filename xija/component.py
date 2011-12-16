@@ -94,6 +94,9 @@ class ModelComponent(object):
         if times is not None:
             self.data_times = times
 
+    def get_dvals_tlm(self):
+        return np.zeros_like(self.model.times)
+
     @property
     def dvals(self):
         if not hasattr(self, '_dvals'):
@@ -872,10 +875,37 @@ class AcisDpaPower6(PrecomputedHeatPower):
         self.tmal_floats = ()
 
 
-class ProportialHeater(ActiveHeatPower):
-    """Proportional heater (P = k * (T - T_set) for T > T_set)"""
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+class PropHeater(PrecomputedHeatPower):
+    """Proportional heater (P = k * (T_set - T) for T < T_set)."""
+    def __init__(self, model, node, k=0.1, T_set=20.0):
+        super(PropHeater, self).__init__(model)
+        self.node = self.model.get_comp(node)
+        self.add_par('k', k, min=0.0, max=2.0)
+        self.add_par('T_set', T_set, min=-50.0, max=100.0)
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'prop_heat__{0}'.format(self.node)
+
+    def update(self):
+        self.mvals = self.k / 10.0 * (self.T_set - self.node.dvals)
+        np.clip(self.mvals, 0.0, 1e38, out=self.mvals)
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                           self.node.mvals_i,  # dy1/dt index
+                           self.mvals_i,
+                          )
+        self.tmal_floats = ()
+
+    def plot_data__time(self, fig, ax):
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(self.model_plotdate, self.mvals)
+        else:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_ylabel('Power')
 
 
 class ThermostatHeater(ActiveHeatPower):
