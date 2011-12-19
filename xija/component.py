@@ -753,7 +753,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         self.clocking = self.model.get_comp(clocking)
         self.add_par('pow_0xxx', 21.5, min=10, max=60)
         self.add_par('pow_1xxx', 29.2, min=15, max=60)
-        self.add_par('pow_2x1x', 39.1, min=20, max=80)
+        self.add_par('pow_2xxx', 39.1, min=20, max=80)
         self.add_par('pow_3xx0', 55.9, min=20, max=100)
         self.add_par('pow_3xx1', 47.9, min=20, max=100)
         self.add_par('pow_4xxx', 57.0, min=20, max=120)
