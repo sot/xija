@@ -425,7 +425,6 @@ class ThermalModel(object):
         """
         if not hasattr(ThermalModel, '_core'):
             loader_path = os.path.abspath(os.path.dirname(__file__))
-            print "HEJ", loader_path
             _core = np.ctypeslib.load_library('core', loader_path)
             _core.calc_model.restype = ctypes.c_int
             _core.calc_model.argtypes = [
