@@ -17,3 +17,8 @@ ctypes_example/
 *.so
 *.so.*
 GUI_play/
+build/
+crap*
+junk*
+lopy/
+twodof/

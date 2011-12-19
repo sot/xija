@@ -10,7 +10,6 @@ from collections import OrderedDict
 import numpy as np
 import Ska.Numpy
 from Chandra.Time import DateTime
-import clogging
 import asciitable
 
 from . import component
@@ -26,6 +25,7 @@ except ImportError:
 
 import pyyaks.context as pyc
 from .files import files as xija_files
+from . import clogging
 
 src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
 files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
@@ -38,14 +38,6 @@ if 'debug' in globals():
 
 logger = clogging.config_logger('xija', level=clogging.INFO)
 
-core = np.ctypeslib.load_library('libcore',
-                                 os.path.abspath(os.path.dirname(__file__)))
-core.calc_model.restype = ctypes.c_int
-core.calc_model.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                            ctypes.c_double,
-                            ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
-                            ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
-                            ctypes.POINTER(ctypes.POINTER(ctypes.c_double))]
 #int calc_model(int n_times, int n_preds, int n_tmals, double dt,
 #               double **mvals, int **tmal_ints, double **tmal_floats)
 
@@ -365,8 +357,8 @@ class ThermalModel(object):
         tmal_ints = convert_type_star_star(self.tmal_ints, ctypes.c_int)
         tmal_floats = convert_type_star_star(self.tmal_floats, ctypes.c_double)
 
-        core.calc_model(self.n_times, self.n_preds, len(self.tmal_ints), dt,
-                        mvals, tmal_ints, tmal_floats)
+        self.core.calc_model(self.n_times, self.n_preds, len(self.tmal_ints),
+                             dt, mvals, tmal_ints, tmal_floats)
 
         # hackish fix to ensure last value is computed
         self.mvals[:, -1] = self.mvals[:, -2]
@@ -424,3 +416,24 @@ class ThermalModel(object):
                 src['date_range'] = self.date_range
                 src['msid'] = comp.name
                 plt.savefig(files['fit_resid.png'].abs)
+
+    @property
+    def core(self):
+        """Lazy-load the "core" ctypes shared object libary that does the
+        low-level model calculation via the C "calc_model" routine.  Only
+        load once by setting/returning a class attribute.
+        """
+        if not hasattr(ThermalModel, '_core'):
+            loader_path = os.path.abspath(os.path.dirname(__file__))
+            print "HEJ", loader_path
+            _core = np.ctypeslib.load_library('core', loader_path)
+            _core.calc_model.restype = ctypes.c_int
+            _core.calc_model.argtypes = [
+                ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                ctypes.c_double,
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
+                ]
+            ThermalModel._core = _core
+        return ThermalModel._core

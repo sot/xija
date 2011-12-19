@@ -28,7 +28,7 @@ from Chandra.Time import DateTime
 import pyyaks.context as pyc
 
 import xija
-import clogging   # get rid of this or something
+import xija.clogging as clogging   # get rid of this or something
 
 # from xija.fit import (FitTerminated, CalcModel, CalcStat, FitWorker)
 
