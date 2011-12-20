@@ -19,3 +19,6 @@ crap*
 junk*
 lopy/
 twodof/
+dist/
+MANIFEST
+*.png

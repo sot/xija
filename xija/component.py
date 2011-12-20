@@ -776,6 +776,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     @property
     def par_idxs(self):
         if not hasattr(self, '_par_idxs'):
+            print 'starting par_idxs'
             par_idxs = []
             # Make a regex corresponding to the last bit of each power
             # parameter name.  E.g. "pow_1xxx" => "1...".
@@ -794,6 +795,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
                     raise ValueError('Error - no match for power state {}'
                                      .format(state_str))
 
+            print 'done par_idxs'
             self._par_idxs = np.array(par_idxs)
 
         return self._par_idxs
@@ -877,24 +879,30 @@ class AcisDpaPower6(PrecomputedHeatPower):
 
 class PropHeater(PrecomputedHeatPower):
     """Proportional heater (P = k * (T_set - T) for T < T_set)."""
-    def __init__(self, model, node, k=0.1, T_set=20.0):
+    def __init__(self, model, node, node_control=None, k=0.1, T_set=20.0):
         super(PropHeater, self).__init__(model)
         self.node = self.model.get_comp(node)
-        self.add_par('k', k, min=0.0, max=2.0)
+        self.node_control = (self.node if node_control is None
+                             else self.model.get_comp(node_control))
+        self.add_par('k', k, min=0.0, max=1.0)
         self.add_par('T_set', T_set, min=-50.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
         return 'prop_heat__{0}'.format(self.node)
 
+    def get_dvals_tlm(self):
+        """Return an array of zeros => no activation of the heater.
+        """
+        return np.zeros_like(self.model.times)
+
     def update(self):
-        self.mvals = self.k / 10.0 * (self.T_set - self.node.dvals)
-        np.clip(self.mvals, 0.0, 1e38, out=self.mvals)
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,
+        self.tmal_ints = (tmal.OPCODES['proportional_heater'],
+                          self.node.mvals_i,  # dy1/dt index
+                          self.node_control.mvals_i,
+                          self.mvals_i
                           )
-        self.tmal_floats = ()
+        self.tmal_floats = (self.T_set, self.k)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
