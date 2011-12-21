@@ -167,6 +167,7 @@ class ThermalModel(object):
                     (msid, datestart, datestop))
         try:
             tlm = fetch.MSID(msid, datestart, datestop, stat='5min')
+            tlm.filter_bad_times()
         except NameError:
             raise ValueError('Ska.engarchive.fetch not available')
         if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
