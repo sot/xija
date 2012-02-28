@@ -2,6 +2,7 @@
 
 import sys
 import os
+import ast
 import multiprocessing
 import time
 import pygtk
@@ -610,6 +611,11 @@ def get_options():
                         help="Sherpa fit method (simplex|moncar|levmar)")
     parser.add_argument("--inherit-from",
                       help="Inherit par values from model spec file")
+    parser.add_argument("--set-data",
+                        action='append',
+                        dest='set_data_exprs',
+                        default=[],
+                        help="Set data value as '<comp_name>=<value>'")
     parser.add_argument("--quiet",
                       default=False,
                       action='store_true',
@@ -634,6 +640,7 @@ if opt.quiet:
             logger.removeHandler(h)
 
 model_spec = json.load(open(opt.filename, 'r'))
+gui_config = model_spec.get('gui_config', {})
 src['model'] = model_spec['name']
 
 # Use supplied stop time and days OR use model_spec values if stop not supplied
@@ -645,6 +652,21 @@ else:
     stop = model_spec['datestop']
 
 model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
+
+set_data_vals = gui_config.get('set_data_vals', {})
+for set_data_expr in opt.set_data_exprs:
+    set_data_expr = re.sub('\s', '', set_data_expr)
+    try:
+        comp_name, val = set_data_expr.split('=')
+    except ValueError:
+        raise ValueError("--set_data must be in form '<comp_name>=<value>'")
+    # Set data to value.  ast.literal_eval is a safe way to convert any
+    # string literal into the corresponding Python object.
+    set_data_vals[comp_name] = ast.literal_eval(val)
+
+for comp_name, val in set_data_vals.items():
+    model.comp[comp_name].set_data(val)
+
 model.make()
 
 if opt.inherit_from:
@@ -659,8 +681,8 @@ if opt.inherit_from:
             par.frozen = inherit_pars[par.full_name]['frozen']
             par.fmt = inherit_pars[par.full_name]['fmt']
 
-gui_config = model_spec.get('gui_config', {})
 gui_config['filename'] = os.path.abspath(opt.filename)
+gui_config['set_data_vals'] = set_data_vals
 
 # Default configurations for fit methods
 sherpa_configs = dict(
