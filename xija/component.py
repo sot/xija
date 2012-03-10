@@ -3,10 +3,14 @@ import operator
 import numpy as np
 from itertools import izip
 
-from Chandra.Time import DateTime
 import scipy.interpolate
-import Ska.Numpy
-from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
+
+try:
+    import Ska.Numpy
+    from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
+    from Chandra.Time import DateTime
+except ImportError:
+    pass
 
 from . import tmal
 

@@ -8,15 +8,15 @@ import ctypes
 from collections import OrderedDict
 
 import numpy as np
-import Ska.Numpy
-from Chandra.Time import DateTime
-import asciitable
 
 from . import component
 from . import tmal
 
 try:
     # Optional packages for model fitting or use on HEAD LAN
+    from Chandra.Time import DateTime
+    import asciitable
+    import Ska.Numpy
     import Ska.engarchive.fetch_sci as fetch
     import Chandra.cmd_states
     import Ska.DBI
@@ -51,7 +51,7 @@ class FetchError(Exception):
     pass
 
 
-class ThermalModel(object):
+class XijaModel(object):
     def __init__(self, name, start=None, stop=None, dt=328.0, model_spec=None,
                  cmd_states=None):
         if stop is None:
@@ -424,7 +424,7 @@ class ThermalModel(object):
         low-level model calculation via the C "calc_model" routine.  Only
         load once by setting/returning a class attribute.
         """
-        if not hasattr(ThermalModel, '_core'):
+        if not hasattr(XijaModel, '_core'):
             loader_path = os.path.abspath(os.path.dirname(__file__))
             _core = np.ctypeslib.load_library('core', loader_path)
             _core.calc_model.restype = ctypes.c_int
@@ -435,5 +435,7 @@ class ThermalModel(object):
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
                 ]
-            ThermalModel._core = _core
-        return ThermalModel._core
+            XijaModel._core = _core
+        return XijaModel._core
+
+ThermalModel = XijaModel
