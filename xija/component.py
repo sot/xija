@@ -38,7 +38,7 @@ class Param(dict):
 
 
 class ModelComponent(object):
-    """ Model component base class"""
+    """Model component base class"""
     def __init__(self, model):
         self.model = model
         self.n_mvals = 0
@@ -199,12 +199,8 @@ class TelemData(ModelComponent):
         return self.msid
 
 
-class CmdStatesData(TelemData):
-    def get_dvals_tlm(self):
-        return self.model.cmd_states[self.msid]
-
-
 class Node(TelemData):
+    """Time-series dataset for prediction"""
     def __init__(self, model, msid, sigma=-10, quant=None,
                  predict=True, mask=None):
         TelemData.__init__(self, model, msid)
@@ -256,7 +252,12 @@ class Node(TelemData):
 
 
 class Coupling(ModelComponent):
-    """Couple two nodes together (one-way coupling)"""
+    """\
+    First-order coupling between Nodes `node1` and `node2`
+    ::
+
+      dy1/dt = -(y1 - y2) / tau
+    """
     def __init__(self, model, node1, node2, tau):
         ModelComponent.__init__(self, model)
         self.node1 = self.model.get_comp(node1)

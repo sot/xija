@@ -1,5 +1,7 @@
 """
-Next-generation thermal modeling framework for Chandra thermal modeling
+Xija - framework to model complex time-series data using a network of
+coupled nodes with pluggable model components that define the node
+interactions.
 """
 
 import os
@@ -52,6 +54,8 @@ class FetchError(Exception):
 
 
 class XijaModel(object):
+    """Xija model class to encapsulate all ModelComponents and provide the
+    infrastructure to define and evaluate models."""
     def __init__(self, name, start=None, stop=None, dt=328.0, model_spec=None,
                  cmd_states=None):
         if stop is None:
@@ -158,8 +162,10 @@ class XijaModel(object):
             self._cmd_states = states[indexes]
 
     cmd_states = property(_get_cmd_states, _set_cmd_states)
+    """test cmdstats"""
 
     def fetch(self, msid, attr='vals', method='linear'):
+        """Get data from the Chandra engineering archive."""
         tpad = self.dt * 5
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
@@ -214,6 +220,7 @@ class XijaModel(object):
         return vals
 
     def add(self, ComponentClass, *args, **kwargs):
+        """Add a new component to the model"""
         comp = ComponentClass(self, *args, **kwargs)
         # Store args and kwargs used to initialize object for later object
         # storage and re-creation
@@ -226,6 +233,7 @@ class XijaModel(object):
         return comp
 
     comps = property(lambda self: self.comp.values())
+    """List of model components"""
 
     def get_comp(self, name):
         """Get a model component.  Works with either a string or a component
@@ -302,9 +310,12 @@ class XijaModel(object):
 
     @property
     def parnames(self):
+        """Return a tuple of all model parameter names"""
         return tuple(par.full_name for par in self.pars)
 
     def make(self):
+        """Call self.make_mvals and self.make_tmal to prepare for model evaluation
+        once all model components have been added."""
         self.make_mvals()
         self.make_tmal()
 
@@ -349,6 +360,7 @@ class XijaModel(object):
             self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
 
     def calc(self):
+        """Calculate the model.  The results appear in the self.mvals array."""
         self.make_tmal()
         # int calc_model(int n_times, int n_preds, int n_tmals, float dt,
         #                float **mvals, int **tmal_ints, float **tmal_floats)
@@ -365,19 +377,23 @@ class XijaModel(object):
         self.mvals[:, -1] = self.mvals[:, -2]
 
     def calc_stat(self):
+        """Calculate model fit statistic as the sum of component fit stats"""
         self.calc()            # parvals already set with dummy_calc
         fit_stat = sum(comp.calc_stat() for comp in self.comps if comp.predict)
         return fit_stat
 
     def calc_staterror(self, data):
+        """Calculate model fit statistic error (dummy array for Sherpa use)"""
         return np.ones_like(data)
 
     @property
     def date_range(self):
+        """Return formatted date range string"""
         return '%s_%s' % (DateTime(self.tstart).greta[:7],
                           DateTime(self.tstop).greta[:7])
 
     def plot_fit_resids(self, savefig=False, names=None):
+        """Plot fit residuals for all predicted model components"""
         import matplotlib.pyplot as plt
         from Ska.Matplotlib import plot_cxctime
         src['model'] = self.name
