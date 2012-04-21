@@ -337,6 +337,21 @@ class Pitch(TelemData):
         return 'pitch'
 
 
+class AcisFPtemp(Node):
+    """Make a wrapper around MSID FPTEMP_11 because that currently comes from
+    the eng_archive in K instead of C.
+    """
+    def __init__(self, model, mask=None):
+        Node.__init__(self, model, 'fptemp_11', mask=mask)
+
+    def get_dvals_tlm(self):
+        fptemp = self.model.fetch(self.msid, 'vals', 'nearest')
+        return fptemp - 273.15
+
+    def __str__(self):
+        return 'fptemp'
+
+
 class Eclipse(TelemData):
     def __init__(self, model):
         TelemData.__init__(self, model, 'aoeclips')
