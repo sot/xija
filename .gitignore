@@ -22,3 +22,7 @@ twodof/
 dist/
 MANIFEST
 *.png
+doc/_build
+doc/_static
+doc/_templates
+*.pyc

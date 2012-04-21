@@ -3,10 +3,14 @@ import operator
 import numpy as np
 from itertools import izip
 
-from Chandra.Time import DateTime
 import scipy.interpolate
-import Ska.Numpy
-from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
+
+try:
+    import Ska.Numpy
+    from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
+    from Chandra.Time import DateTime
+except ImportError:
+    pass
 
 from . import tmal
 
@@ -34,7 +38,7 @@ class Param(dict):
 
 
 class ModelComponent(object):
-    """ Model component base class"""
+    """Model component base class"""
     def __init__(self, model):
         self.model = model
         self.n_mvals = 0
@@ -201,6 +205,7 @@ class CmdStatesData(TelemData):
 
 
 class Node(TelemData):
+    """Time-series dataset for prediction"""
     def __init__(self, model, msid, sigma=-10, quant=None,
                  predict=True, mask=None):
         TelemData.__init__(self, model, msid)
@@ -252,7 +257,12 @@ class Node(TelemData):
 
 
 class Coupling(ModelComponent):
-    """Couple two nodes together (one-way coupling)"""
+    """\
+    First-order coupling between Nodes `node1` and `node2`
+    ::
+
+      dy1/dt = -(y1 - y2) / tau
+    """
     def __init__(self, model, node1, node2, tau):
         ModelComponent.__init__(self, model)
         self.node1 = self.model.get_comp(node1)
@@ -373,7 +383,21 @@ class ActiveHeatPower(ModelComponent):
 
 
 class SolarHeat(PrecomputedHeatPower):
-    """Solar heating (pitch dependent)"""
+    """Solar heating (pitch dependent)
+
+    :param model: parent model
+    :param node: node which is coupled to solar heat
+    :param pitch_comp: solar Pitch component
+    :param eclipse_comp: Eclipse component (optional)
+    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
+    :param Ps: list of solar heating values (default=[1.0, ...])
+    :param dPs: list of delta heating values (default=[0.0, ...])
+    :param var_func: variability function ('exp' | 'linear')
+    :param tau: variability timescale (days)
+    :param ampl: ampl of annual sinusoidal heating variation
+    :param bias: constant offset to all solar heating values
+    :param epoch: reference date at which ``Ps`` values apply
+    """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):

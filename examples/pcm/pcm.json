@@ -1,0 +1,313 @@
+{
+    "comps": [
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "pcm03t"
+            ], 
+            "init_kwargs": {}, 
+            "name": "pcm03t"
+        }, 
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "tcylaft6"
+            ], 
+            "init_kwargs": {
+                "predict": false
+            }, 
+            "name": "tcylaft6"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "pcm03t", 
+                "tcylaft6"
+            ], 
+            "init_kwargs": {
+                "tau": 30.0
+            }, 
+            "name": "coupling__pcm03t__tcylaft6"
+        }, 
+        {
+            "class_name": "Pitch", 
+            "init_args": [], 
+            "init_kwargs": {}, 
+            "name": "pitch"
+        }, 
+        {
+            "class_name": "Eclipse", 
+            "init_args": [], 
+            "init_kwargs": {}, 
+            "name": "eclipse"
+        }, 
+        {
+            "class_name": "SolarHeat", 
+            "init_args": [
+                "pcm03t", 
+                "pitch", 
+                "eclipse", 
+                [
+                    45, 
+                    60, 
+                    90, 
+                    120, 
+                    145, 
+                    180
+                ], 
+                [
+                    0.52, 
+                    0.53, 
+                    0.45, 
+                    0.41, 
+                    0.25, 
+                    -0.17
+                ]
+            ], 
+            "init_kwargs": {
+                "ampl": 0
+            }, 
+            "name": "solarheat__pcm03t"
+        }, 
+        {
+            "class_name": "HeatSink", 
+            "init_args": [
+                "pcm03t"
+            ], 
+            "init_kwargs": {
+                "T": 11.5, 
+                "tau": 90
+            }, 
+            "name": "heatsink__pcm03t"
+        }, 
+        {
+            "class_name": "Node", 
+            "init_args": [
+                "tcylfmzm"
+            ], 
+            "init_kwargs": {
+                "predict": false
+            }, 
+            "name": "tcylfmzm"
+        }, 
+        {
+            "class_name": "Coupling", 
+            "init_args": [
+                "pcm03t", 
+                "tcylfmzm"
+            ], 
+            "init_kwargs": {
+                "tau": 5
+            }, 
+            "name": "coupling__pcm03t__tcylfmzm"
+        }
+    ], 
+    "datestart": "2012:005:12:04:57.816", 
+    "datestop": "2012:095:11:52:17.816", 
+    "dt": 328.0, 
+    "gui_config": {
+        "filename": "/data/baffin/tom/git/xija/examples/pcm/pcm_fmzm.json", 
+        "plot_names": [
+            "pcm03t data__time"
+        ], 
+        "size": [
+            1400, 
+            800
+        ]
+    }, 
+    "mval_names": [], 
+    "name": "pcm", 
+    "pars": [
+        {
+            "comp_name": "coupling__pcm03t__tcylaft6", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "coupling__pcm03t__tcylaft6__tau", 
+            "max": 200.0, 
+            "min": 2.0, 
+            "name": "tau", 
+            "val": 30.38000000000004
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "solarheat__pcm03t__P_45", 
+            "max": 10.0, 
+            "min": -10.0, 
+            "name": "P_45", 
+            "val": 1.0619205288120803
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "solarheat__pcm03t__P_60", 
+            "max": 10.0, 
+            "min": -10.0, 
+            "name": "P_60", 
+            "val": 1.111650504685394
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "solarheat__pcm03t__P_90", 
+            "max": 10.0, 
+            "min": -10.0, 
+            "name": "P_90", 
+            "val": 1.0009466682323254
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "solarheat__pcm03t__P_120", 
+            "max": 10.0, 
+            "min": -10.0, 
+            "name": "P_120", 
+            "val": 0.8626437028948222
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "solarheat__pcm03t__P_145", 
+            "max": 2.0, 
+            "min": -0.0, 
+            "name": "P_145", 
+            "val": 0.7
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "solarheat__pcm03t__P_180", 
+            "max": 10.0, 
+            "min": -10.0, 
+            "name": "P_180", 
+            "val": 0.6615980587324568
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__dP_45", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "dP_45", 
+            "val": 0.0
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__dP_60", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "dP_60", 
+            "val": 0.0
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__dP_90", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "dP_90", 
+            "val": 0.0
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__dP_120", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "dP_120", 
+            "val": 0.0
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__dP_145", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "dP_145", 
+            "val": 0.0
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__dP_180", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "dP_180", 
+            "val": 0.0
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__tau", 
+            "max": 3000.0, 
+            "min": 1000.0, 
+            "name": "tau", 
+            "val": 1731.7818658991691
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__ampl", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "ampl", 
+            "val": 0.00340402567068649
+        }, 
+        {
+            "comp_name": "solarheat__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "solarheat__pcm03t__bias", 
+            "max": 1.0, 
+            "min": -1.0, 
+            "name": "bias", 
+            "val": 0.0
+        }, 
+        {
+            "comp_name": "heatsink__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "heatsink__pcm03t__T", 
+            "max": 100.0, 
+            "min": -100.0, 
+            "name": "T", 
+            "val": 12.055633380839819
+        }, 
+        {
+            "comp_name": "heatsink__pcm03t", 
+            "fmt": "{:.4g}", 
+            "frozen": false, 
+            "full_name": "heatsink__pcm03t__tau", 
+            "max": 200.0, 
+            "min": 2.0, 
+            "name": "tau", 
+            "val": 90.4259147486352
+        }, 
+        {
+            "comp_name": "coupling__pcm03t__tcylfmzm", 
+            "fmt": "{:.4g}", 
+            "frozen": true, 
+            "full_name": "coupling__pcm03t__tcylfmzm__tau", 
+            "max": 200.0, 
+            "min": 2.0, 
+            "name": "tau", 
+            "val": 80
+        }
+    ], 
+    "tlm_code": null
+}
