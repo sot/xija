@@ -7,6 +7,7 @@ interactions.
 import os
 import json
 import ctypes
+import StringIO
 from collections import OrderedDict
 
 import numpy as np
@@ -284,13 +285,66 @@ class XijaModel(object):
         asciitable.write(colvals, filename, names=colvals.keys())
 
     def write(self, filename, model_spec=None):
-        """Write the model specification as JSON to a file
+        """Write the model specification as JSON or Python to a file.
+
+        If the file name ends with ".py" then the output will the Python
+        code to create the model (using ``get_model_code()``), otherwise
+        the JSON model specification will be written.
+
+        :param filename: output filename
+        :param model_spec: model spec structure (optional)
         """
         if model_spec is None:
             model_spec = self.model_spec
 
         with open(filename, 'w') as f:
-            json.dump(model_spec, f, sort_keys=True, indent=4)
+            if filename.endswith('.py'):
+                f.write(self.get_model_code())
+            else:
+                json.dump(model_spec, f, sort_keys=True, indent=4)
+
+    def get_model_code(self):
+        """Return Python code that will create the current model.
+
+        This is useful during model development as a way to derive from and
+        modify existing models while retaining good parameter values.
+
+        :returns: string of Python code
+        """
+        out = StringIO.StringIO()
+        ms = self.model_spec
+
+        print >>out, "import xija\n"
+        print >>out, "model = xija.XijaModel({}, start={}, stop={}, dt={})\n" \
+            .format(repr(ms['name']), repr(ms['datestart']),
+                    repr(ms['datestop']), repr(ms['dt']))
+
+        for comp in ms['comps']:
+            args = [repr(x) for x in comp['init_args']]
+            kwargs = ['{}={}'.format(k, repr(v))
+                      for k, v in comp['init_kwargs'].items()]
+            print >>out, 'model.add(xija.{},'.format(comp['class_name'])
+            for arg in args:
+                print >>out, '          {},'.format(arg)
+            for kwarg in kwargs:
+                print >>out, '          {},'.format(kwarg)
+            print >>out, '         )'
+
+        parattrs = ('val', 'min', 'max', 'fmt', 'frozen')
+        last_comp_name = None
+        for par in ms['pars']:
+            comp_name = par['comp_name']
+            if comp_name != last_comp_name:
+                print >>out, '# Set {} component parameters'.format(comp_name)
+                print >>out, 'comp = model.get_comp({})\n' \
+                    .format(repr(comp_name))
+            print >>out, 'par = comp.get_par({})'.format(repr(par['name']))
+            par_upds = ['{}={}'.format(attr, repr(par[attr]))
+                        for attr in parattrs]
+            print >>out, 'par.update(dict({}))\n'.format(', '.join(par_upds))
+            last_comp_name = comp_name
+
+        return out.getvalue()
 
     def _get_parvals(self):
         """Return a (read-only) tuple of parameter values."""
