@@ -1019,6 +1019,40 @@ class PropHeater(PrecomputedHeatPower):
 
 
 class ThermostatHeater(ActiveHeatPower):
-    """Thermostat heater (with configurable deadband)"""
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+    """Thermostat heater (no deadband): heat = P for T < T_set).
+    """
+    def __init__(self, model, node, node_control=None, P=0.1, T_set=20.0):
+        super(ThermostatHeater, self).__init__(model)
+        self.node = self.model.get_comp(node)
+        self.node_control = (self.node if node_control is None
+                             else self.model.get_comp(node_control))
+        self.add_par('P', P, min=0.0, max=1.0)
+        self.add_par('T_set', T_set, min=-50.0, max=100.0)
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'thermostat_heat__{0}'.format(self.node)
+
+    def get_dvals_tlm(self):
+        """Return an array of zeros => no activation of the heater.
+        """
+        return np.zeros_like(self.model.times)
+
+    def update(self):
+        self.tmal_ints = (tmal.OPCODES['thermostat_heater'],
+                          self.node.mvals_i,  # dy1/dt index
+                          self.node_control.mvals_i,
+                          self.mvals_i
+                          )
+        self.tmal_floats = (self.T_set, self.P)
+
+    def plot_data__time(self, fig, ax):
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(self.model_plotdate, self.mvals)
+        else:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_ylabel('Power')
