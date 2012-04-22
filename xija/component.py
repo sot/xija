@@ -1,7 +1,7 @@
 import re
 import operator
 import numpy as np
-from itertools import izip
+from itertools import izip, count
 
 import scipy.interpolate
 
@@ -221,6 +221,8 @@ class Node(TelemData):
         return self._sigma
 
     def calc_stat(self):
+        if self.sigma == 0:
+            return 0.0
         if self.mask is None:
             resid = self.dvals - self.mvals
         else:
@@ -335,6 +337,21 @@ class Pitch(TelemData):
 
     def __str__(self):
         return 'pitch'
+
+
+class AcisFPtemp(Node):
+    """Make a wrapper around MSID FPTEMP_11 because that currently comes from
+    the eng_archive in K instead of C.
+    """
+    def __init__(self, model, mask=None):
+        Node.__init__(self, model, 'fptemp_11', mask=mask)
+
+    def get_dvals_tlm(self):
+        fptemp = self.model.fetch(self.msid, 'vals', 'nearest')
+        return fptemp - 273.15
+
+    def __str__(self):
+        return 'fptemp'
 
 
 class Eclipse(TelemData):
@@ -549,8 +566,63 @@ class DpaSolarHeat(SolarHeat):
 
 class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+    def __init__(self, model, node,
+                 orbitephem0_x, orbitephem0_y, orbitephem0_z,
+                 aoattqt1, aoattqt2, aoattqt3, aoattqt4,
+                 k=1.0):
+        ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
+        self.orbitephem0_x = self.model.get_comp(orbitephem0_x)
+        self.orbitephem0_y = self.model.get_comp(orbitephem0_y)
+        self.orbitephem0_z = self.model.get_comp(orbitephem0_z)
+        self.aoattqt1 = self.model.get_comp(aoattqt1)
+        self.aoattqt2 = self.model.get_comp(aoattqt2)
+        self.aoattqt3 = self.model.get_comp(aoattqt3)
+        self.aoattqt4 = self.model.get_comp(aoattqt4)
+        self.n_mvals = 1
+        self.add_par('k', k, min=0.0, max=2.0)
+
+    @property
+    def dvals(self):
+        import taco2
+        if not hasattr(self, '_dvals'):
+            # Collect individual MSIDs for use in calc_earth_vis()
+            ephem_xyzs = [getattr(self, 'orbitephem0_{}'.format(x))
+                          for x in ('x', 'y', 'z')]
+            aoattqt_1234s = [getattr(self, 'aoattqt{}'.format(x))
+                             for x in range(1, 5)]
+            ephems = np.array([x.dvals for x in ephem_xyzs]).transpose()
+            q_atts = np.array([x.dvals for x in aoattqt_1234s]).transpose()
+
+            self._dvals = np.empty(self.model.n_times, dtype=float)
+            for i, ephem, q_att in izip(count(), ephems, q_atts):
+                q_att = q_att / np.sqrt(np.sum(q_att ** 2))
+                _, illums, _ = taco2.calc_earth_vis(ephem, q_att)
+                self._dvals[i] = illums.sum()
+
+        return self._dvals
+
+    def update(self):
+        self.mvals = self.k * self.dvals
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                           self.node.mvals_i,  # dy1/dt index
+                           self.mvals_i,  # mvals with precomputed heat input
+                          )
+        self.tmal_floats = ()
+
+    def plot_data__time(self, fig, ax):
+        lines = ax.get_lines()
+        if not lines:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_ylabel('Illumination')
+        else:
+            lines[0].set_data(self.model_plotdate, self.dvals)
+
+    def __str__(self):
+        return 'earthheat__{0}'.format(self.node)
 
 
 class AcisPsmcSolarHeat(PrecomputedHeatPower):
@@ -559,7 +631,7 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
                  P_vals=None):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
-        self.node = node
+        self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
         self.simz_comp = self.model.get_comp(simz_comp)
         self.P_pitches = np.array([50., 90., 150.] if (P_pitches is None)
@@ -947,6 +1019,40 @@ class PropHeater(PrecomputedHeatPower):
 
 
 class ThermostatHeater(ActiveHeatPower):
-    """Thermostat heater (with configurable deadband)"""
-    def __init__(self, model, name):
-        ModelComponent.__init__(self, model, name)
+    """Thermostat heater (no deadband): heat = P for T < T_set).
+    """
+    def __init__(self, model, node, node_control=None, P=0.1, T_set=20.0):
+        super(ThermostatHeater, self).__init__(model)
+        self.node = self.model.get_comp(node)
+        self.node_control = (self.node if node_control is None
+                             else self.model.get_comp(node_control))
+        self.add_par('P', P, min=0.0, max=1.0)
+        self.add_par('T_set', T_set, min=-50.0, max=100.0)
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'thermostat_heat__{0}'.format(self.node)
+
+    def get_dvals_tlm(self):
+        """Return an array of zeros => no activation of the heater.
+        """
+        return np.zeros_like(self.model.times)
+
+    def update(self):
+        self.tmal_ints = (tmal.OPCODES['thermostat_heater'],
+                          self.node.mvals_i,  # dy1/dt index
+                          self.node_control.mvals_i,
+                          self.mvals_i
+                          )
+        self.tmal_floats = (self.T_set, self.P)
+
+    def plot_data__time(self, fig, ax):
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(self.model_plotdate, self.mvals)
+        else:
+            self.model_plotdate = cxctime2plotdate(self.model.times)
+            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_ylabel('Power')
