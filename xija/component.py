@@ -221,6 +221,8 @@ class Node(TelemData):
         return self._sigma
 
     def calc_stat(self):
+        if self.sigma == 0:
+            return 0.0
         if self.mask is None:
             resid = self.dvals - self.mvals
         else:
