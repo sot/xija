@@ -78,6 +78,14 @@ class ModelComponent(object):
 
     mvals = property(_get_mvals, _set_mvals)
 
+    def get_par(self, name):
+        for par in self.pars:
+            if par.name == name:
+                return par
+        else:
+            raise ValueError('No par named "{}" in {}',
+                             self.__class__.__name__)
+
     @property
     def name(self):
         return self.__str__()
