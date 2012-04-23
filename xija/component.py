@@ -184,12 +184,12 @@ class Mask(ModelComponent):
 class TelemData(ModelComponent):
     times = property(lambda self: self.model.times)
 
-    def __init__(self, model, msid):
+    def __init__(self, model, msid, mval=True, data=None):
         super(TelemData, self).__init__(model)
         self.msid = msid
-        self.n_mvals = 1
+        self.n_mvals = 1 if mval else 0
         self.predict = False
-        self.data = None
+        self.data = data
         self.data_times = None
 
     def get_dvals_tlm(self):
@@ -230,10 +230,11 @@ class Node(TelemData):
     :param quant: use quantized stats (not currently implemented)
     :param predict: compute prediction for this node (default=True)
     :param mask: Mask component for masking values from fit statistic
+    :param data: Node data (None or a single value)
     """
     def __init__(self, model, msid, sigma=-10, quant=None,
-                 predict=True, mask=None, name=None):
-        TelemData.__init__(self, model, msid)
+                 predict=True, mask=None, name=None, data=None):
+        TelemData.__init__(self, model, msid, data=data)
         self._sigma = sigma
         self.quant = quant
         self.predict = predict
