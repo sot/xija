@@ -229,7 +229,7 @@ class PlotsPanel(Panel):
         plot_panel = PlotPanel(plot_name, self)
         self.pack_start(plot_panel.box)
         self.plot_panels.append(plot_panel)
-        self.main_window.show_all()
+        self.main_window.window.show_all()
 
     def delete_plot_panel(self, widget, plot_name):
         plot_panels = []
@@ -241,9 +241,12 @@ class PlotsPanel(Panel):
         self.plot_panels = plot_panels
 
     def update(self, widget=None):
+        cbp = self.main_window.main_left_panel.control_buttons_panel
+        cbp.update_status.set_text(' BUSY... ')
         self.model.calc()
         for plot_panel in self.plot_panels:
             plot_panel.update()
+        cbp.update_status.set_text('')
 
 
 class PlotPanel(Panel):
@@ -405,6 +408,8 @@ class ControlButtonsPanel(Panel):
         self.stop_button = gtk.Button("Stop")
         self.save_button = gtk.Button("Save")
         self.add_plot_button = self.make_add_plot_button()
+        self.update_status = gtk.Label()
+        self.update_status.set_width_chars(10)
         self.quit_button = gtk.Button('Quit')
         self.command_entry = gtk.Entry()
         self.command_entry.set_width_chars(10)
@@ -417,6 +422,7 @@ class ControlButtonsPanel(Panel):
         self.pack_start(self.stop_button, False, False, 0)
         self.pack_start(self.save_button, False, False, 0)
         self.pack_start(self.add_plot_button, False, False, 0)
+        self.pack_start(self.update_status, False, False, 0)
         self.pack_start(self.command_panel, False, False, 0)
         self.pack_start(self.quit_button, False, False, 0)
 
@@ -472,7 +478,7 @@ class MainWindow(object):
         self.main_box = Panel(orient='h')
         self.window.add(self.main_box.box)
 
-        self.main_left_panel = MainLeftPanel(fit_worker, self.window)
+        self.main_left_panel = MainLeftPanel(fit_worker, self)
         mlp = self.main_left_panel
         self.main_right_panel = MainRightPanel(fit_worker, mlp.plots_panel)
         self.main_box.pack_start(self.main_left_panel)
