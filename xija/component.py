@@ -1,8 +1,10 @@
 import re
 import operator
-import numpy as np
 from itertools import izip, count
+import glob
+import os
 
+import numpy as np
 import scipy.interpolate
 
 try:
@@ -546,7 +548,8 @@ class DpaSolarHeat(SolarHeat):
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
                  hrc_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
-                           P_pitches, Ps, dPs, var_func, tau, ampl, bias, epoch)
+                           P_pitches, Ps, dPs, var_func, tau, ampl, bias,
+                           epoch)
         self.simz_comp = model.get_comp(simz_comp)
         self.add_par('hrc_bias', hrc_bias, min=-1.0, max=1.0)
 
@@ -612,7 +615,7 @@ class EarthHeat(PrecomputedHeatPower):
     @property
     def dvals(self):
         import taco2
-        if not hasattr(self, '_dvals'):
+        if not hasattr(self, '_dvals') and not self.get_cached():
             # Collect individual MSIDs for use in calc_earth_vis()
             ephem_xyzs = [getattr(self, 'orbitephem0_{}'.format(x))
                           for x in ('x', 'y', 'z')]
@@ -627,13 +630,46 @@ class EarthHeat(PrecomputedHeatPower):
                 _, illums, _ = taco2.calc_earth_vis(ephem, q_att)
                 self._dvals[i] = illums.sum()
 
+            self.put_cache()
+
         return self._dvals
+
+    def put_cache(self):
+        if os.path.exists('esa_cache'):
+            cachefile = 'esa_cache/{}-{}.npz'.format(
+                self.model.datestart, self.model.datestop)
+            np.savez(cachefile, times=self.model.times,
+                     dvals=self.dvals)
+
+    def get_cached(self):
+        """Find a cached version of the Earth solid angle values from
+        file if possible.
+        """
+        dts = {}  # delta times for each matching file
+        filenames = glob.glob('esa_cache/*.npz')
+        for name in filenames:
+            re_date = r'\d\d\d\d:\d\d\d:\d\d:\d\d:\d\d\.\d\d\d'
+            re_cache_file = r'({})-({})'.format(re_date, re_date)
+            m = re.search(re_cache_file, name)
+            if m:
+                f_datestart, f_datestop = m.groups()
+                if (f_datestart <= self.model.datestart and
+                    f_datestop >= self.model.datestop):
+                    dts[name] = DateTime(f_datestop) - DateTime(f_datestart)
+        if dts:
+            cachefile = sorted(dts.items(), key=lambda x: x[1])[0][0]
+            arrays = np.load(cachefile)
+            self._dvals = self.model.interpolate_data(
+                arrays['dvals'], arrays['times'], comp=self)
+            return True
+        else:
+            return False
 
     def update(self):
         self.mvals = self.k * self.dvals
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,  # mvals with precomputed heat input
+                          self.node.mvals_i,  # dy1/dt index
+                          self.mvals_i,  # mvals with precomputed heat input
                           )
         self.tmal_floats = ()
 
