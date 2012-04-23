@@ -6,10 +6,8 @@ xija/*.c
 xija/*.so
 NOTES.paper
 test_write.json
-minusz/
 fit
 fit.*
-*.json
 ctypes_example/
 *.so
 *.so.*
