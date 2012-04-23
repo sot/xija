@@ -52,6 +52,7 @@ int calc_model(int n_times, int n_preds, int n_tmals, double dt,
                         } else {
                             mvals[i3][j] = 0.0;
                         }
+                        break;
                     case 4: /* active thermostatic heater */
                         dt2 =  tmal_floats[i][0] - ((i2 < n_preds) ? y[i2] : mvals[i2][j]);
                         i3 = tmal_ints[i][3];
@@ -63,6 +64,7 @@ int calc_model(int n_times, int n_preds, int n_tmals, double dt,
                         } else {
                             mvals[i3][j] = 0.0;
                         }
+                        break;
                     }
             }
         }
