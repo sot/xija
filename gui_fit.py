@@ -277,7 +277,10 @@ class PlotPanel(Panel):
         except IndexError:
             self.ax = fig.add_subplot(111)
         else:
-            self.ax = fig.add_subplot(111, sharex=plots_panel.sharex.get(xaxis_type))
+            sharex = plots_panel.sharex.get(xaxis_type)
+            self.ax = fig.add_subplot(111, sharex=sharex)
+            if sharex is not None:
+                self.ax.autoscale(enable=False, axis='x')
             plots_panel.sharex.setdefault(xaxis_type, self.ax)
             
         self.canvas = canvas
