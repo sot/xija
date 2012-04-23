@@ -313,10 +313,6 @@ class ParamsPanel(Panel):
             params_table[row, 1] = gtk.Label(par.full_name)
             params_table[row, 1].set_alignment(0, 0.5)
 
-            # Value
-            params_table[row, 2] = gtk.Label(par.fmt.format(par.val))
-            params_table[row, 2].set_alignment(0, 0.5)
-
             # Slider
             incr = (par.max - par.min) / 100.0
             adj = gtk.Adjustment(par.val, par.min, par.max, incr, incr, 0.0)
@@ -327,17 +323,23 @@ class ParamsPanel(Panel):
             handler = adj.connect('value_changed', self.slider_changed, row)
             self.adj_handlers[row] = handler
 
+            # Value
+            entry = params_table[row, 2] = gtk.Entry()
+            entry.set_width_chars(10)
+            entry.set_text(par.fmt.format(par.val))
+            entry.connect('activate', self.par_attr_changed, adj, par, 'val')
+
             # Min of slider
             entry = params_table[row, 3] = gtk.Entry()
             entry.set_text(par.fmt.format(par.min))
             entry.set_width_chars(4)
-            entry.connect('activate', self.minmax_changed, adj, par, 'min')
+            entry.connect('activate', self.par_attr_changed, adj, par, 'min')
 
             # Max of slider
             entry = params_table[row, 5] = gtk.Entry()
             entry.set_text(par.fmt.format(par.max))
             entry.set_width_chars(6)
-            entry.connect('activate', self.minmax_changed, adj, par, 'max')
+            entry.connect('activate', self.par_attr_changed, adj, par, 'max')
 
         self.pack_start(params_table.box, True, True, padding=10)
         self.params_table = params_table
@@ -345,20 +347,25 @@ class ParamsPanel(Panel):
     def frozen_toggled(self, widget, par):
         par.frozen = not widget.get_active()
 
-    def minmax_changed(self, widget, adj, par, minmax):
-        """Min or max Entry box value changed.  Update the slider (adj)
-        limits and the par min/max accordingly.
+    def par_attr_changed(self, widget, adj, par, par_attr):
+        """Min, val, or max Entry box value changed.  Update the slider (adj)
+        limits and the par min/val/max accordingly.
         """
         try:
             val = float(widget.get_text())
         except ValueError:
             pass
         else:
-            (adj.set_lower if minmax == 'min' else adj.set_upper)(val)
+            if par_attr == 'min':
+                adj.set_lower(val)
+            elif par_attr == 'max':
+                adj.set_upper(val)
+            elif par_attr == 'val':
+                adj.set_value(val)
             incr = (adj.get_upper() - adj.get_lower()) / 100.0
             adj.set_step_increment(incr)
             adj.set_page_increment(incr)
-            setattr(par, minmax, val)
+            setattr(par, par_attr, val)
 
     def slider_changed(self, widget, row):
         parval = widget.value  # widget is an adjustment
