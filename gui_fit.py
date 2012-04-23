@@ -319,6 +319,7 @@ class ParamsPanel(Panel):
             slider = gtk.HScale(adj)
             slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
             slider.set_draw_value(False)
+            slider.set_size_request(70, -1)
             params_table[row, 4] = slider
             handler = adj.connect('value_changed', self.slider_changed, row)
             self.adj_handlers[row] = handler
