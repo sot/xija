@@ -57,8 +57,8 @@ class FetchError(Exception):
 class XijaModel(object):
     """Xija model class to encapsulate all ModelComponents and provide the
     infrastructure to define and evaluate models."""
-    def __init__(self, name, start=None, stop=None, dt=328.0, model_spec=None,
-                 cmd_states=None):
+    def __init__(self, name=None, start=None, stop=None, dt=328.0,
+                 model_spec=None, cmd_states=None):
         if stop is None:
             stop = DateTime().secs - 30 * 86400
         if start is None:
@@ -84,6 +84,9 @@ class XijaModel(object):
             model_spec = json.load(open(model_spec, 'r'))
         except:
             pass
+
+        if self.name is None:
+            self.name = model_spec['name']
 
         for comp in model_spec['comps']:
             ComponentClass = getattr(component, comp['class_name'])
@@ -445,48 +448,6 @@ class XijaModel(object):
         """Return formatted date range string"""
         return '%s_%s' % (DateTime(self.tstart).greta[:7],
                           DateTime(self.tstop).greta[:7])
-
-    def plot_fit_resids(self, savefig=False, names=None):
-        """Plot fit residuals for all predicted model components"""
-        import matplotlib.pyplot as plt
-        from Ska.Matplotlib import plot_cxctime
-        src['model'] = self.name
-        if 'outdir' not in src:
-            src['outdir'] = '.'
-
-        self.calc()
-        times = self.times
-        comps = (comp for comp in self.comps
-                 if comp.predict and isinstance(comp, component.Node))
-
-        for i, comp in enumerate(comps):
-            if names and comp.name not in names:
-                continue
-            plt.figure(i + 10, figsize=(10, 5))
-            plt.clf()
-
-            plt.subplot(2, 1, 1)
-            plot_cxctime(times, comp.dvals, '-b')
-            plot_cxctime(times, comp.mvals, '-r')
-            plt.title(comp.name.upper() + ' ' + self.date_range)
-            plt.ylabel('degC')
-            plt.grid()
-
-            resid = (comp.dvals - comp.mvals)
-            plt.subplot(2, 1, 2)
-            plot_cxctime(times, resid, '-m')
-            ylim = np.max(np.abs(resid)) * 1.1
-            if ylim < 6:
-                ylim = 6
-            plt.ylim(-ylim, ylim)
-            plt.ylabel('degC')
-            plt.grid()
-
-            plt.subplots_adjust(bottom=0.1, top=0.93, hspace=0.15)
-            if savefig:
-                src['date_range'] = self.date_range
-                src['msid'] = comp.name
-                plt.savefig(files['fit_resid.png'].abs)
 
     @property
     def core(self):
