@@ -213,7 +213,22 @@ class CmdStatesData(TelemData):
 
 
 class Node(TelemData):
-    """Time-series dataset for prediction"""
+    """Time-series dataset for prediction.
+
+    If the ``sigma`` value is negative then sigma is computed from the
+    node data values as the specified percent of the data standard
+    deviation.  The default ``sigma`` value is -10, so this implies
+    using a sigma of 10% of the data standard deviation.  If ``sigma``
+    is set to 0 then the fit statistic is set to 0.0 for this node.
+
+    :param model: parent model
+    :param msid: MSID for telemetry data
+    :param name: component name (default=``msid``)
+    :param sigma: sigma value used in chi^2 fit statistic
+    :param quant: use quantized stats (not currently implemented)
+    :param predict: compute prediction for this node (default=True)
+    :param mask: Mask component for masking values from fit statistic
+    """
     def __init__(self, model, msid, sigma=-10, quant=None,
                  predict=True, mask=None, name=None):
         TelemData.__init__(self, model, msid)
