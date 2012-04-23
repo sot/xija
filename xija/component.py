@@ -215,12 +215,16 @@ class CmdStatesData(TelemData):
 class Node(TelemData):
     """Time-series dataset for prediction"""
     def __init__(self, model, msid, sigma=-10, quant=None,
-                 predict=True, mask=None):
+                 predict=True, mask=None, name=None):
         TelemData.__init__(self, model, msid)
         self._sigma = sigma
         self.quant = quant
         self.predict = predict
         self.mask = model.get_comp(mask)
+        self._name = name or msid
+
+    def __str__(self):
+        return self._name
 
     @property
     def sigma(self):
@@ -235,7 +239,7 @@ class Node(TelemData):
             resid = self.dvals - self.mvals
         else:
             resid = self.dvals[self.mask.mask] - self.mvals[self.mask.mask]
-        return np.sum(resid**2 / self.sigma**2)
+        return np.sum(resid ** 2 / self.sigma ** 2)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
