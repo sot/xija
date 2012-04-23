@@ -229,7 +229,7 @@ class PlotsPanel(Panel):
         plot_panel = PlotPanel(plot_name, self)
         self.pack_start(plot_panel.box)
         self.plot_panels.append(plot_panel)
-        self.main_window.show_all()
+        self.main_window.window.show_all()
 
     def delete_plot_panel(self, widget, plot_name):
         plot_panels = []
@@ -241,9 +241,12 @@ class PlotsPanel(Panel):
         self.plot_panels = plot_panels
 
     def update(self, widget=None):
+        cbp = self.main_window.main_left_panel.control_buttons_panel
+        cbp.update_status.set_text(' BUSY... ')
         self.model.calc()
         for plot_panel in self.plot_panels:
             plot_panel.update()
+        cbp.update_status.set_text('')
 
 
 class PlotPanel(Panel):
@@ -277,7 +280,10 @@ class PlotPanel(Panel):
         except IndexError:
             self.ax = fig.add_subplot(111)
         else:
-            self.ax = fig.add_subplot(111, sharex=plots_panel.sharex.get(xaxis_type))
+            sharex = plots_panel.sharex.get(xaxis_type)
+            self.ax = fig.add_subplot(111, sharex=sharex)
+            if sharex is not None:
+                self.ax.autoscale(enable=False, axis='x')
             plots_panel.sharex.setdefault(xaxis_type, self.ax)
             
         self.canvas = canvas
@@ -310,31 +316,34 @@ class ParamsPanel(Panel):
             params_table[row, 1] = gtk.Label(par.full_name)
             params_table[row, 1].set_alignment(0, 0.5)
 
-            # Value
-            params_table[row, 2] = gtk.Label(par.fmt.format(par.val))
-            params_table[row, 2].set_alignment(0, 0.5)
-
             # Slider
             incr = (par.max - par.min) / 100.0
             adj = gtk.Adjustment(par.val, par.min, par.max, incr, incr, 0.0)
             slider = gtk.HScale(adj)
             slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
             slider.set_draw_value(False)
+            slider.set_size_request(70, -1)
             params_table[row, 4] = slider
             handler = adj.connect('value_changed', self.slider_changed, row)
             self.adj_handlers[row] = handler
+
+            # Value
+            entry = params_table[row, 2] = gtk.Entry()
+            entry.set_width_chars(10)
+            entry.set_text(par.fmt.format(par.val))
+            entry.connect('activate', self.par_attr_changed, adj, par, 'val')
 
             # Min of slider
             entry = params_table[row, 3] = gtk.Entry()
             entry.set_text(par.fmt.format(par.min))
             entry.set_width_chars(4)
-            entry.connect('activate', self.minmax_changed, adj, par, 'min')
+            entry.connect('activate', self.par_attr_changed, adj, par, 'min')
 
             # Max of slider
             entry = params_table[row, 5] = gtk.Entry()
             entry.set_text(par.fmt.format(par.max))
             entry.set_width_chars(6)
-            entry.connect('activate', self.minmax_changed, adj, par, 'max')
+            entry.connect('activate', self.par_attr_changed, adj, par, 'max')
 
         self.pack_start(params_table.box, True, True, padding=10)
         self.params_table = params_table
@@ -342,20 +351,25 @@ class ParamsPanel(Panel):
     def frozen_toggled(self, widget, par):
         par.frozen = not widget.get_active()
 
-    def minmax_changed(self, widget, adj, par, minmax):
-        """Min or max Entry box value changed.  Update the slider (adj)
-        limits and the par min/max accordingly.
+    def par_attr_changed(self, widget, adj, par, par_attr):
+        """Min, val, or max Entry box value changed.  Update the slider (adj)
+        limits and the par min/val/max accordingly.
         """
         try:
             val = float(widget.get_text())
         except ValueError:
             pass
         else:
-            (adj.set_lower if minmax == 'min' else adj.set_upper)(val)
+            if par_attr == 'min':
+                adj.set_lower(val)
+            elif par_attr == 'max':
+                adj.set_upper(val)
+            elif par_attr == 'val':
+                adj.set_value(val)
             incr = (adj.get_upper() - adj.get_lower()) / 100.0
             adj.set_step_increment(incr)
             adj.set_page_increment(incr)
-            setattr(par, minmax, val)
+            setattr(par, par_attr, val)
 
     def slider_changed(self, widget, row):
         parval = widget.value  # widget is an adjustment
@@ -394,6 +408,8 @@ class ControlButtonsPanel(Panel):
         self.stop_button = gtk.Button("Stop")
         self.save_button = gtk.Button("Save")
         self.add_plot_button = self.make_add_plot_button()
+        self.update_status = gtk.Label()
+        self.update_status.set_width_chars(10)
         self.quit_button = gtk.Button('Quit')
         self.command_entry = gtk.Entry()
         self.command_entry.set_width_chars(10)
@@ -406,6 +422,7 @@ class ControlButtonsPanel(Panel):
         self.pack_start(self.stop_button, False, False, 0)
         self.pack_start(self.save_button, False, False, 0)
         self.pack_start(self.add_plot_button, False, False, 0)
+        self.pack_start(self.update_status, False, False, 0)
         self.pack_start(self.command_panel, False, False, 0)
         self.pack_start(self.quit_button, False, False, 0)
 
@@ -461,7 +478,7 @@ class MainWindow(object):
         self.main_box = Panel(orient='h')
         self.window.add(self.main_box.box)
 
-        self.main_left_panel = MainLeftPanel(fit_worker, self.window)
+        self.main_left_panel = MainLeftPanel(fit_worker, self)
         mlp = self.main_left_panel
         self.main_right_panel = MainRightPanel(fit_worker, mlp.plots_panel)
         self.main_box.pack_start(self.main_left_panel)
