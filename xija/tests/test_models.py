@@ -40,3 +40,53 @@ def test_dpa():
     assert np.allclose(mdl.times, regr['times'])
     assert np.allclose(dpa.dvals, regr['dvals'])
     assert np.allclose(dpa.mvals, regr['mvals'])
+
+
+def test_minusz():
+    mdl = ThermalModel('minusz', start='2012:001', stop='2012:004',
+                            model_spec='minusz.json')
+    times = (mdl.times - mdl.times[0]) / 10000.0
+    msids = ('tephin', 'tcylaft6', 'tcylfmzm', 'tmzp_my', 'tfssbkt1')
+    for msid in msids:
+        mdl.comp[msid].set_data(10.0)
+    mdl.comp['pitch'].set_data(45.1 + 55 * (1 + sin(times / 2)))
+    mdl.comp['eclipse'].set_data(cos(times) > 0.95)
+
+    mdl.make()
+    mdl.calc()
+
+    regrfile = 'minusz.npz'
+    if not os.path.exists(regrfile):
+        print 'Writing reference file', regrfile
+        kwargs = {msid: mdl.comp[msid].mvals for msid in msids}
+        np.savez(regrfile, times=mdl.times, **kwargs)
+
+    regr = np.load(regrfile)
+    assert np.allclose(mdl.times, regr['times'])
+    for msid in msids:
+        assert np.allclose(mdl.comp[msid].mvals, regr[msid])
+
+
+def test_pftank2t():
+    mdl = ThermalModel('pftank2t', start='2012:001', stop='2012:004',
+                            model_spec='pftank2t.json')
+    times = (mdl.times - mdl.times[0]) / 10000.0
+    msids = ('pftank2t', 'pf0tank2t')
+    for msid in msids:
+        mdl.comp[msid].set_data(10.0)
+    mdl.comp['pitch'].set_data(45.1 + 55 * (1 + sin(times / 2)))
+    mdl.comp['eclipse'].set_data(cos(times) > 0.95)
+
+    mdl.make()
+    mdl.calc()
+
+    regrfile = 'pftank2t.npz'
+    if not os.path.exists(regrfile):
+        print 'Writing reference file', regrfile
+        kwargs = {msid: mdl.comp[msid].mvals for msid in msids}
+        np.savez(regrfile, times=mdl.times, **kwargs)
+
+    regr = np.load(regrfile)
+    assert np.allclose(mdl.times, regr['times'])
+    for msid in msids:
+        assert np.allclose(mdl.comp[msid].mvals, regr[msid])
