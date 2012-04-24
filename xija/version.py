@@ -35,10 +35,6 @@ def _get_git_devstr():
     from os import path
     from subprocess import Popen, PIPE
 
-    if release:
-        raise ValueError('revision devstring should not be '
-                         'used in a release version')
-
     currdir = path.abspath(path.split(__file__)[0])
 
     p = Popen(['git', 'rev-list', 'HEAD'], cwd=currdir,
@@ -48,8 +44,9 @@ def _get_git_devstr():
     if p.returncode != 0:
         return ''
     else:
-        nrev = stdout.decode('ascii').count('\n')
-        return  '-r%i' % nrev
+        revs = stdout.decode('ascii').split('\n')
+        return  '-r%s-%s' % (len(revs), revs[0][:7])
+
 
 if not release:
     version = version + _get_git_devstr()
