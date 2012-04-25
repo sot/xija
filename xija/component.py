@@ -221,16 +221,18 @@ class MaskBox(Mask):
 class TelemData(ModelComponent):
     times = property(lambda self: self.model.times)
 
-    def __init__(self, model, msid, mval=True, data=None):
+    def __init__(self, model, msid, mval=True, data=None,
+                 fetch_attr='vals'):
         super(TelemData, self).__init__(model)
         self.msid = msid
         self.n_mvals = 1 if mval else 0
         self.predict = False
         self.data = data
         self.data_times = None
+        self.fetch_attr = fetch_attr
 
     def get_dvals_tlm(self):
-        return self.model.fetch(self.msid)
+        return self.model.fetch(self.msid, attr=self.fetch_attr)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
@@ -269,8 +271,10 @@ class Node(TelemData):
     :param data: Node data (None or a single value)
     """
     def __init__(self, model, msid, sigma=-10, quant=None,
-                 predict=True, mask=None, name=None, data=None):
-        TelemData.__init__(self, model, msid, data=data)
+                 predict=True, mask=None, name=None, data=None,
+                 fetch_attr='vals'):
+        TelemData.__init__(self, model, msid, data=data,
+                           fetch_attr=fetch_attr)
         self._sigma = sigma
         self.quant = quant
         self.predict = predict
