@@ -21,8 +21,9 @@ Later on you should work in your xija repository and update to the latest develo
 
   % cd ~/git/xija
   % git pull   # Update with latest dev version of xija
+  % python setup.py build_ext --inplace  # build C core module
 
-Finally set the PYTHONPATH environment variable to ensure that you can import
+Finally set the PYTHONPATH environment variable to ensure that you import
 the local dev version of xija from any sub-directory where you might be
 working::
 
