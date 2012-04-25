@@ -821,6 +821,7 @@ class AcisDpaPower(PrecomputedHeatPower):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.add_par('k', k, min=0.0, max=2.0)
+        self.add_par('bias', 70.0, min=0.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
@@ -837,7 +838,7 @@ class AcisDpaPower(PrecomputedHeatPower):
         return dvals
 
     def update(self):
-        self.mvals = self.k * self.dvals / 10.0
+        self.mvals = self.k * (self.dvals - self.bias) / 10.0
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                            self.node.mvals_i,  # dy1/dt index
                            self.mvals_i,  # mvals with precomputed heat input
