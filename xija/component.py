@@ -665,7 +665,12 @@ class EarthHeat(PrecomputedHeatPower):
 
             self._dvals = np.empty(self.model.n_times, dtype=float)
             for i, ephem, q_att in izip(count(), ephems, q_atts):
-                q_att = q_att / np.sqrt(np.sum(q_att ** 2))
+                q_norm = np.sqrt(np.sum(q_att ** 2))
+                if q_norm < 0.9:
+                    print "Bad quaternion", i
+                    q_att = np.array([0.0, 0.0, 0.0, 1.0])
+                else:
+                    q_att = q_att / q_norm
                 _, illums, _ = Chandra.taco.calc_earth_vis(ephem, q_att)
                 self._dvals[i] = illums.sum()
 
