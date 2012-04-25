@@ -317,6 +317,7 @@ class XijaModel(object):
         out = StringIO.StringIO()
         ms = self.model_spec
 
+        print >>out, "import sys"
         print >>out, "import xija\n"
         print >>out, "model = xija.XijaModel({}, start={}, stop={}, dt={})\n" \
             .format(repr(ms['name']), repr(ms['datestart']),
@@ -346,6 +347,9 @@ class XijaModel(object):
                         for attr in parattrs]
             print >>out, 'par.update(dict({}))\n'.format(', '.join(par_upds))
             last_comp_name = comp_name
+
+        print >>out, "if len(sys.argv) > 1:"
+        print >>out, "    model.write(sys.argv[1])"
 
         return out.getvalue()
 
