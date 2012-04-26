@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pytest
 
 from .. import ThermalModel, __version__
 from numpy import sin, cos, abs
@@ -8,6 +9,32 @@ print
 print 'Version =', __version__
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
+
+
+def test_dpa_real():
+    mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+                       model_spec='dpa.json')
+    # Check that cmd_states database can be read.  Skip if not, probably
+    # running test on a platform without access.
+    try:
+        mdl._get_cmd_states()
+    except:
+        pytest.skip('No commanded states access - '
+                    'cannot run DPA model with real states')
+
+    mdl.make()
+    mdl.calc()
+    dpa = mdl.comp['1dpamzt']
+    reffile = 'dpa_real.npz'
+    if not os.path.exists(reffile):
+        print 'Writing reference file', reffile
+        np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
+                 mvals=dpa.mvals)
+
+    regr = np.load(reffile)
+    assert np.allclose(mdl.times, regr['times'])
+    assert np.allclose(dpa.dvals, regr['dvals'])
+    assert np.allclose(dpa.mvals, regr['mvals'])
 
 
 def test_dpa():
