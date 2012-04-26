@@ -56,13 +56,41 @@ class FetchError(Exception):
 
 class XijaModel(object):
     """Xija model class to encapsulate all ModelComponents and provide the
-    infrastructure to define and evaluate models."""
+    infrastructure to define and evaluate models.
+
+    The parameters ``name``, ``start``, and ``stop`` are determined as follows:
+
+    - If a model specification is provided then that sets the default values
+      for keywords that are not supplied to the class init call.
+    - Otherwise defaults are: ``name='xijamodel'``, ``start = stop - 45 days``,
+      ``stop = NOW - 30 days``
+
+    :param name: model name
+    :param start: model start time (any DateTime format)
+    :param stop: model stop time (any DateTime format)
+    :param dt: delta time step (default=328 sec, do not change)
+    :param model_spec: model specification (None | filename | dict)
+    :param cmd_states: commanded states input (None | structured array)
+    """
     def __init__(self, name=None, start=None, stop=None, dt=328.0,
                  model_spec=None, cmd_states=None):
+
+        # If model_spec supplied as a string then read model spec as a dict
+        if isinstance(model_spec, basestring):
+            model_spec = json.load(open(model_spec, 'r'))
+        # If a model_spec is now available (dict) then use as kwarg defaults
+        if model_spec:
+            stop = stop or model_spec['datestop']
+            start = start or model_spec['datestart']
+            name = name or model_spec['name']
+
         if stop is None:
-            stop = DateTime().secs - 30 * 86400
+            stop = DateTime() - 30
         if start is None:
-            start = DateTime(stop).secs - 45 * 86400
+            start = DateTime(stop) - 45
+        if name is None:
+            name = 'xijamodel'
+
         self.name = name
         self.comp = OrderedDict()
         self.dt = dt
@@ -80,14 +108,6 @@ class XijaModel(object):
         self.cmd_states = cmd_states
 
     def _set_from_model_spec(self, model_spec):
-        try:
-            model_spec = json.load(open(model_spec, 'r'))
-        except:
-            pass
-
-        if self.name is None:
-            self.name = model_spec['name']
-
         for comp in model_spec['comps']:
             ComponentClass = getattr(component, comp['class_name'])
             args = comp['init_args']
