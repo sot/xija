@@ -94,6 +94,11 @@ class SolarHeat(PrecomputedHeatPower):
     def exp(days, tau):
         return 1 - np.exp(-days / tau)
 
+    def dvals_post_hook(self):
+        """Override this method to adjust self._dvals after main computation.
+        """
+        pass
+
     @property
     def dvals(self):
         if not hasattr(self, 'pitches'):
@@ -122,6 +127,10 @@ class SolarHeat(PrecomputedHeatPower):
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:
             self._dvals[self.eclipse_comp.dvals] = 0.0
+
+        # Allow for customization in SolarHeat subclasses
+        self.dvals_post_hook()
+
         return self._dvals
 
     def __str__(self):
@@ -148,8 +157,24 @@ class SolarHeat(PrecomputedHeatPower):
             ax.grid()
 
 
-class DpaSolarHeat(SolarHeat):
-    """Solar heating (pitch dependent)"""
+class SolarHeatHrc(SolarHeat):
+    """Solar heating (pitch and SIM-Z dependent)
+
+    :param model: parent model
+    :param node: node which is coupled to solar heat
+    :param simz_comp: SimZ component
+    :param pitch_comp: solar Pitch component
+    :param eclipse_comp: Eclipse component (optional)
+    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
+    :param Ps: list of solar heating values (default=[1.0, ...])
+    :param dPs: list of delta heating values (default=[0.0, ...])
+    :param var_func: variability function ('exp' | 'linear')
+    :param tau: variability timescale (days)
+    :param ampl: ampl of annual sinusoidal heating variation
+    :param bias: constant offset to all solar heating values
+    :param epoch: reference date at which ``Ps`` values apply
+    :param hrc_bias: solar heating bias when SIM-Z < 0 (HRC)
+    """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
@@ -160,45 +185,15 @@ class DpaSolarHeat(SolarHeat):
         self.simz_comp = model.get_comp(simz_comp)
         self.add_par('hrc_bias', hrc_bias, min=-1.0, max=1.0)
 
-    @property
-    def dvals(self):
-        if not hasattr(self, 'pitches'):
-            self.pitches = self.pitch_comp.dvals
-        if not hasattr(self, 't_days'):
-            self.t_days = (self.pitch_comp.times
-                           - DateTime(self.epoch).secs) / 86400.0
-        if not hasattr(self, 't_phase'):
-            time2000 = DateTime('2000:001:00:00:00').secs
-            time2010 = DateTime('2010:001:00:00:00').secs
-            secs_per_year = (time2010 - time2000) / 10.0
-            t_year = (self.pitch_comp.times - time2000) / secs_per_year
-            self.t_phase = t_year * 2 * np.pi
+    def dvals_post_hook(self):
+        """Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.
+        """
         if not hasattr(self, 'hrc_mask'):
             self.hrc_mask = self.simz_comp.dvals < 0
-
-        Ps = self.parvals[0:self.n_pitches] + self.bias
-        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
-                                               kind='linear')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
-                                                kind='linear')
-        P_vals = Ps_interp(self.pitches)
-        dP_vals = dPs_interp(self.pitches)
-        self.P_vals = P_vals
-        self._dvals = (P_vals + dP_vals * self.var_func(self.t_days, self.tau)
-                       + self.ampl * np.cos(self.t_phase)).reshape(-1)
-
-        # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
-        if self.eclipse_comp is not None:
-            self._dvals[self.eclipse_comp.dvals] = 0.0
-
-        # Apply a constant bias offset to power for times when SIM-Z is at HRC
         self._dvals[self.hrc_mask] += self.hrc_bias
 
-        return self._dvals
-
-    def __str__(self):
-        return 'solarheat__{0}'.format(self.node)
+# For back compatibility prior to Xija 0.2
+DpaSolarHeat = SolarHeatHrc
 
 
 class EarthHeat(PrecomputedHeatPower):
