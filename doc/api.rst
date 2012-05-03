@@ -21,10 +21,6 @@ Model component classes
 
 .. autoclass:: AcisDpaPower
 
-.. autoclass:: AcisDpaPower6
-
-.. autoclass:: AcisDpaPowerClipped
-
 .. autoclass:: AcisDpaStatePower
 
 .. autoclass:: AcisPsmcPower

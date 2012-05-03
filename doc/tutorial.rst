@@ -36,8 +36,13 @@ The `Xija source <http://github.com/sot/xija>`_ is always available at `github
 <http://github.com>`_.  Within the **Files** tab you will find a directory
 browser.  At the top level you will see the ``xija`` directory that contains
 the actual Xija package files.  There is also ``gui_fit.py`` that is the GUI
-model fitting tool.  Within the ``xija`` directory the key files are
-``model.py`` and ``component.py``.
+model fitting tool.  Within the ``xija`` directory the key files are::
+
+  model.py             Top-level model class and functionality
+  component/           Model components directory
+            base.py    Base components (Node, HeatSink, TelemData, etc)
+            heat.py    Heat components (SolarHeat, passive and active heaters)
+            mask.py    Mask components
 
 Creating a model
 ---------------------
@@ -116,9 +121,10 @@ Modifying an existing model
 Much of the time the best way to create a new model is to start from an
 existing model.  There are a few strategies for doing this:
 
-  * Extend an existing model at the Python API level
-  * Create a new model in Python and inherit existing model parameters
-  * Directly edit the model JSON specification
+* Extend an existing model at the Python API level
+* Create a new model in Python and inherit existing model parameters
+* Directly edit the model JSON specification
+* Convert the model spec to Python and edit the Python
 
 Extend an existing model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -147,6 +153,23 @@ size, plots, frozen / thawed parameters) when the model was saved.
 
 Although it requires a bit of care, sometimes the easiest way to produce a
 derived model is by directly editing the JSON model specification.  
+
+Convert model spec back to Python
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A very good way to modify an existing model spec is to write it back out as
+Python code.  This can be done in three ways:
+
+* Within ``gui_fit.py`` save the model with a name ending in ``.py``
+* Within a Python session or script use the ``write()`` method of a Xija model::
+
+    model = xija.XijaModel('mdl', model_spec='mdl.json')
+    model.write('mdl.py')
+
+* From the command line use the `xija.convert` module::
+
+    % python -m xija.convert --help
+    % python -m xija.convert mdl.json
 
 Fitting a model
 ----------------
