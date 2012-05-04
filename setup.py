@@ -36,6 +36,6 @@ setup(name='xija',
           'Topic :: Scientific/Engineering :: Physics',
           'Programming Language :: Python :: 2',
           ],
-      packages=['xija'],
+      packages=['xija', 'xija.component'],
       package_data={'xija': ['libcore.so']},
       )
