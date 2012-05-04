@@ -1,4 +1,9 @@
 """Sample code for calculating the ACIS FP Xija model.
+
+This shows necessary inputs and runs without using the eng archive.
+The model prediction is completely wrong because all values are
+set to a constant in this example instead of the correct time-varying
+values.
 """
 
 import xija
@@ -11,15 +16,30 @@ stop = '2012:005'
 model = xija.XijaModel('acisfp', model_spec='acisfp_spec.json',
                        start=start, stop=stop)
 
-# Use MSID FPTEMP_11 (ACIS FP temperature DEGC) to initialize
+## PREDICTED COMPONENTS
+
+# Use MSID FPTEMP_11 (ACIS FP temperature DEGC) to initialize if available
 model.comp['fptemp'].set_data(-120.0)
 
-# These two should be initialized to the given values.  No
-# direct analog is available in telemetry.  Ideally one should
-# propagate the model for at least 24 hours from these starting
-# points to remove startup transients.
+# These two should be initialized to the given constant values.  No direct
+# analog is available in telemetry.  Ideally one should propagate the model for
+# at least 24 hours from these starting points to remove startup transients.
 model.comp['1cbat'].set_data(-55.0)
 model.comp['sim_px'].set_data(-110.0)
+
+## INPUT DATA COMPONENTS
+
+# Ephemeris values: position (meters) of Chandra relative to Earth center in
+# ECI coordinate frame.
+model.comp['orbitephem0_x'].set_data(25000e3)  # 25000 km
+model.comp['orbitephem0_y'].set_data(25000e3)  # 25000 km
+model.comp['orbitephem0_z'].set_data(25000e3)  # 25000 km
+
+# Normalized attitude quaternions
+model.comp['aoattqt1'].set_data(0.0)
+model.comp['aoattqt2'].set_data(0.0)
+model.comp['aoattqt3'].set_data(0.0)
+model.comp['aoattqt4'].set_data(1.0)
 
 # All the usual values here
 model.comp['pitch'].set_data(130)
