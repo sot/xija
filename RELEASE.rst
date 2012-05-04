@@ -1,4 +1,5 @@
-Release 0.2 - 2012-05-04
+0.2 - 2012-05-04
+================
 
 - Add documentation and tutorial
 - Add regression tests of current flight models
@@ -12,6 +13,7 @@ Release 0.2 - 2012-05-04
 - Refactor component.py into a package of component types
 - Refactor SolarHeat component for more effective subclasssing
 
-Release 0.1 - 2011-12-19
+0.1 - 2011-12-19
+================
 
 - Initial release of Xija
