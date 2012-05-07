@@ -14,8 +14,15 @@ framework used Chandra thermal modeling:
 """
 
 from xija.version import version
+import os
 
-core6_ext = Extension('xija.core', ['xija/core.c'])
+if (os.name == "nt"):
+    link_args = ['/EXPORT:calc_model']
+else:
+    link_args = []
+
+core6_ext = Extension('xija.core', ['xija/core.c'],
+                      extra_link_args=link_args)
 
 setup(name='xija',
       version=version,

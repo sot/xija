@@ -1,5 +1,10 @@
 /* Core model integration using TMAL code */
 
+void initcore(void)
+{
+    /* stub initialization function needed by distutils on Windows */
+}
+
 int calc_model(int n_times, int n_preds, int n_tmals, double dt, 
                double **mvals, int **tmal_ints, double **tmal_floats)
 {
