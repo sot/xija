@@ -37,9 +37,13 @@ def _get_git_devstr():
 
     currdir = path.abspath(path.split(__file__)[0])
 
-    p = Popen(['git', 'rev-list', 'HEAD'], cwd=currdir,
-              stdout=PIPE, stderr=PIPE, stdin=PIPE)
-    stdout, stderr = p.communicate()
+    try:
+        p = Popen(['git', 'rev-list', 'HEAD'], cwd=currdir,
+                  stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        stdout, stderr = p.communicate()
+    except:
+        # git command failed for some reason (probably no git)
+        return ''
 
     if p.returncode != 0:
         return ''
