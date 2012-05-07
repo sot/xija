@@ -54,7 +54,7 @@ pow = mdl.add(xija.AcisPsmcPower, pdeaat, k=k)
 mdl.make()
 mdl.calc()
 
-psmc = asciitable.read('psmc/out_2010103_2010124/temperatures.dat')
+psmc = asciitable.read('models/psmc/out_2010103_2010124/temperatures.dat')
 
 figure(1)
 clf()
