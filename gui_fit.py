@@ -535,6 +535,9 @@ class MainWindow(object):
             fit_stopped = msg['status'] in ('terminated', 'finished')
             if fit_stopped:
                 fit_worker.fit_process.join()
+                print "\n*********************************"
+                print "  FIT", msg['status'].upper()
+                print "*********************************\n"
                 break
 
         if msg:
