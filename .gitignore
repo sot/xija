@@ -25,4 +25,5 @@ doc/_static
 doc/_templates
 *.pyc
 models/
+examples/
 .nfs*
