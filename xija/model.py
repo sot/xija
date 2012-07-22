@@ -30,6 +30,9 @@ import pyyaks.context as pyc
 from .files import files as xija_files
 from . import clogging
 
+# HDF5 version of commanded states table
+H5FILE = '/proj/sot/ska/data/cmd_states/cmd_states.h5'
+
 src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
 files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
          pyc.ContextDict('files', basedir=os.getcwd()))
@@ -157,16 +160,22 @@ class XijaModel(object):
         if not hasattr(self, '_cmd_states'):
             logger.info('Reading commanded states DB over %s to %s' %
                         (self.datestart, self.datestop))
-            try:
-                db = Ska.DBI.DBI(dbi='sybase', database='aca', user='aca_read')
-            except Exception as err:
-                raise RuntimeError(
-                    'Unable to connect to sybase cmd_states: {}'.format(err))
-            states = db.fetchall("""select * from cmd_states
-                                 where tstop >= {0} and tstart <= {1}
-                                 """.format(self.tstart, self.tstop))
+            for dbi in ('hdf5', 'sybase'):
+                try:
+                    states = Chandra.cmd_states.get_states(
+                        self.datestart, self.datestop, dbi=dbi)
+                    break
+                except IOError as err:
+                    logger.info('Warning: ' + err)
+                    pass
+            else:
+                # Both hdf5 and sybase failed
+                raise IOError('Could not read commanded states from '
+                              'HDF5 or sybase tables')
+
             self._cmd_states = Chandra.cmd_states.interpolate_states(
                 states, self.times)
+
         return self._cmd_states
 
     def _set_cmd_states(self, states):
