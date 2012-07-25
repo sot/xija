@@ -162,7 +162,7 @@ class XijaModel(object):
                         (self.datestart, self.datestop))
             for dbi in ('hdf5', 'sybase'):
                 try:
-                    states = Chandra.cmd_states.get_states(
+                    states = Chandra.cmd_states.fetch_states(
                         self.datestart, self.datestop, dbi=dbi)
                     break
                 except IOError as err:
