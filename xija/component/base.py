@@ -310,6 +310,18 @@ class Pitch(TelemData):
     def __init__(self, model):
         TelemData.__init__(self, model, 'aosares1')
 
+    def get_dvals_tlm(self):
+        vals = self.model.fetch(self.msid, attr=self.fetch_attr)
+        # Pitch values outside of 45 to 180 are not possible.  Normally
+        # this is geniune bad data that gets sent down in safe mode when
+        # the spacecraft is at normal sun.  So set these values to 90.
+        bad = (vals >= 180.0) | (vals <= 45.0)
+        vals[bad] = 90.0
+        # Thermal models typically calibrated between 45 to 170 degrees
+        # so clip values to that range.
+        vals.clip(45.001, 169.999, out=vals)
+        return vals
+
     def __str__(self):
         return 'pitch'
 
