@@ -192,6 +192,17 @@ class Node(TelemData):
         return self._name
 
     @property
+    def randx(self):
+        """Random X-offset for plotting which is a uniform distribution
+        with width = self.quant or 1.0
+        """
+        if not hasattr(self, '_randx'):
+            dx = self.quant or 1.0
+            self._randx = np.random.uniform(low=-dx / 2.0, high=dx / 2.0,
+                                            size=self.model.n_times)
+        return self._randx
+
+    @property
     def sigma(self):
         if self._sigma < 0:
             self._sigma = self.dvals.std() * (-self._sigma / 100.0)
@@ -215,8 +226,8 @@ class Node(TelemData):
             ax.set_title('{}: model (red) and data (blue)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
         else:
-            lines[0].set_data(self.model_plotdate, self.dvals)
-            lines[1].set_data(self.model_plotdate, self.mvals)
+            lines[0].set_ydata(self.dvals)
+            lines[1].set_ydata(self.mvals)
 
     def plot_resid__time(self, fig, ax):
         lines = ax.get_lines()
@@ -230,7 +241,21 @@ class Node(TelemData):
             ax.set_title('{}: residuals (data - model)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
         else:
-            lines[0].set_data(self.model_plotdate, resids)
+            lines[0].set_ydata(resids)
+
+    def plot_resid__data(self, fig, ax):
+        lines = ax.get_lines()
+        resids = self.dvals - self.mvals
+        if self.mask:
+            resids[~self.mask.mask] = np.nan
+
+        if not lines:
+            ax.plot(self.dvals + self.randx, resids, ',b', mew=0.0)
+            ax.grid()
+            ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
+            ax.set_ylabel('Temperature (degC)')
+        else:
+            lines[0].set_ydata(resids)
 
 
 class Coupling(ModelComponent):
