@@ -6,9 +6,10 @@
                 "1pin1at"
             ], 
             "init_kwargs": {
-                "sigma": 1000.0
+                "sigma": 1000.0,
+                "name": "pin1at"
             }, 
-            "name": "1pin1at"
+            "name": "pin1at"
         }, 
         {
             "class_name": "Node", 
@@ -35,29 +36,29 @@
         {
             "class_name": "Coupling", 
             "init_args": [
-                "1pin1at", 
+                "pin1at", 
                 "1pdeaat"
             ], 
             "init_kwargs": {
                 "tau": 13.561590344337947
             }, 
-            "name": "coupling__1pin1at__1pdeaat"
+            "name": "coupling__pin1at__1pdeaat"
         }, 
         {
             "class_name": "Coupling", 
             "init_args": [
                 "1pdeaat", 
-                "1pin1at"
+                "pin1at"
             ], 
             "init_kwargs": {
                 "tau": 1.3444562773636255
             }, 
-            "name": "coupling__1pdeaat__1pin1at"
+            "name": "coupling__1pdeaat__pin1at"
         }, 
         {
             "class_name": "AcisPsmcSolarHeat", 
             "init_args": [
-                "1pin1at", 
+                "pin1at", 
                 "pitch", 
                 "sim_z"
             ], 
@@ -93,18 +94,18 @@
                     ]
                 ]
             }, 
-            "name": "psmc_solarheat__1pin1at"
+            "name": "psmc_solarheat__pin1at"
         }, 
         {
             "class_name": "HeatSink", 
             "init_args": [
-                "1pin1at"
+                "pin1at"
             ], 
             "init_kwargs": {
                 "T": -36.35223330470379, 
                 "tau": 18.987574552683895
             }, 
-            "name": "heatsink__1pin1at"
+            "name": "heatsink__pin1at"
         }, 
         {
             "class_name": "CmdStatesData", 
@@ -171,190 +172,190 @@
     "name": "psmc", 
     "pars": [
         {
-            "comp_name": "coupling__1pin1at__1pdeaat", 
+            "comp_name": "coupling__pin1at__1pdeaat", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "coupling__1pin1at__1pdeaat__tau", 
+            "full_name": "coupling__pin1at__1pdeaat__tau", 
             "max": 200.0, 
             "min": 2.0, 
             "name": "tau", 
             "val": 32.0152160862839
         }, 
         {
-            "comp_name": "coupling__1pdeaat__1pin1at", 
+            "comp_name": "coupling__1pdeaat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "coupling__1pdeaat__1pin1at__tau", 
+            "full_name": "coupling__1pdeaat__pin1at__tau", 
             "max": 200.0, 
             "min": 2.0, 
             "name": "tau", 
             "val": 14.377668666116021
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrcs_45", 
+            "full_name": "psmc_solarheat__pin1at__P_hrcs_45", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrcs_45", 
             "val": 1.7136060000024824
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrcs_70", 
+            "full_name": "psmc_solarheat__pin1at__P_hrcs_70", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrcs_70", 
             "val": 1.9948552742376484
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrcs_90", 
+            "full_name": "psmc_solarheat__pin1at__P_hrcs_90", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrcs_90", 
             "val": 1.5446270599269409
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrcs_130", 
+            "full_name": "psmc_solarheat__pin1at__P_hrcs_130", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrcs_130", 
             "val": 1.9821095636143924
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrcs_170", 
+            "full_name": "psmc_solarheat__pin1at__P_hrcs_170", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrcs_170", 
             "val": 2.3977434061546274
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrci_45", 
+            "full_name": "psmc_solarheat__pin1at__P_hrci_45", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrci_45", 
             "val": 2.0385169184093135
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrci_70", 
+            "full_name": "psmc_solarheat__pin1at__P_hrci_70", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrci_70", 
             "val": 2.0174710238006077
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrci_90", 
+            "full_name": "psmc_solarheat__pin1at__P_hrci_90", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrci_90", 
             "val": 1.7061881661848459
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrci_130", 
+            "full_name": "psmc_solarheat__pin1at__P_hrci_130", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrci_130", 
             "val": 1.896790204570264
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_hrci_170", 
+            "full_name": "psmc_solarheat__pin1at__P_hrci_170", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_hrci_170", 
             "val": 2.130214393547039
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_acis_45", 
+            "full_name": "psmc_solarheat__pin1at__P_acis_45", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_acis_45", 
             "val": 3.2849231687502121
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_acis_70", 
+            "full_name": "psmc_solarheat__pin1at__P_acis_70", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_acis_70", 
             "val": 2.5876295451837974
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_acis_90", 
+            "full_name": "psmc_solarheat__pin1at__P_acis_90", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_acis_90", 
             "val": 1.491357457413395
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_acis_130", 
+            "full_name": "psmc_solarheat__pin1at__P_acis_130", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_acis_130", 
             "val": 1.6681537529578345
         }, 
         {
-            "comp_name": "psmc_solarheat__1pin1at", 
+            "comp_name": "psmc_solarheat__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "psmc_solarheat__1pin1at__P_acis_170", 
+            "full_name": "psmc_solarheat__pin1at__P_acis_170", 
             "max": 10.0, 
             "min": -10.0, 
             "name": "P_acis_170", 
             "val": 1.7155839829349957
         }, 
         {
-            "comp_name": "heatsink__1pin1at", 
+            "comp_name": "heatsink__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "heatsink__1pin1at__T", 
+            "full_name": "heatsink__pin1at__T", 
             "max": 100.0, 
             "min": -100.0, 
             "name": "T", 
             "val": -24.306219637409995
         }, 
         {
-            "comp_name": "heatsink__1pin1at", 
+            "comp_name": "heatsink__pin1at", 
             "fmt": "{:.4g}", 
             "frozen": true, 
-            "full_name": "heatsink__1pin1at__tau", 
+            "full_name": "heatsink__pin1at__tau", 
             "max": 200.0, 
             "min": 2.0, 
             "name": "tau", 
