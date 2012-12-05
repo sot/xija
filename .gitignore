@@ -1,7 +1,6 @@
 dpa_dea
 nmass_ref
 nmass
-psmc
 xija/*.c
 xija/*.so
 NOTES.paper
@@ -24,6 +23,5 @@ doc/_build
 doc/_static
 doc/_templates
 *.pyc
-models/
 examples/
 .nfs*
