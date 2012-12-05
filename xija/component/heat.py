@@ -312,7 +312,7 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
                 self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)),
-                             P_vals[i, j], min=-10.0, max=10.0)
+                             P_vals[i][j], min=-10.0, max=10.0)
 
     @property
     def dvals(self):
