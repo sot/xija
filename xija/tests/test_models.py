@@ -156,3 +156,28 @@ def test_multi_solar_heat_values():
     assert mvals2[0] == 30.0
     assert abs(mvals2[500] - 15.8338) < 0.001
     assert abs(mvals2[1050] - 11.4947) < 0.001
+
+    # Make sure we can round-trip the model through a JSON file
+    model.write('test_multi_solar_heat_values.json')
+    model2 = ThermalModel('test', model_spec='test_multi_solar_heat_values.json',
+                          start='2011:001', stop='2011:005')
+    model2.get_comp('tephin').set_data(30.0)
+    model2.get_comp('tcylaft6').set_data(30.0)
+    model2.get_comp('pitch').set_data(90.0)
+    model2.get_comp('eclipse').set_data(False)
+
+    model2.make()
+    model2.calc()
+
+    mvals = model2.comp['tephin'].mvals
+    mvals2 = model2.comp['tcylaft6'].mvals
+
+    assert len(mvals) == 1051
+    assert mvals[0] == 30.0
+    assert abs(mvals[500] - 157.4740) < 0.001
+    assert abs(mvals[1049] - 196.4138) < 0.001
+
+    assert len(mvals2) == 1051
+    assert mvals2[0] == 30.0
+    assert abs(mvals2[500] - 15.8338) < 0.001
+    assert abs(mvals2[1049] - 11.4947) < 0.001
