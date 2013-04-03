@@ -33,10 +33,15 @@ class Param(dict):
 class ModelComponent(object):
     """Model component base class"""
     def __init__(self, model):
+        # This class overrides __setattr__ with a method that requires
+        # the `pars` and `pars_dict` attrs to be visible.  So do this
+        # with the super (object) method right away.
+        super(ModelComponent, self).__setattr__('pars', [])
+        super(ModelComponent, self).__setattr__('pars_dict', {})
+
         self.model = model
         self.n_mvals = 0
         self.predict = False  # Predict values for this model component
-        self.pars = []
         self.data = None
         self.data_times = None
         self.model_plotdate = cxctime2plotdate(self.model.times)
@@ -44,25 +49,34 @@ class ModelComponent(object):
     n_parvals = property(lambda self: len(self.parvals))
     times = property(lambda self: self.model.times)
 
-    @staticmethod
-    def get_par_func(index):
-        def _func(self):
-            return self.pars[index].val
-        return _func
-
-    @staticmethod
-    def set_par_func(index):
-        def _func(self, val):
-            self.pars[index].val = val
-        return _func
-
     def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{:.4g}",
                 frozen=False):
-        setattr(self.__class__, name,
-                property(ModelComponent.get_par_func(self.n_parvals),
-                         ModelComponent.set_par_func(self.n_parvals)))
-        self.pars.append(Param(self.name, name, val, min=min, max=max,
-                               fmt=fmt, frozen=frozen))
+        param = Param(self.name, name, val, min=min, max=max, fmt=fmt, frozen=frozen)
+        self.pars_dict[name] = param
+        self.pars.append(param)
+
+    def _getAttributeNames(self):
+        """
+        Add dynamic attribute names for IPython completer.
+        """
+        return [par.name for par in self.pars]
+
+    def __getattr__(self, attr):
+        # The following is needed for the IPython completer
+        if attr == 'trait_names':
+            return []
+
+        if attr in self.pars_dict:
+            return self.pars_dict[attr].val
+        else:
+            # This will raise the expected AttributeError exception
+            return super(ModelComponent, self).__getattribute__(attr)
+
+    def __setattr__(self, attr, val):
+        if attr in self.pars:
+            self.pars_dict[attr].val = val
+        else:
+            super(ModelComponent, self).__setattr__(attr, val)
 
     def _set_mvals(self, vals):
         self.model.mvals[self.mvals_i, :] = vals
