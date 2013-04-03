@@ -13,6 +13,9 @@ framework used Chandra thermal modeling:
 * Matlab interface
 """
 
+import __builtin__
+__builtin__._RUNNING_SETUP_PY_ = True
+
 from xija.version import version
 import os
 
