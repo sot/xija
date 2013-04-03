@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pytest
 
-from .. import ThermalModel, __version__
+from .. import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
 from numpy import sin, cos, abs
 
 print
@@ -117,3 +117,67 @@ def test_pftank2t():
     assert np.allclose(mdl.times, regr['times'])
     for msid in msids:
         assert np.allclose(mdl.comp[msid].mvals, regr[msid])
+
+
+def test_multi_solar_heat_values():
+    P_pitches = [45, 180]
+    P_vals = [1.0, 1.0]
+    P_pitches2 = [45, 65, 90, 140, 180]
+    P_vals2 = [1.0, 1.0, 0.0, 1.0, 1.0]
+
+    model = ThermalModel('test', start='2011:001', stop='2011:005')
+    tephin = model.add(Node, 'tephin')
+    tcylaft6 = model.add(Node, 'tcylaft6')
+    pitch = model.add(Pitch)
+    eclipse = model.add(Eclipse)
+
+    model.add(HeatSink, tephin, T=0.0, tau=200.0)
+    model.add(HeatSink, tcylaft6, T=0.0, tau=200.0)
+
+    model.add(SolarHeat, tephin, pitch, eclipse, P_pitches, P_vals)
+    model.add(SolarHeat, tcylaft6, pitch, eclipse, P_pitches2, P_vals2)
+
+    tephin.set_data(30.0)
+    tcylaft6.set_data(30.0)
+    pitch.set_data(90.0)
+    eclipse.set_data(False)
+
+    model.make()
+    model.calc()
+
+    mvals = model.comp['tephin'].mvals
+    mvals2 = model.comp['tcylaft6'].mvals
+    assert len(mvals) == 1051
+    assert mvals[0] == 30.0
+    assert abs(mvals[500] - 157.4740) < 0.001
+    assert abs(mvals[1050] - 196.4138) < 0.001
+
+    assert len(mvals2) == 1051
+    assert mvals2[0] == 30.0
+    assert abs(mvals2[500] - 15.8338) < 0.001
+    assert abs(mvals2[1050] - 11.4947) < 0.001
+
+    # Make sure we can round-trip the model through a JSON file
+    model.write('test_multi_solar_heat_values.json')
+    model2 = ThermalModel('test', model_spec='test_multi_solar_heat_values.json',
+                          start='2011:001', stop='2011:005')
+    model2.get_comp('tephin').set_data(30.0)
+    model2.get_comp('tcylaft6').set_data(30.0)
+    model2.get_comp('pitch').set_data(90.0)
+    model2.get_comp('eclipse').set_data(False)
+
+    model2.make()
+    model2.calc()
+
+    mvals = model2.comp['tephin'].mvals
+    mvals2 = model2.comp['tcylaft6'].mvals
+
+    assert len(mvals) == 1051
+    assert mvals[0] == 30.0
+    assert abs(mvals[500] - 157.4740) < 0.001
+    assert abs(mvals[1049] - 196.4138) < 0.001
+
+    assert len(mvals2) == 1051
+    assert mvals2[0] == 30.0
+    assert abs(mvals2[500] - 15.8338) < 0.001
+    assert abs(mvals2[1049] - 11.4947) < 0.001
