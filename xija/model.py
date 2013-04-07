@@ -20,7 +20,6 @@ try:
     from Chandra.Time import DateTime
     import asciitable
     import Ska.Numpy
-    import Ska.engarchive.fetch_sci as fetch
     import Chandra.cmd_states
     import Ska.DBI
 except ImportError:
@@ -205,9 +204,10 @@ class XijaModel(object):
         logger.info('Fetching msid: %s over %s to %s' %
                     (msid, datestart, datestop))
         try:
+            import Ska.engarchive.fetch_sci as fetch
             tlm = fetch.MSID(msid, datestart, datestop, stat='5min')
             tlm.filter_bad_times()
-        except NameError:
+        except ImportError:
             raise ValueError('Ska.engarchive.fetch not available')
         if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
             raise ValueError('Fetched telemetry does not span model start and '
