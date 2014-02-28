@@ -102,7 +102,7 @@ class SolarHeat(PrecomputedHeatPower):
     @property
     def dvals(self):
         if not hasattr(self, 'pitches'):
-            self.pitches = self.pitch_comp.dvals
+            self.pitches = np.clip(self.pitch_comp.dvals, self.P_pitches[0], self.P_pitches[-1])
         if not hasattr(self, 't_days'):
             self.t_days = (self.pitch_comp.times
                            - DateTime(self.epoch).secs) / 86400.0
