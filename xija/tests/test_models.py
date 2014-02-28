@@ -38,6 +38,24 @@ def test_dpa_real():
     assert np.allclose(dpa.mvals, regr['mvals'])
 
 
+def test_pitch_clip():
+    """
+    Pitch in this time range goes from 48.62 to 158.41.  dpa_clip.json
+    has been modified so the solarheat pitch range is from 55 .. 153.
+    Make sure the model still runs with no interpolation error.
+    """
+    mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+                       model_spec='dpa_clip.json')
+    try:
+        mdl._get_cmd_states()
+    except:
+        pytest.skip('No commanded states access - '
+                    'cannot run DPA model with real states')
+
+    mdl.make()
+    mdl.calc()
+
+
 def test_dpa():
     mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
                             model_spec='dpa.json')
