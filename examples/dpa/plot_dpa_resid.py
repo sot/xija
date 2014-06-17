@@ -6,8 +6,8 @@ from Ska.Matplotlib import pointpair
 start = '2010:001'
 stop = '2011:345'
 
-msid = '1deamzt'
-model_spec = 'dea_3.json'
+msid = '1dpamzt'
+model_spec = 'dpa.json'
 
 model = xija.ThermalModel('dpa', start=start, stop=stop,
                           model_spec=model_spec)
@@ -56,4 +56,4 @@ for x, n, y in zip(xs, ns, r99):
 
 plt.legend(loc='upper right')
 
-# savefig('dpa_resid_{}_{}.png'.format(start, stop))
+plt.savefig('dpa_resid_{}_{}.png'.format(start, stop))

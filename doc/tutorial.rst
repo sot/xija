@@ -4,14 +4,10 @@ Tutorial
 Setup for Xija modeling
 ------------------------
 
-Get into the Ska development environment but tell the eng archive to look for data in the flight Ska environment::
-
-  % unsetenv PERL5LIB; source /proj/sot/ska/dev/bin/ska_envs.csh; set prompt="ska-%m% "
-  % setenv ENG_ARCHIVE /proj/sot/ska/data/eng_archive
-
 When you first start working with Xija create a local copy of the Xija source code::
 
   % mkdir -p ~/git
+  % cd ~/git
   % git clone git://github.com/sot/xija.git  # on HEAD
   % git clone /proj/sot/ska/git/xija         # on GRETA
   % cd xija
@@ -24,7 +20,7 @@ Later on you should work in your xija repository and update to the latest develo
   % python setup.py build_ext --inplace  # build C core module
 
 Finally set the PYTHONPATH environment variable to ensure that you import
-the local dev version of xija from any sub-directory where you might be
+your local version of xija from any sub-directory where you might be
 working::
 
   % setenv PYTHONPATH $PWD
@@ -54,8 +50,10 @@ IPython notebook page.
 Working with a model
 ---------------------
 
-As an example, here is the code to plot residuals versus temperature for the
-ACIS DPA model::
+As an example, here is the code (available in ``examples/dpa/plot_dpa_resid.py``) to plot
+residuals versus temperature for the ACIS DPA model.  You can run this with
+``cd examples/dpa; python plot_dpa_resid.py``.
+::
 
   import xija
   import numpy as np
@@ -65,23 +63,26 @@ ACIS DPA model::
   start = '2010:001'
   stop = '2011:345'
 
+  msid = '1dpamzt'
+  model_spec = 'dpa.json'
+
   model = xija.ThermalModel('dpa', start=start, stop=stop,
-                            model_spec='dpa_model_spec.json')
+                            model_spec=model_spec)
   model.make()
   model.calc()
 
-  dpa = model.get_comp('1dpamzt')
+  dpa = model.get_comp(msid)
   resid = dpa.dvals - dpa.mvals
 
   xscatter = np.random.uniform(-0.2, 0.2, size=len(dpa.dvals))
   yscatter = np.random.uniform(-0.2, 0.2, size=len(dpa.dvals))
   plt.clf()
   plt.plot(dpa.dvals + xscatter, resid + yscatter, '.', ms=1.0, alpha=1)
-  plt.xlabel('1DPAMZT telemetry (degC)')
+  plt.xlabel('{} telemetry (degC)'.format(msid.upper()))
   plt.ylabel('Data - Model (degC)')
   plt.title('Residual vs. Data ({} - {})'.format(start, stop))
 
-  bins = np.arange(10, 30.1, 2.0)
+  bins = np.arange(6, 26.1, 2.0)
   r1 = []
   r99 = []
   ns = []
@@ -112,7 +113,7 @@ ACIS DPA model::
 
   plt.legend(loc='upper right')
 
-  savefig('dpa_resid_{}_{}.png'.format(start, stop))
+  plt.savefig('dpa_resid_{}_{}.png'.format(start, stop))
 
 
 Modifying an existing model
@@ -201,7 +202,7 @@ The GUI fit tool supports the following command line options::
   ccosmos$ ./gui_fit.py --help
   usage: gui_fit.py [-h] [--days DAYS] [--stop STOP] [--nproc NPROC]
                     [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
-                    [--quiet]
+                    [--set-data SET_DATA_EXPRS] [--quiet]
                     filename
 
   positional arguments:
@@ -216,8 +217,14 @@ The GUI fit tool supports the following command line options::
                           Sherpa fit method (simplex|moncar|levmar)
     --inherit-from INHERIT_FROM
                           Inherit par values from model spec file
+    --set-data SET_DATA_EXPRS
+                          Set data value as '<comp_name>=<value>'
     --quiet               Suppress screen output
 
+  usage: gui_fit.py [-h] [--days DAYS] [--stop STOP] [--nproc NPROC]
+                    [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
+                    [--quiet]
+                    filename
 
 Most of the time you should use the ``--days`` and ``--stop`` options.  Note that
 if you have saved a model specification and then restart ``gui_fit.py``, the
