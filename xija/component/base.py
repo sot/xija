@@ -125,7 +125,7 @@ class ModelComponent(object):
             elif isinstance(self.data, np.ndarray):
                 dvals = self.model.interpolate_data(self.data, self.data_times,
                                                     str(self))
-            elif isinstance(self.data, (int, long, float, bool, basestring)):
+            elif isinstance(self.data, (int, long, float, np.float32, bool, basestring)):
                 if isinstance(self.data, basestring):
                     dtype = 'S{}'.format(len(self.data))
                 else:
