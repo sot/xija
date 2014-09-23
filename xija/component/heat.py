@@ -28,6 +28,14 @@ class PrecomputedHeatPower(ModelComponent):
                           )
         self.tmal_floats = ()
 
+    @staticmethod
+    def linear(days, k_inv):
+        return days / k_inv
+
+    @staticmethod
+    def exp(days, tau):
+        return 1 - np.exp(-days / tau)
+
 
 class ActiveHeatPower(ModelComponent):
     """Component that provides active heat power input which depends on
@@ -129,14 +137,6 @@ class SolarHeat(PrecomputedHeatPower):
             delattr(self, 't_phase')
 
         self._epoch = value
-
-    @staticmethod
-    def linear(days, k_inv):
-        return days / k_inv
-
-    @staticmethod
-    def exp(days, tau):
-        return 1 - np.exp(-days / tau)
 
     def dvals_post_hook(self):
         """Override this method to adjust self._dvals after main computation.
@@ -338,10 +338,15 @@ class EarthHeat(PrecomputedHeatPower):
         return 'earthheat__{0}'.format(self.node)
 
 
+    # def __init__(self, model, node, pitch_comp, eclipse_comp=None,
+    #              P_pitches=None, Ps=None, dPs=None, var_func='exp',
+    #              tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
+
 class AcisPsmcSolarHeat(PrecomputedHeatPower):
     """Solar heating of PSMC box.  This is dependent on SIM-Z"""
     def __init__(self, model, node, pitch_comp, simz_comp, P_pitches=None,
-                 P_vals=None):
+                 P_vals=None, dPs=None, var_func='linear',
+                 tau=1732.0, ampl=0.05, epoch='2013:001'):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = self.model.get_comp(node)
@@ -349,19 +354,31 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         self.simz_comp = self.model.get_comp(simz_comp)
         self.P_pitches = np.array([50., 90., 150.] if (P_pitches is None)
                                   else P_pitches, dtype=np.float)
+        self.dPs = np.zeros_like(self.P_pitches) if dPs is None else np.array(dPs, dtype=np.float)
         self.simz_lims = ((-400000.0, -85000.0),  # HRC-S
                           (-85000.0, 0.0),        # HRC-I
                           (0.0, 400000.0))        # ACIS
+
         self.instr_names = ['hrcs', 'hrci', 'acis']
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
                 self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)),
                              P_vals[i][j], min=-10.0, max=10.0)
 
+        for j, pitch in enumerate(self.dPs):
+            self.add_par('dP_{0:d}'.format(int(self.P_pitches[j])),
+                         self.dPs[j], min=-1.0, max=1.0)
+
+        self.add_par('tau', tau, min=1000., max=3000.)
+        self.add_par('ampl', ampl, min=-1.0, max=1.0)
+        self.epoch = epoch
+        self.var_func = getattr(self, var_func)
+
     @property
     def dvals(self):
         if not hasattr(self, 'pitches'):
-            self.pitches = self.pitch_comp.dvals
+            self.pitches = np.clip(self.pitch_comp.dvals, self.P_pitches[0], self.P_pitches[-1])
+
         if not hasattr(self, 'simzs'):
             self.simzs = self.simz_comp.dvals
             # Instrument 0=HRC-S 1=HRC-I 2=ACIS
@@ -370,14 +387,31 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
                 ok = (self.simzs > lims[0]) & (self.simzs <= lims[1])
                 self.instrs[ok] = i
 
+        if not hasattr(self, 't_days'):
+            self.t_days = (self.pitch_comp.times
+                           - DateTime(self.epoch).secs) / 86400.0
+        if not hasattr(self, 't_phase'):
+            time2000 = DateTime('2000:001:00:00:00').secs
+            time2010 = DateTime('2010:001:00:00:00').secs
+            secs_per_year = (time2010 - time2000) / 10.0
+            t_year = (self.pitch_comp.times - time2000) / secs_per_year
+            self.t_phase = t_year * 2 * np.pi
+
         # Interpolate power(pitch) for each instrument separately and make 2d
         # stack
         n_p = len(self.P_pitches)
+        n_instr = len(self.instr_names)
         heats = []
-        for i in range(len(self.instr_names)):
+        dPs = self.parvals[n_instr * n_p:(n_instr + 1) * n_p]
+        dP_vals = Ska.Numpy.interpolate(dPs, self.P_pitches, self.pitches)
+        d_heat = (dP_vals * self.var_func(self.t_days, self.tau)
+                  + self.ampl * np.cos(self.t_phase)).ravel()
+
+        for i in range(n_instr):
             P_vals = self.parvals[i * n_p:(i + 1) * n_p]
-            heats.append(Ska.Numpy.interpolate(P_vals, self.P_pitches,
-                                               self.pitches))
+            heat = Ska.Numpy.interpolate(P_vals, self.P_pitches, self.pitches)
+            heats.append(heat + d_heat)
+
         self.heats = np.vstack(heats)
 
         # Now pick out the power(pitch) for the appropriate instrument at each
