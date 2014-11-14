@@ -88,6 +88,18 @@ def test_dpa():
     assert np.allclose(dpa.mvals, regr['mvals'])
 
 
+def test_data_types():
+    for data_type in (int, float, np.float32, np.float64, np.int32, np.int64, np.complex64):
+        mdl = ThermalModel('dpa', start='2012:001', stop='2012:007', model_spec='dpa.json')
+        dpa = mdl.comp['1dpamzt']
+        dpa.set_data(data_type(30.0))
+        if data_type is np.complex64:
+            with pytest.raises(ValueError):
+                dpa.dvals
+        else:
+            dpa.dvals  # Property should evaluate OK
+
+
 def test_minusz():
     mdl = ThermalModel('minusz', start='2012:001', stop='2012:004',
                             model_spec='minusz.json')
