@@ -125,7 +125,8 @@ class ModelComponent(object):
             elif isinstance(self.data, np.ndarray):
                 dvals = self.model.interpolate_data(self.data, self.data_times,
                                                     str(self))
-            elif isinstance(self.data, (int, long, float, np.integer, np.floating, bool, basestring)):
+            elif isinstance(self.data, (int, long, float, np.integer, np.floating,
+                                        bool, basestring)):
                 if isinstance(self.data, basestring):
                     dtype = 'S{}'.format(len(self.data))
                 else:
@@ -133,8 +134,8 @@ class ModelComponent(object):
                 dvals = np.empty(self.model.n_times, dtype=dtype)
                 dvals[:] = self.data
             else:
-                raise ValueError("Data value '{}' for '{}' component "
-                                 "not allowed ".format(self.data, self))
+                raise ValueError("Data value '{}' and type '{}' for '{}' component "
+                                 "not allowed ".format(self.data, type(self.data).__name__, self))
             self._dvals = dvals
         return self._dvals
 
