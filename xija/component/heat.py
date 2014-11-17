@@ -445,6 +445,29 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
 
         return self._dvals
 
+    def plot_solar_heat__pitch(self, fig, ax):
+        P_vals = {}
+        self.instr_names = ['hrcs', 'hrci', 'aciss', 'acisi']
+        for instr_name in self.instr_names:
+            P_vals[instr_name] = []
+            for pitch in self.P_pitches:
+                P_vals[instr_name].append(getattr(self, 'P_{0}_{1:d}'
+                                                  .format(instr_name, int(pitch))))
+        colors = ['b', 'c', 'r', 'm']
+        lines = ax.get_lines()
+        if lines:
+            for i, instr_name in enumerate(self.instr_names):
+                lines[i].set_data(self.P_pitches, P_vals[instr_name])
+                # lines[i * 2 + 1].set_data(self.P_pitches, P_vals[instr_name], '-b')
+        else:
+            for instr_name, color in zip(self.instr_names, colors):
+                ax.plot(self.P_pitches, P_vals[instr_name], 'o-{}'.format(color), markersize=5,
+                        label=instr_name)
+            ax.set_title('{} solar heat input'.format(self.node.name))
+            ax.set_xlim(40, 180)
+            ax.grid()
+            ax.legend(loc='best')
+
     def __str__(self):
         return 'psmc_solarheat__{0}'.format(self.node)
 
