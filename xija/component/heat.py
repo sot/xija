@@ -352,14 +352,15 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
         self.simz_comp = self.model.get_comp(simz_comp)
-        self.P_pitches = np.array([50., 90., 150.] if (P_pitches is None)
+        self.P_pitches = np.array([45., 55., 70., 90., 150.] if (P_pitches is None)
                                   else P_pitches, dtype=np.float)
         self.dPs = np.zeros_like(self.P_pitches) if dPs is None else np.array(dPs, dtype=np.float)
         self.simz_lims = ((-400000.0, -85000.0),  # HRC-S
                           (-85000.0, 0.0),        # HRC-I
-                          (0.0, 400000.0))        # ACIS
+                          (0.0, 83000.0),         # ACIS-S
+                          (83000.0, 400000.0))    # ACIS-I
 
-        self.instr_names = ['hrcs', 'hrci', 'acis']
+        self.instr_names = ['hrcs', 'hrci', 'aciss', 'acisi']
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
                 self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)),
