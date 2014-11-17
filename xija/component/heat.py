@@ -13,7 +13,7 @@ try:
 except ImportError:
     pass
 
-from .base import ModelComponent
+from .base import ModelComponent, TelemData
 from .. import tmal
 
 
@@ -342,16 +342,36 @@ class EarthHeat(PrecomputedHeatPower):
     #              P_pitches=None, Ps=None, dPs=None, var_func='exp',
     #              tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
 
+
+class DetectorHousingHeater(TelemData):
+    def __init__(self, model):
+        TelemData.__init__(self, model, '1dahtbon')
+        self.n_mvals = 1
+        self.fetch_attr = 'midvals'
+        self.fetch_method = 'nearest'
+
+    def get_dvals_tlm(self):
+        dahtbon = self.model.fetch(self.msid, 'vals', 'nearest')
+        return dahtbon == 'ON '
+
+    def update(self):
+        self.mvals = np.where(self.dvals, 1, 0)
+
+    def __str__(self):
+        return 'dh_heater'
+
+
 class AcisPsmcSolarHeat(PrecomputedHeatPower):
     """Solar heating of PSMC box.  This is dependent on SIM-Z"""
-    def __init__(self, model, node, pitch_comp, simz_comp, P_pitches=None,
+    def __init__(self, model, node, pitch_comp, simz_comp, dh_heater_comp, P_pitches=None,
                  P_vals=None, dPs=None, var_func='linear',
-                 tau=1732.0, ampl=0.05, epoch='2013:001'):
+                 tau=1732.0, ampl=0.05, epoch='2013:001', dh_heater=0.05):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
         self.simz_comp = self.model.get_comp(simz_comp)
+        self.dh_heater_comp = self.model.get_comp(dh_heater_comp)
         self.P_pitches = np.array([45., 55., 70., 90., 150.] if (P_pitches is None)
                                   else P_pitches, dtype=np.float)
         self.dPs = np.zeros_like(self.P_pitches) if dPs is None else np.array(dPs, dtype=np.float)
@@ -372,6 +392,7 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
 
         self.add_par('tau', tau, min=1000., max=3000.)
         self.add_par('ampl', ampl, min=-1.0, max=1.0)
+        self.add_par('dh_heater', dh_heater, min=-1.0, max=1.0)
         self.epoch = epoch
         self.var_func = getattr(self, var_func)
 
@@ -418,6 +439,10 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         # Now pick out the power(pitch) for the appropriate instrument at each
         # time
         self._dvals = self.heats[self.instrs, np.arange(self.heats.shape[1])]
+
+        # Increase heat power for times when detector housing heater is enabled
+        self._dvals[self.dh_heater_comp.dvals] += self.dh_heater
+
         return self._dvals
 
     def __str__(self):
