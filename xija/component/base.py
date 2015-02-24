@@ -223,35 +223,52 @@ class Node(TelemData):
             self._sigma = self.dvals.std() * (-self._sigma / 100.0)
         return self._sigma
 
+    @property
+    def resids(self):
+        resid = self.dvals - self.mvals
+        # Zero out residuals for any bad times
+        if hasattr(self.model, 'bad_times_indices'):
+            for i0, i1 in self.model.bad_times_indices:
+                resid[i0:i1] = 0.0
+        return resid
+
     def calc_stat(self):
         if self.sigma == 0:
             return 0.0
-        if self.mask is None:
-            resid = self.dvals - self.mvals
-        else:
-            resid = self.dvals[self.mask.mask] - self.mvals[self.mask.mask]
-        return np.sum(resid ** 2 / self.sigma ** 2)
+        resids = self.resids
+        if self.mask is not None:
+            resids = resids[self.mask.mask]
+        return np.sum(resids ** 2 / self.sigma ** 2)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
             plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
             plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
+            # Overplot bad time regions in cyan
+            if hasattr(self.model, 'bad_times_indices'):
+                for i0, i1 in self.model.bad_times_indices:
+                    plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
+                                 fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
             ax.set_title('{}: model (red) and data (blue)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
         else:
-            lines[0].set_ydata(self.dvals)
             lines[1].set_ydata(self.mvals)
 
     def plot_resid__time(self, fig, ax):
         lines = ax.get_lines()
-        resids = self.dvals - self.mvals
+        resids = self.resids
         if self.mask:
             resids[~self.mask.mask] = np.nan
 
         if not lines:
             plot_cxctime(self.model.times, resids, '-b', fig=fig, ax=ax)
+            # Overplot bad time regions in cyan
+            if hasattr(self.model, 'bad_times_indices'):
+                for i0, i1 in self.model.bad_times_indices:
+                    plot_cxctime(self.model.times[i0:i1], resids[i0:i1], '-c',
+                                 fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
             ax.set_title('{}: residuals (data - model)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
@@ -260,7 +277,7 @@ class Node(TelemData):
 
     def plot_resid__data(self, fig, ax):
         lines = ax.get_lines()
-        resids = self.dvals - self.mvals
+        resids = self.resids
         if self.mask:
             resids[~self.mask.mask] = np.nan
 

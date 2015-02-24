@@ -104,6 +104,18 @@ class XijaModel(object):
         self.datestart = DateTime(self.tstart).date
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
+
+        try:
+            self.bad_times = model_spec['bad_times']
+        except:
+            pass
+        else:
+            self.bad_times_indices = []
+            for t0, t1 in self.bad_times:
+                t0, t1 = DateTime([t0, t1]).secs
+                i0, i1 = np.searchsorted(self.times, [t0, t1])
+                self.bad_times_indices.append((i0, i1))
+
         self.pars = []
         if model_spec:
             self._set_from_model_spec(model_spec)
@@ -285,6 +297,9 @@ class XijaModel(object):
                           tlm_code=None,
                           mval_names=[])
 
+        if hasattr(self, 'bad_times'):
+            model_spec['bad_times'] = self.bad_times
+
         model_spec['pars'] = [dict(par) for par in self.pars]
 
         stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent)
@@ -308,7 +323,6 @@ class XijaModel(object):
         """
         colvals = OrderedDict(time=self.times)
         for comp in self.comps:
-            print 'HEJ', comp.name, comp.predict, type(comp)
             if hasattr(comp, 'dvals'):
                 colvals[comp.name + '_data'] = comp.dvals
             if hasattr(comp, 'mvals') and comp.predict:
@@ -376,6 +390,9 @@ class XijaModel(object):
                         for attr in parattrs]
             print >>out, 'par.update(dict({}))\n'.format(', '.join(par_upds))
             last_comp_name = comp_name
+
+        if hasattr(self, 'bad_times'):
+            print >>out, "model.bad_times = {}".format(repr(self.bad_times))
 
         print >>out, "if len(sys.argv) > 1:"
         print >>out, "    model.write(sys.argv[1])"
