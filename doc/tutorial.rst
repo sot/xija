@@ -351,6 +351,39 @@ Example::
   # Initial fit for long term variation.  Save as minusz_3.json
   ./gui_fit.py minusz/minusz_2.json --stop 2012:095 --days 90
 
+Bad Times
+---------
+
+If there are one or more intervals of time where the data are effectively
+bad for fitting (i.e. the thermal model is not expected to predict accurately
+due to off-nominal spacecraft configuration), then one can add a ``bad_times``
+tag to the JSON model file.  This would like::
+
+  {
+      "bad_times": [
+          [
+              "2014:001",
+              "2014:003"
+          ],
+          [
+              "2014:010",
+              "2014:013"
+          ]
+      ],
+      "comps": [
+          {
+              "class_name": "Mask",
+              "init_args": [
+                  "1dpamzt",
+                  "gt",
+                  20.0
+              ],
+              "init_kwargs": {},
+              "name": "mask__1dpamzt_gt"
+          },
+      ...
+
+
 Exercises
 -----------
 
