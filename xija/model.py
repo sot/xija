@@ -114,7 +114,8 @@ class XijaModel(object):
             for t0, t1 in self.bad_times:
                 t0, t1 = DateTime([t0, t1]).secs
                 i0, i1 = np.searchsorted(self.times, [t0, t1])
-                self.bad_times_indices.append((i0, i1))
+                if i1 > i0:
+                    self.bad_times_indices.append((i0, i1))
 
         self.pars = []
         if model_spec:
