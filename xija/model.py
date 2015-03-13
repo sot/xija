@@ -178,7 +178,7 @@ class XijaModel(object):
                         self.datestart, self.datestop, dbi=dbi)
                     break
                 except IOError as err:
-                    logger.info('Warning: ' + err)
+                    logger.info('Warning: ' + str(err))
                     pass
             else:
                 # Both hdf5 and sybase failed
