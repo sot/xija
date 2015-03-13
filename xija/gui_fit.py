@@ -649,6 +649,10 @@ def get_options():
                       default=False,
                       action='store_true',
                       help="Suppress screen output")
+    parser.add_argument("--keep-epoch",
+                      default=False,
+                      action='store_true',
+                      help="Maintain epoch in SolarHeat models (default=recenter on fit interval)")
 
     return parser.parse_args()
 
@@ -715,6 +719,15 @@ def main():
 
     gui_config['filename'] = os.path.abspath(opt.filename)
     gui_config['set_data_vals'] = set_data_vals
+
+    if not opt.keep_epoch:
+        new_epoch = np.mean(model.times[[0, -1]])
+        for comp in model.comp.values():
+            if isinstance(comp, xija.SolarHeat):
+                try:
+                    comp.epoch = new_epoch
+                except AttributeError as err:
+                    assert 'can only reset the epoch' in str(err)
 
     fit_worker = FitWorker(model, opt.fit_method)
 
