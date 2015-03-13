@@ -1,6 +1,0 @@
-- Cache model dvals using disk with filename including hash of parvals model definition etc
-
-Build core
------------
-cd xija
-python setup.py build_ext --inplace

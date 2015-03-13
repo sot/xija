@@ -3,18 +3,22 @@ import tempfile
 import numpy as np
 import pytest
 
-from .. import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
+from xija import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
 from numpy import sin, cos, abs
 
 print
 print 'Version =', __version__
 
-os.chdir(os.path.abspath(os.path.dirname(__file__)))
+CURRDIR = os.path.abspath(os.path.dirname(__file__))
+
+
+def abs_path(spec):
+    return os.path.join(CURRDIR, spec)
 
 
 def test_dpa_real():
     mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
-                       model_spec='dpa.json')
+                       model_spec=abs_path('dpa.json'))
     # Check that cmd_states database can be read.  Skip if not, probably
     # running test on a platform without access.
     try:
@@ -26,7 +30,7 @@ def test_dpa_real():
     mdl.make()
     mdl.calc()
     dpa = mdl.comp['1dpamzt']
-    reffile = 'dpa_real.npz'
+    reffile = abs_path('dpa_real.npz')
     if not os.path.exists(reffile):
         print 'Writing reference file', reffile
         np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
@@ -45,7 +49,7 @@ def test_pitch_clip():
     Make sure the model still runs with no interpolation error.
     """
     mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
-                       model_spec='dpa_clip.json')
+                       model_spec=abs_path('dpa_clip.json'))
     try:
         mdl._get_cmd_states()
     except:
@@ -58,7 +62,7 @@ def test_pitch_clip():
 
 def test_dpa():
     mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
-                            model_spec='dpa.json')
+                            model_spec=abs_path('dpa.json'))
     times = (mdl.times - mdl.times[0]) / 10000.0
     mdl.comp['1dpamzt'].set_data(30.0)
     mdl.comp['sim_z'].set_data((100000 * sin(times)).astype(int))
@@ -77,12 +81,13 @@ def test_dpa():
     mdl.make()
     mdl.calc()
     dpa = mdl.comp['1dpamzt']
-    if not os.path.exists('dpa.npz'):
+    reffile = abs_path('dpa.npz')
+    if not os.path.exists(reffile):
         print 'Writing reference file dpa.npz'
-        np.savez('dpa.npz', times=mdl.times, dvals=dpa.dvals,
+        np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
                  mvals=dpa.mvals)
 
-    regr = np.load('dpa.npz')
+    regr = np.load(reffile)
     assert np.allclose(mdl.times, regr['times'])
     assert np.allclose(dpa.dvals, regr['dvals'])
     assert np.allclose(dpa.mvals, regr['mvals'])
@@ -90,7 +95,8 @@ def test_dpa():
 
 def test_data_types():
     for data_type in (int, float, np.float32, np.float64, np.int32, np.int64, np.complex64):
-        mdl = ThermalModel('dpa', start='2012:001', stop='2012:007', model_spec='dpa.json')
+        mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+                           model_spec=abs_path('dpa.json'))
         dpa = mdl.comp['1dpamzt']
         dpa.set_data(data_type(30.0))
         if data_type is np.complex64:
@@ -102,7 +108,7 @@ def test_data_types():
 
 def test_minusz():
     mdl = ThermalModel('minusz', start='2012:001', stop='2012:004',
-                            model_spec='minusz.json')
+                       model_spec=abs_path('minusz.json'))
     times = (mdl.times - mdl.times[0]) / 10000.0
     msids = ('tephin', 'tcylaft6', 'tcylfmzm', 'tmzp_my', 'tfssbkt1')
     for msid in msids:
@@ -127,7 +133,7 @@ def test_minusz():
 
 def test_pftank2t():
     mdl = ThermalModel('pftank2t', start='2012:001', stop='2012:004',
-                            model_spec='pftank2t.json')
+                       model_spec=abs_path('pftank2t.json'))
     times = (mdl.times - mdl.times[0]) / 10000.0
     msids = ('pftank2t', 'pf0tank2t')
     for msid in msids:
@@ -138,7 +144,7 @@ def test_pftank2t():
     mdl.make()
     mdl.calc()
 
-    regrfile = 'pftank2t.npz'
+    regrfile = abs_path('pftank2t.npz')
     if not os.path.exists(regrfile):
         print 'Writing reference file', regrfile
         kwargs = {msid: mdl.comp[msid].mvals for msid in msids}

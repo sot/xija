@@ -1,0 +1,11 @@
+For any environment (include a dev ska).  This also works in the source directory::
+
+  python
+  import os
+  os.environ['ENG_ARCHIVE'] = '/proj/sot/ska/data/eng_archive'
+  import xija
+  xija.test()
+
+From the command line one can also do::
+
+  $ py.test [-v] xija
