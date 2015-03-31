@@ -365,7 +365,7 @@ class HeatSinkRef(ModelComponent):
 
 class Pitch(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, 'aosares1')
+        TelemData.__init__(self, model, 'pitch')
 
     def get_dvals_tlm(self):
         vals = self.model.fetch(self.msid, attr=self.fetch_attr)
