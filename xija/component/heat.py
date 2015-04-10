@@ -112,6 +112,10 @@ class SolarHeat(PrecomputedHeatPower):
             Ps += dPs * days / self.tau
             for par, P in izip(self.pars, Ps):
                 par.val = P
+                if P > par.max:
+                    par.max = P
+                elif P < par.min:
+                    par.min = P
 
             print('Updated model component {} epoch from {} to {}'
                   .format(self, epoch.date[:8], new_epoch.date[:8]))
