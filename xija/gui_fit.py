@@ -3,14 +3,14 @@
 
 from __future__ import print_function
 
+import sys
 import os
 import ast
 import multiprocessing
 import time
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gobject
+
+from PyQt4 import QtGui, QtCore
+
 from itertools import count
 import argparse
 import fnmatch
@@ -19,26 +19,27 @@ import re
 import json
 import logging
 
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
-from matplotlib.backends.backend_gtkagg import NavigationToolbar2GTKAgg as NavigationToolbar
 
 import numpy as np
-import sherpa.ui as ui
+
 from Chandra.Time import DateTime
 import pyyaks.context as pyc
+import pyyaks.logger
 
 try:
     import acis_taco as taco
 except ImportError:
     import Chandra.taco as taco
 import xija
-import xija.clogging as clogging   # get rid of this or something
+import sherpa.ui as ui
+# import xija.clogging as clogging   # get rid of this or something
 
 # from xija.fit import (FitTerminated, CalcModel, CalcStat, FitWorker)
 
-fit_logger = clogging.config_logger('fit', level=clogging.INFO,
-                                    format='[%(levelname)s] (%(processName)-10s) %(message)s')
+fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
+                                      format='[%(levelname)s] (%(processName)-10s) %(message)s')
 # Default configurations for fit methods
 sherpa_configs = dict(
     simplex = dict(ftol=1e-3,
@@ -50,6 +51,7 @@ gui_config = {}
 
 class FitTerminated(Exception):
     pass
+
 
 class CalcModel(object):
     def __init__(self, model):
@@ -76,7 +78,7 @@ class CalcStat(object):
         self.cache_fit_stat = {}
         self.min_fit_stat = None
         self.min_par_vals = self.model.parvals
-        
+
     def __call__(self, _data, _model, staterror=None, syserror=None, weight=None):
         """Calculate fit statistic for the xija model.  The args _data and _model
         are sent by Sherpa but they are fictitious -- the real data and model are
@@ -91,7 +93,7 @@ class CalcStat(object):
 
         fit_logger.info('Fit statistic: %.4f' % fit_stat)
         self.cache_fit_stat[parvals_key] = fit_stat
-        
+
         if self.min_fit_stat is None or fit_stat < self.min_fit_stat:
             self.min_fit_stat = fit_stat
             self.min_parvals = self.model.parvals
@@ -179,18 +181,17 @@ class WidgetTable(dict):
             self.n_cols = len(colnames)
         else:
             self.n_cols = n_cols
-            self.colnames = ['col{}'.format(i+1) for i in range(n_cols)]
+            self.colnames = ['col{}'.format(i + 1) for i in range(n_cols)]
         self.n_rows = n_rows
         self.show_header = show_header
 
-        self.table = gtk.Table(rows=self.n_rows, columns=self.n_cols)
+        self.table = QtGui.QTableWidget(self.n_rows, self.n_cols)
 
-        self.box = gtk.ScrolledWindow()
-        self.box.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.box.add_with_viewport(self.table)
+        # self.box.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        # self.box.setWidget(self.table)
 
         dict.__init__(self)
-            
+
     def __getitem__(self, rowcol):
         """Get widget at location (row, col) where ``col`` can be specified as
         either a numeric index or the column name.
@@ -211,26 +212,31 @@ class WidgetTable(dict):
         dict.__setitem__(self, rowcol, widget)
         if self.show_header:
             row += 1
-        self.table.attach(widget, col, col + 1, row, row + 1)
-        widget.show()
+        self.table.setCellWidget(row, col, widget)
+        # widget.show()
 
 
 class Panel(object):
     def __init__(self, orient='h', homogeneous=False, spacing=0):
-        Box = gtk.HBox if orient == 'h' else gtk.VBox
-        self.box = Box(homogeneous, spacing)
+        Box = QtGui.QHBoxLayout if orient == 'h' else QtGui.QVBoxLayout
+        self.box = Box()  # homogeneous, spacing ??
         self.orient = orient
 
     def pack_start(self, child, expand=True, fill=True, padding=0):
         if isinstance(child, Panel):
             child = child.box
-        return self.box.pack_start(child, expand, fill, padding)
-        
+        if isinstance(child, QtGui.QBoxLayout):
+            out = self.box.addLayout(child)
+        else:
+            out = self.box.addWidget(child)  # , expand, fill, padding
+        return out
+
     def pack_end(self, child, expand=True, fill=True, padding=0):
-        if isinstance(child, Panel):
-            child = child.box
         return self.pack_start(child, expand, fill, padding)
-        
+        #if isinstance(child, Panel):
+        #    child = child.box
+        #return self.box.addWidget(child, expand, fill, padding)
+
 
 class PlotsPanel(Panel):
     def __init__(self, fit_worker, main_window):
@@ -280,7 +286,7 @@ class PlotPanel(Panel):
         delete_plot_button = gtk.Button('Delete')
         delete_plot_button.connect('clicked', plots_panel.delete_plot_panel, plot_name)
 
-        toolbar_box = gtk.HBox() 
+        toolbar_box = gtk.HBox()
         toolbar_box.pack_start(toolbar)
         toolbar_box.pack_end(delete_plot_button, False, False, 0)
         self.pack_start(canvas)
@@ -300,7 +306,7 @@ class PlotPanel(Panel):
             if sharex is not None:
                 self.ax.autoscale(enable=False, axis='x')
             plots_panel.sharex.setdefault(xaxis_type, self.ax)
-            
+
         self.canvas = canvas
         self.canvas.show()
 
@@ -315,6 +321,17 @@ class ParamsPanel(Panel):
         Panel.__init__(self, orient='v')
         self.fit_worker = fit_worker
         self.plots_panel = plots_panel
+
+        if False:
+            okButton3 = QtGui.QPushButton("OK button3")
+            table_widget = QtGui.QTableWidget(3, 3)
+            table_widget.setCellWidget(1, 1, okButton3)
+            self.pack_start(table_widget)
+            # self.pack_start(okButton3)
+
+        if False:
+            return
+
         model = fit_worker.model
         params_table = WidgetTable(n_rows=len(model.pars),
                                    n_cols=6,
@@ -323,44 +340,46 @@ class ParamsPanel(Panel):
         self.adj_handlers = {}
         for row, par in zip(count(), model.pars):
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = gtk.CheckButton()
-            frozen.set_active(not par.frozen)
-            frozen.connect('toggled', self.frozen_toggled, par)
+            frozen = params_table[row, 0] = QtGui.QCheckBox()
+            # frozen.set_active(not par.frozen)
+            # frozen.connect('toggled', self.frozen_toggled, par)
 
             # par full name
-            params_table[row, 1] = gtk.Label(par.full_name)
-            params_table[row, 1].set_alignment(0, 0.5)
+            params_table[row, 1] = QtGui.QLabel(par.full_name)
+            # params_table[row, 1].set_alignment(0, 0.5)
 
             # Slider
-            incr = (par.max - par.min) / 100.0
-            adj = gtk.Adjustment(par.val, par.min, par.max, incr, incr, 0.0)
-            slider = gtk.HScale(adj)
-            slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
-            slider.set_draw_value(False)
-            slider.set_size_request(70, -1)
+            # incr = (par.max - par.min) / 100.0
+            slider = QtGui.QSlider(QtCore.Qt.Horizontal)  # (par.val, par.min, par.max, incr, incr, 0.0)
+            slider.setMinimum(par.min)
+            slider.setMaximum(par.max)
+            slider.setValue(par.val)
+            # slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
+            # slider.set_draw_value(False)
+            # slider.set_size_request(70, -1)
             params_table[row, 4] = slider
-            handler = adj.connect('value_changed', self.slider_changed, row)
-            self.adj_handlers[row] = handler
+            # handler = adj.connect('value_changed', self.slider_changed, row)
+            # self.adj_handlers[row] = handler
 
             # Value
-            entry = params_table[row, 2] = gtk.Entry()
-            entry.set_width_chars(10)
-            entry.set_text(par.fmt.format(par.val))
-            entry.connect('activate', self.par_attr_changed, adj, par, 'val')
+            entry = params_table[row, 2] = QtGui.QLineEdit()
+            # entry.set_width_chars(10)
+            entry.setText(par.fmt.format(par.val))
+            # entry.connect('activate', self.par_attr_changed, adj, par, 'val')
 
             # Min of slider
-            entry = params_table[row, 3] = gtk.Entry()
-            entry.set_text(par.fmt.format(par.min))
-            entry.set_width_chars(4)
-            entry.connect('activate', self.par_attr_changed, adj, par, 'min')
+            entry = params_table[row, 3] = QtGui.QLineEdit()
+            entry.setText(par.fmt.format(par.min))
+            # entry.set_width_chars(4)
+            # entry.connect('activate', self.par_attr_changed, adj, par, 'min')
 
             # Max of slider
-            entry = params_table[row, 5] = gtk.Entry()
-            entry.set_text(par.fmt.format(par.max))
-            entry.set_width_chars(6)
-            entry.connect('activate', self.par_attr_changed, adj, par, 'max')
+            entry = params_table[row, 5] = QtGui.QLineEdit()
+            entry.setText(par.fmt.format(par.max))
+            # entry.set_width_chars(6)
+            # entry.connect('activate', self.par_attr_changed, adj, par, 'max')
 
-        self.pack_start(params_table.box, True, True, padding=10)
+        self.pack_start(params_table.table, True, True, padding=10)
         self.params_table = params_table
 
     def frozen_toggled(self, widget, par):
@@ -390,16 +409,16 @@ class ParamsPanel(Panel):
         parval = widget.value  # widget is an adjustment
         par = self.fit_worker.model.pars[row]
         par.val = parval
-        self.params_table[row, 2].set_text(par.fmt.format(parval))
+        self.params_table[row, 2].setText(par.fmt.format(parval))
         self.plots_panel.update()
-        
+
     def update(self, fit_worker):
         model = fit_worker.model
         for row, par in enumerate(model.pars):
             val_label = self.params_table[row, 2]
             par_val_text = par.fmt.format(par.val)
             if val_label.get_text() != par_val_text:
-                val_label.set_text(par_val_text)
+                val_label.setText(par_val_text)
                 # Change the slider value but block the signal to update the plot
                 adj = self.params_table[row, 4].get_adjustment()
                 adj.handler_block(self.adj_handlers[row])
@@ -411,32 +430,32 @@ class ConsolePanel(Panel):
     def __init__(self, fit_worker):
         Panel.__init__(self, orient='v')
         self.fit_worker = fit_worker
-        self.pack_start(gtk.Label('console_panel'), False, False, 0)
+        self.pack_start(QtGui.QLabel('console_panel'), False, False, 0)
 
 
 class ControlButtonsPanel(Panel):
     def __init__(self, fit_worker):
         Panel.__init__(self, orient='h')
         self.fit_worker = fit_worker
-        
-        self.fit_button = gtk.Button("Fit")
-        self.stop_button = gtk.Button("Stop")
-        self.save_button = gtk.Button("Save")
-        self.add_plot_button = self.make_add_plot_button()
-        self.update_status = gtk.Label()
-        self.update_status.set_width_chars(10)
-        self.quit_button = gtk.Button('Quit')
-        self.command_entry = gtk.Entry()
-        self.command_entry.set_width_chars(10)
-        self.command_entry.set_text('')
+
+        self.fit_button = QtGui.QPushButton("Fit")
+        self.stop_button = QtGui.QPushButton("Stop")
+        self.save_button = QtGui.QPushButton("Save")
+        # self.add_plot_button = self.make_add_plot_button()
+        self.update_status = QtGui.QLabel()
+        # self.update_status.set_width_chars(10)
+        self.quit_button = QtGui.QPushButton('Quit')
+        self.command_entry = QtGui.QLineEdit()
+        # self.command_entry.set_width_chars(10)
+        # self.command_entry.setText('')
         self.command_panel = Panel()
-        self.command_panel.pack_start(gtk.Label('Command:'), False, False, 0)
+        self.command_panel.pack_start(QtGui.QLabel('Command:'), False, False, 0)
         self.command_panel.pack_start(self.command_entry, False, False, 0)
 
         self.pack_start(self.fit_button, False, False, 0)
         self.pack_start(self.stop_button, False, False, 0)
         self.pack_start(self.save_button, False, False, 0)
-        self.pack_start(self.add_plot_button, False, False, 0)
+        # self.pack_start(self.add_plot_button, False, False, 0)
         self.pack_start(self.update_status, False, False, 0)
         self.pack_start(self.command_panel, False, False, 0)
         self.pack_start(self.quit_button, False, False, 0)
@@ -465,6 +484,7 @@ class MainLeftPanel(Panel):
         self.plots_panel = PlotsPanel(fit_worker, main_window)
         self.pack_start(self.control_buttons_panel, False, False, 0)
         self.pack_start(self.plots_panel)
+        # self.box.addStretch(1)
 
 
 class MainRightPanel(Panel):
@@ -473,8 +493,12 @@ class MainRightPanel(Panel):
         self.params_panel = ParamsPanel(fit_worker, plots_panel)
         self.console_panel = ConsolePanel(fit_worker)
 
+        okButton = QtGui.QPushButton("OK right")
         self.pack_start(self.params_panel)
         self.pack_start(self.console_panel, False)
+        # self.pack_start(okButton, False)
+        self.box.addWidget(okButton)
+        # self.box.addStretch(1)
 
 
 class MainWindow(object):
@@ -484,50 +508,59 @@ class MainWindow(object):
         self.fit_worker = fit_worker
 
         # create a new window
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.connect("destroy", self.destroy)
-        self.window.set_default_size(*gui_config.get('size', (1400, 800)))
-    
+        self.window = QtGui.QWidget()
+        # self.window.connect("destroy", self.destroy)
+        self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
+
+
+        # hbox = QtGui.QHBoxLayout()
+        # hbox.addStretch(1)
+        # hbox.addWidget(okButton)
+        # hbox.addWidget(cancelButton)
+
         # Sets the border width of the window.
-        self.window.set_border_width(10)
+        # self.window.set_border_width(10)
         self.main_box = Panel(orient='h')
-        self.window.add(self.main_box.box)
+
+        # okButton = QtGui.QPushButton("OK")
+        # cancelButton = QtGui.QPushButton("Cancel")
+
+        # This is the Layout Box that holds the top-level stuff in the main window
+        main_window_hbox = QtGui.QHBoxLayout()
+        self.window.setLayout(main_window_hbox)
 
         self.main_left_panel = MainLeftPanel(fit_worker, self)
         mlp = self.main_left_panel
+
         self.main_right_panel = MainRightPanel(fit_worker, mlp.plots_panel)
-        self.main_box.pack_start(self.main_left_panel)
-        self.main_box.pack_start(self.main_right_panel)
+        # self.main_box.pack_start(self.main_left_panel)
+        # self.main_box.pack_start(self.main_right_panel)
 
-        cbp = mlp.control_buttons_panel
-        cbp.fit_button.connect("clicked", fit_worker.start)
-        cbp.fit_button.connect("clicked", self.fit_monitor)
-        cbp.stop_button.connect("clicked", fit_worker.terminate)
-        cbp.save_button.connect("clicked", self.save_model_file)
-        cbp.quit_button.connect('clicked', self.destroy)
-        cbp.add_plot_button.connect('changed', self.add_plot)
-        cbp.command_entry.connect('activate', self.command_activated)
+        # cbp = mlp.control_buttons_panel
+        # cbp.fit_button.connect("clicked", fit_worker.start)
+        # cbp.fit_button.connect("clicked", self.fit_monitor)
+        # cbp.stop_button.connect("clicked", fit_worker.terminate)
+        # cbp.save_button.connect("clicked", self.save_model_file)
+        # cbp.quit_button.connect('clicked', self.destroy)
+        # cbp.add_plot_button.connect('changed', self.add_plot)
+        # cbp.command_entry.connect('activate', self.command_activated)
 
-        # Add plots from previous Save
-        for plot_name in gui_config.get('plot_names', []):
-            try:
-                plot_index = cbp.plot_names.index(plot_name) + 1
-                cbp.add_plot_button.set_active(plot_index)
-                print("Adding plot {} {}".format(plot_name, plot_index))
-                time.sleep(0.05)  # is it needed?
-            except ValueError:
-                print("ERROR: Unexpected plot_name {}".format(plot_name))
+        # # Add plots from previous Save
+        # for plot_name in gui_config.get('plot_names', []):
+        #     try:
+        #         plot_index = cbp.plot_names.index(plot_name) + 1
+        #         cbp.add_plot_button.set_active(plot_index)
+        #         print("Adding plot {} {}".format(plot_name, plot_index))
+        #         time.sleep(0.05)  # is it needed?
+        #     except ValueError:
+        #         print("ERROR: Unexpected plot_name {}".format(plot_name))
 
         # Show everything finally
-        self.window.show_all()
+        main_window_hbox.addLayout(mlp.box)
+        # main_window_hbox.addStretch(1)
+        main_window_hbox.addLayout(self.main_right_panel.box)
 
-    def main(self):
-        # All PyGTK applications must have a gtk.main(). Control ends here
-        # and waits for an event to occur (like a key press or mouse event).
-        gtk.main()
-
-    def destroy(self, widget, data=None):
-        gtk.main_quit()
+        self.window.show()
 
     def add_plot(self, widget):
         model = widget.get_model()
@@ -538,7 +571,7 @@ class MainWindow(object):
             pp.add_plot_panel(model[index][0])
             pp.update()
         widget.set_active(0)
-            
+
     def fit_monitor(self, widget=None):
         fit_worker = self.fit_worker
         msg = None
@@ -557,7 +590,7 @@ class MainWindow(object):
 
         if msg:
             # Update the fit_worker model parameters and then the corresponding
-            # params table widget. 
+            # params table widget.
             fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update(fit_worker)
             self.main_left_panel.plots_panel.update()
@@ -565,7 +598,7 @@ class MainWindow(object):
         # If fit has not stopped then set another timeout 200 msec from now
         if not fit_stopped:
             gobject.timeout_add(200, self.fit_monitor)
-            
+
         # Terminate the current timeout
         return False
 
@@ -591,7 +624,7 @@ class MainWindow(object):
                 if re.match(par_regex, par.full_name):
                      checkbutton = params_table[row, 0]
                      checkbutton.set_active(cmd == 'thaw')
-        widget.set_text('')
+        widget.setText('')
 
     def save_model_file(self, widget):
         chooser = gtk.FileChooserDialog(title=None,action=gtk.FILE_CHOOSER_ACTION_SAVE,
@@ -608,7 +641,7 @@ class MainWindow(object):
         filter.set_name("All files")
         filter.add_pattern("*")
         chooser.add_filter(filter)
-        
+
         response = chooser.run()
         filename = chooser.get_filename()
         chooser.destroy()
@@ -625,42 +658,41 @@ class MainWindow(object):
             except IOError:
                 print("Error writing {}".format(filename))
                 # Raise a dialog box here.
-        
+
 
 def get_options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("filename",
-                      help="Model file")
+    parser.add_argument("--filename",
+                        default='pftank2t_spec.json',
+                        help="Model file")
     parser.add_argument("--days",
-                      type=float,
-                      default=15,
-                      help="Number of days in fit interval (default=90")
+                        type=float,
+                        default=15,  # Fix this
+                        help="Number of days in fit interval (default=90")
     parser.add_argument("--stop",
-                      help="Stop time of fit interval (default=model values)")
+                        default=DateTime() - 10,  # remove this
+                        help="Stop time of fit interval (default=model values)")
     parser.add_argument("--nproc",
-                      default=0,
-                      type=int,
-                      help="Number of processors (default=1)")
+                        default=0,
+                        type=int,
+                        help="Number of processors (default=1)")
     parser.add_argument("--fit-method",
                         default="simplex",
                         help="Sherpa fit method (simplex|moncar|levmar)")
     parser.add_argument("--inherit-from",
-                      help="Inherit par values from model spec file")
+                        help="Inherit par values from model spec file")
     parser.add_argument("--set-data",
                         action='append',
                         dest='set_data_exprs',
                         default=[],
                         help="Set data value as '<comp_name>=<value>'")
     parser.add_argument("--quiet",
-                      default=False,
-                      action='store_true',
-                      help="Suppress screen output")
-    parser.add_argument("--keep-epoch",
-                      default=False,
-                      action='store_true',
-                      help="Maintain epoch in SolarHeat models (default=recenter on fit interval)")
+                        default=False,
+                        action='store_true',
+                        help="Suppress screen output")
 
     return parser.parse_args()
+
 
 def main():
     # Enable fully-randomized evaluation of ACIS-FP model which is desirable
@@ -726,20 +758,11 @@ def main():
     gui_config['filename'] = os.path.abspath(opt.filename)
     gui_config['set_data_vals'] = set_data_vals
 
-    if not opt.keep_epoch:
-        new_epoch = np.mean(model.times[[0, -1]])
-        for comp in model.comp.values():
-            if isinstance(comp, xija.SolarHeat):
-                try:
-                    comp.epoch = new_epoch
-                except AttributeError as err:
-                    assert 'can only reset the epoch' in str(err)
-
     fit_worker = FitWorker(model, opt.fit_method)
 
+    app = QtGui.QApplication(sys.argv)
     main_window = MainWindow(fit_worker)
-    main_window.main()
-
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()
