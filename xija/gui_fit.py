@@ -539,8 +539,8 @@ class MainWindow(object):
         # self.main_box.pack_start(self.main_right_panel)
 
         cbp = mlp.control_buttons_panel
-        # cbp.fit_button.connect("clicked", fit_worker.start)
-        # cbp.fit_button.connect("clicked", self.fit_monitor)
+        cbp.fit_button.clicked.connect(fit_worker.start)
+        cbp.fit_button.clicked.connect(self.fit_monitor)
         # cbp.stop_button.connect("clicked", fit_worker.terminate)
         cbp.save_button.clicked.connect(self.save_model_file)
         cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
