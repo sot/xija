@@ -43,6 +43,8 @@ sherpa_configs = dict(
 gui_config = {}
 
 
+print('Here in gui_fit')
+
 class FitTerminated(Exception):
     pass
 
@@ -530,12 +532,12 @@ class MainWindow(object):
         # self.main_box.pack_start(self.main_left_panel)
         # self.main_box.pack_start(self.main_right_panel)
 
-        # cbp = mlp.control_buttons_panel
+        cbp = mlp.control_buttons_panel
         # cbp.fit_button.connect("clicked", fit_worker.start)
         # cbp.fit_button.connect("clicked", self.fit_monitor)
         # cbp.stop_button.connect("clicked", fit_worker.terminate)
-        # cbp.save_button.connect("clicked", self.save_model_file)
-        # cbp.quit_button.connect('clicked', self.destroy)
+        cbp.save_button.clicked.connect(self.save_model_file)
+        cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         # cbp.add_plot_button.connect('changed', self.add_plot)
         # cbp.command_entry.connect('activate', self.command_activated)
 
@@ -620,38 +622,21 @@ class MainWindow(object):
                      checkbutton.set_active(cmd == 'thaw')
         widget.setText('')
 
-    def save_model_file(self, widget):
-        chooser = gtk.FileChooserDialog(title=None,action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                                        buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                                 gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-        chooser.set_default_response(gtk.RESPONSE_OK)
-        chooser.set_current_name(gui_config['filename'])
-        filter = gtk.FileFilter()
-        filter.set_name("Model files")
-        filter.add_pattern("*.json")
-        chooser.add_filter(filter)
-
-        filter = gtk.FileFilter()
-        filter.set_name("All files")
-        filter.add_pattern("*")
-        chooser.add_filter(filter)
-
-        response = chooser.run()
-        filename = chooser.get_filename()
-        chooser.destroy()
-
-        if response == gtk.RESPONSE_OK:
-            model_spec = self.fit_worker.model.model_spec
-            gui_config['plot_names'] = [x.plot_name
-                                        for x in self.main_left_panel.plots_panel.plot_panels]
-            gui_config['size'] = self.window.get_size()
-            model_spec['gui_config'] = gui_config
-            try:
-                self.fit_worker.model.write(filename, model_spec)
-                gui_config['filename'] = filename
-            except IOError:
-                print "Error writing {}".format(filename)
-                # Raise a dialog box here.
+    def save_model_file(self, *args):
+        filename = QtGui.QFileDialog.getOpenFileName(None, 'Open file', os.getcwd(),
+                                                     'JSON files (*.json);; All files (*)')
+        filename = str(filename)
+        model_spec = self.fit_worker.model.model_spec
+        gui_config['plot_names'] = [x.plot_name
+                                    for x in self.main_left_panel.plots_panel.plot_panels]
+        gui_config['size'] = (self.window.size().width(), self.window.size().height())
+        model_spec['gui_config'] = gui_config
+        try:
+            self.fit_worker.model.write(filename, model_spec)
+            gui_config['filename'] = filename
+        except IOError:
+            print "Error writing {}".format(filename)
+            # Raise a dialog box here.
 
 
 def get_options():
@@ -755,7 +740,7 @@ def main():
     fit_worker = FitWorker(model, opt.fit_method)
 
     app = QtGui.QApplication(sys.argv)
-    main_window = MainWindow(fit_worker)
+    MainWindow(fit_worker)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
