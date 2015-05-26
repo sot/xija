@@ -17,6 +17,7 @@ import json
 import logging
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
 import numpy as np
@@ -206,10 +207,20 @@ class WidgetTable(dict):
 
 
 class Panel(object):
-    def __init__(self, orient='h', homogeneous=False, spacing=0):
+    def __new__(cls, orient='h', homogeneous=False, spacing=0):
         Box = QtGui.QHBoxLayout if orient == 'h' else QtGui.QVBoxLayout
-        self.box = Box()  # homogeneous, spacing ??
+        self = Box()
+        self.box = self  # homogeneous, spacing ??
         self.orient = orient
+        return self
+
+    # def __init__(self, orient='h', homogeneous=False, spacing=0):
+    #     Box = QtGui.QHBoxLayout if orient == 'h' else QtGui.QVBoxLayout
+    #     self.box = Box()  # homogeneous, spacing ??
+    #     self.orient = orient
+
+    def add_stretch(self, value):
+        self.box.addStretch(value)
 
     def pack_start(self, child, expand=True, fill=True, padding=0):
         if isinstance(child, Panel):
@@ -235,10 +246,14 @@ class PlotsPanel(Panel):
         self.sharex = {}        # Shared x-axes keyed by x-axis type
 
     def add_plot_panel(self, plot_name):
-        plot_panel = PlotPanel(plot_name, self)
-        self.pack_start(plot_panel.box)
+        # plot_panel = PlotPanel(plot_name, self)
+        parent = None  # self.main_window.window
+        plot_panel = MplCanvas(parent)
+        toolbar = NavigationToolbar(plot_panel, parent)
+        self.pack_start(plot_panel)
+        self.pack_start(toolbar)
         self.plot_panels.append(plot_panel)
-        self.main_window.window.show_all()
+        # self.main_window.window.show_all()
 
     def delete_plot_panel(self, widget, plot_name):
         plot_panels = []
@@ -258,44 +273,69 @@ class PlotsPanel(Panel):
         cbp.update_status.setText('')
 
 
+class MplCanvas(FigureCanvas):
+    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure()  # figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+        t = np.arange(0.0, 3.0, 0.01)
+        s = np.sin(2 * np.pi * t)
+        self.axes.plot(t, s)
+
+        super(MplCanvas, self).__init__(fig)
+        self.setParent(parent)
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                           QtGui.QSizePolicy.Expanding)
+        self.updateGeometry()
+
+
 class PlotPanel(Panel):
     def __init__(self, plot_name, plots_panel):
-        Panel.__init__(self, orient='v')
+        super(PlotPanel, self).__init__(orient='v')
 
-        self.plot_name = plot_name
-        comp_name, plot_method = plot_name.split() # E.g. "tephin fit_resid"
+        comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
         self.comp = [comp for comp in MODEL.comps if comp.name == comp_name][0]
         self.plot_method = plot_method
 
-        fig = Figure()
-        canvas = FigureCanvas(fig)  # a gtk.DrawingArea
-        toolbar = NavigationToolbar(canvas, plots_panel.main_window)
-        delete_plot_button = gtk.Button('Delete')
-        delete_plot_button.connect('clicked', plots_panel.delete_plot_panel, plot_name)
+        self.plot_name = plot_name
 
-        toolbar_box = gtk.HBox()
-        toolbar_box.pack_start(toolbar)
-        toolbar_box.pack_end(delete_plot_button, False, False, 0)
-        self.pack_start(canvas)
-        self.pack_start(toolbar_box, False, False)
+        parent = plots_panel.main_window.window
+        mpl_canvas = MplCanvas(parent)
+        toolbar = NavigationToolbar(self.mpl_canvas, parent)
 
-        self.fig = fig
+        self.pack_start(mpl_canvas)
+        self.pack_start(toolbar)
 
-        # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
-        # First such plot has sharex=None, subsequent ones use the first axis.
-        try:
-            xaxis_type = plot_method.split('__')[1]
-        except IndexError:
-            self.ax = fig.add_subplot(111)
-        else:
-            sharex = plots_panel.sharex.get(xaxis_type)
-            self.ax = fig.add_subplot(111, sharex=sharex)
-            if sharex is not None:
-                self.ax.autoscale(enable=False, axis='x')
-            plots_panel.sharex.setdefault(xaxis_type, self.ax)
+        if 0:
+            fig = Figure()
+            canvas = FigureCanvas(fig)  # a gtk.DrawingArea
+            toolbar = NavigationToolbar(canvas, plots_panel.main_window)
+            delete_plot_button = gtk.Button('Delete')
+            delete_plot_button.connect('clicked', plots_panel.delete_plot_panel, plot_name)
 
-        self.canvas = canvas
-        self.canvas.show()
+            toolbar_box = gtk.HBox()
+            toolbar_box.pack_start(toolbar)
+            toolbar_box.pack_end(delete_plot_button, False, False, 0)
+            self.pack_start(canvas)
+            self.pack_start(toolbar_box, False, False)
+
+            self.fig = fig
+
+            # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
+            # First such plot has sharex=None, subsequent ones use the first axis.
+            try:
+                xaxis_type = plot_method.split('__')[1]
+            except IndexError:
+                self.ax = fig.add_subplot(111)
+            else:
+                sharex = plots_panel.sharex.get(xaxis_type)
+                self.ax = fig.add_subplot(111, sharex=sharex)
+                if sharex is not None:
+                    self.ax.autoscale(enable=False, axis='x')
+                plots_panel.sharex.setdefault(xaxis_type, self.ax)
+
+            self.canvas = canvas
+            self.canvas.show()
 
     def update(self):
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
@@ -307,16 +347,6 @@ class ParamsPanel(Panel):
     def __init__(self, plots_panel):
         Panel.__init__(self, orient='v')
         self.plots_panel = plots_panel
-
-        if False:
-            okButton3 = QtGui.QPushButton("OK button3")
-            table_widget = QtGui.QTableWidget(3, 3)
-            table_widget.setCellWidget(1, 1, okButton3)
-            self.pack_start(table_widget)
-            # self.pack_start(okButton3)
-
-        if False:
-            return
 
         params_table = WidgetTable(n_rows=len(MODEL.pars),
                                    n_cols=6,
@@ -440,6 +470,7 @@ class ControlButtonsPanel(Panel):
         # self.pack_start(self.add_plot_button, False, False, 0)
         self.pack_start(self.update_status, False, False, 0)
         self.pack_start(self.command_panel, False, False, 0)
+        self.add_stretch(1)
         self.pack_start(self.quit_button, False, False, 0)
 
     def make_add_plot_button(self):
@@ -466,6 +497,7 @@ class MainLeftPanel(Panel):
         self.plots_panel = PlotsPanel(main_window)
         self.pack_start(self.control_buttons_panel, False, False, 0)
         self.pack_start(self.plots_panel)
+        self.plots_panel.add_plot_panel('pftank2t fit_resid')
         # self.box.addStretch(1)
 
 
@@ -512,8 +544,6 @@ class MainWindow(object):
         mlp = self.main_left_panel
 
         self.main_right_panel = MainRightPanel(mlp.plots_panel)
-        # self.main_box.pack_start(self.main_left_panel)
-        # self.main_box.pack_start(self.main_right_panel)
 
         cbp = mlp.control_buttons_panel
         cbp.fit_button.clicked.connect(FIT_WORKER.start)
