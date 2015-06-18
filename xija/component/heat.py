@@ -201,6 +201,44 @@ class SolarHeat(PrecomputedHeatPower):
             ax.grid()
 
 
+class SolarHeatAcisCameraBody(SolarHeat):
+    """Solar heating (pitch and SIM-Z dependent)
+
+    :param model: parent model
+    :param node: node which is coupled to solar heat
+    :param simz_comp: SimZ component
+    :param pitch_comp: solar Pitch component
+    :param eclipse_comp: Eclipse component (optional)
+    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
+    :param Ps: list of solar heating values (default=[1.0, ...])
+    :param dPs: list of delta heating values (default=[0.0, ...])
+    :param var_func: variability function ('exp' | 'linear')
+    :param tau: variability timescale (days)
+    :param ampl: ampl of annual sinusoidal heating variation
+    :param bias: constant offset to all solar heating values
+    :param epoch: reference date at which ``Ps`` values apply
+    :param dh_heater_comp: detector housing heater status (True = On)
+    :param dh_heater_bias: bias power when DH heater is on
+    """
+    def __init__(self, model, node, pitch_comp, eclipse_comp=None,
+                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 dh_heater_comp=None, dh_heater_bias=0.0):
+
+        super(SolarHeatAcisCameraBody, self).__init__(
+            model, node, pitch_comp, eclipse_comp=eclipse_comp,
+            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func,
+            tau=tau, ampl=ampl, bias=bias, epoch=epoch)
+
+        self.dh_heater_comp = model.get_comp(dh_heater_comp)
+        self.add_par('dh_heater_bias', dh_heater_bias, min=-1.0, max=1.0)
+
+    def dvals_post_hook(self):
+        """Apply a bias power offset when detector housing heater is on
+        """
+        self._dvals[self.dh_heater_comp.dvals] += self.dh_heater_bias
+
+
 class SolarHeatHrc(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent)
 
@@ -235,6 +273,7 @@ class SolarHeatHrc(SolarHeat):
         if not hasattr(self, 'hrc_mask'):
             self.hrc_mask = self.simz_comp.dvals < 0
         self._dvals[self.hrc_mask] += self.hrc_bias
+
 
 # For back compatibility prior to Xija 0.2
 DpaSolarHeat = SolarHeatHrc
@@ -336,11 +375,6 @@ class EarthHeat(PrecomputedHeatPower):
 
     def __str__(self):
         return 'earthheat__{0}'.format(self.node)
-
-
-    # def __init__(self, model, node, pitch_comp, eclipse_comp=None,
-    #              P_pitches=None, Ps=None, dPs=None, var_func='exp',
-    #              tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
 
 
 class DetectorHousingHeater(TelemData):

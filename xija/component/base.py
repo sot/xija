@@ -162,6 +162,7 @@ class TelemData(ModelComponent):
             plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data'.format(self.name))
+            ax.margins(0.05)
         else:
             lines[0].set_data(self.model_plotdate, self.dvals)
 
