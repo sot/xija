@@ -5,6 +5,7 @@ import os
 import ast
 import multiprocessing
 import time
+import functools
 
 from PyQt4 import QtGui, QtCore
 
@@ -29,6 +30,7 @@ import pyyaks.logger
 import Chandra.taco
 import xija
 import sherpa.ui as ui
+
 logging.basicConfig(level=logging.DEBUG)
 logging.debug('Importing gui_fit from {}'.format(__file__))
 
@@ -163,7 +165,7 @@ def sherpa_fit(*args):
 
 
 class WidgetTable(dict):
-    def __init__(self, n_rows, n_cols=None, colnames=None, show_header=False):
+    def __init__(self, n_rows, n_cols=None, colnames=None, show_header=False, colwidths=None):
         if n_cols is None and colnames is None:
             raise ValueError('WidgetTable needs either n_cols or colnames')
         if colnames:
@@ -176,6 +178,13 @@ class WidgetTable(dict):
         self.show_header = show_header
 
         self.table = QtGui.QTableWidget(self.n_rows, self.n_cols)
+
+        if show_header and colnames:
+            self.table.setHorizontalHeaderLabels(colnames)
+
+        if colwidths:
+            for col, width in colwidths.items():
+                self.table.setColumnWidth(col, width)
 
         # self.box.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         # self.box.setWidget(self.table)
@@ -197,27 +206,16 @@ class WidgetTable(dict):
 
     def __setitem__(self, rowcol, widget):
         row, col = rowcol
-        if rowcol in self:
-            self.table.remove(self[rowcol])
         dict.__setitem__(self, rowcol, widget)
-        if self.show_header:
-            row += 1
         self.table.setCellWidget(row, col, widget)
         # widget.show()
 
 
 class Panel(object):
-    def __new__(cls, orient='h', homogeneous=False, spacing=0):
+    def __init__(self, orient='h', homogeneous=False, spacing=0):
         Box = QtGui.QHBoxLayout if orient == 'h' else QtGui.QVBoxLayout
-        self = Box()
-        self.box = self  # homogeneous, spacing ??
+        self.box = Box()  # homogeneous, spacing ??
         self.orient = orient
-        return self
-
-    # def __init__(self, orient='h', homogeneous=False, spacing=0):
-    #     Box = QtGui.QHBoxLayout if orient == 'h' else QtGui.QVBoxLayout
-    #     self.box = Box()  # homogeneous, spacing ??
-    #     self.orient = orient
 
     def add_stretch(self, value):
         self.box.addStretch(value)
@@ -246,20 +244,18 @@ class PlotsPanel(Panel):
         self.sharex = {}        # Shared x-axes keyed by x-axis type
 
     def add_plot_panel(self, plot_name):
-        # plot_panel = PlotPanel(plot_name, self)
-        parent = None  # self.main_window.window
-        plot_panel = MplCanvas(parent)
-        toolbar = NavigationToolbar(plot_panel, parent)
+        plot_name = str(plot_name)
+        print('adding plot ', plot_name)
+        plot_panel = PlotPanel(plot_name, self)
         self.pack_start(plot_panel)
-        self.pack_start(toolbar)
         self.plot_panels.append(plot_panel)
         # self.main_window.window.show_all()
 
-    def delete_plot_panel(self, widget, plot_name):
+    def delete_plot_panel(self, plot_name):
         plot_panels = []
         for plot_panel in self.plot_panels:
             if plot_panel.plot_name == plot_name:
-                self.box.remove(plot_panel.box)
+                self.box.removeItem(plot_panel.box)
             else:
                 plot_panels.append(plot_panel)
         self.plot_panels = plot_panels
@@ -276,13 +272,13 @@ class PlotsPanel(Panel):
 class MplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure()  # figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
+        self.fig = Figure()  # figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
         t = np.arange(0.0, 3.0, 0.01)
         s = np.sin(2 * np.pi * t)
         self.axes.plot(t, s)
 
-        super(MplCanvas, self).__init__(fig)
+        super(MplCanvas, self).__init__(self.fig)
         self.setParent(parent)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
@@ -294,31 +290,28 @@ class PlotPanel(Panel):
         super(PlotPanel, self).__init__(orient='v')
 
         comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
-        self.comp = [comp for comp in MODEL.comps if comp.name == comp_name][0]
+        # self.comp = [comp for comp in MODEL.comps if comp.name == comp_name][0]
+        self.comp = MODEL.comp[comp_name]
         self.plot_method = plot_method
 
         self.plot_name = plot_name
 
-        parent = plots_panel.main_window.window
-        mpl_canvas = MplCanvas(parent)
-        toolbar = NavigationToolbar(self.mpl_canvas, parent)
+        mpl_canvas = MplCanvas(None)  # self.box)
+        toolbar = NavigationToolbar(mpl_canvas, None)  # , self.box)
+
+        delete_plot_button = QtGui.QPushButton('Delete')
+        delete_plot_button.clicked.connect(
+            functools.partial(plots_panel.delete_plot_panel, plot_name))
+
+        toolbar_box = QtGui.QHBoxLayout()
+        toolbar_box.addWidget(toolbar)
+        toolbar_box.addStretch(1)
+        toolbar_box.addWidget(delete_plot_button)
 
         self.pack_start(mpl_canvas)
-        self.pack_start(toolbar)
+        self.pack_start(toolbar_box)
 
         if 0:
-            fig = Figure()
-            canvas = FigureCanvas(fig)  # a gtk.DrawingArea
-            toolbar = NavigationToolbar(canvas, plots_panel.main_window)
-            delete_plot_button = gtk.Button('Delete')
-            delete_plot_button.connect('clicked', plots_panel.delete_plot_panel, plot_name)
-
-            toolbar_box = gtk.HBox()
-            toolbar_box.pack_start(toolbar)
-            toolbar_box.pack_end(delete_plot_button, False, False, 0)
-            self.pack_start(canvas)
-            self.pack_start(toolbar_box, False, False)
-
             self.fig = fig
 
             # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
@@ -349,8 +342,8 @@ class ParamsPanel(Panel):
         self.plots_panel = plots_panel
 
         params_table = WidgetTable(n_rows=len(MODEL.pars),
-                                   n_cols=6,
-                                   colnames=['name', 'val', 'thawed', 'min', 'max'],
+                                   colnames=['fit', 'name', 'val', 'thawed', 'min', 'max'],
+                                   colwidths={0: 30, 1: 250},
                                    show_header=True)
         self.adj_handlers = {}
         for row, par in zip(count(), MODEL.pars):
@@ -453,7 +446,7 @@ class ControlButtonsPanel(Panel):
         self.fit_button = QtGui.QPushButton("Fit")
         self.stop_button = QtGui.QPushButton("Stop")
         self.save_button = QtGui.QPushButton("Save")
-        # self.add_plot_button = self.make_add_plot_button()
+        self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtGui.QLabel()
         # self.update_status.set_width_chars(10)
         self.quit_button = QtGui.QPushButton('Quit')
@@ -467,15 +460,15 @@ class ControlButtonsPanel(Panel):
         self.pack_start(self.fit_button, False, False, 0)
         self.pack_start(self.stop_button, False, False, 0)
         self.pack_start(self.save_button, False, False, 0)
-        # self.pack_start(self.add_plot_button, False, False, 0)
+        self.pack_start(self.add_plot_button, False, False, 0)
         self.pack_start(self.update_status, False, False, 0)
         self.pack_start(self.command_panel, False, False, 0)
         self.add_stretch(1)
         self.pack_start(self.quit_button, False, False, 0)
 
     def make_add_plot_button(self):
-        apb = gtk.combo_box_new_text()
-        apb.append_text('Add plot...')
+        apb = QtGui.QComboBox()
+        apb.addItem('Add plot...')
 
         plot_names = ['{} {}'.format(comp.name, attr[5:])
                       for comp in MODEL.comps
@@ -484,9 +477,8 @@ class ControlButtonsPanel(Panel):
 
         self.plot_names = plot_names
         for plot_name in plot_names:
-            apb.append_text(plot_name)
+            apb.addItem(plot_name)
 
-        apb.set_active(0)
         return apb
 
 
@@ -497,7 +489,8 @@ class MainLeftPanel(Panel):
         self.plots_panel = PlotsPanel(main_window)
         self.pack_start(self.control_buttons_panel, False, False, 0)
         self.pack_start(self.plots_panel)
-        self.plots_panel.add_plot_panel('pftank2t fit_resid')
+        self.add_stretch(1)
+        # self.plots_panel.add_plot_panel('pftank2t fit_resid')
         # self.box.addStretch(1)
 
 
@@ -551,7 +544,7 @@ class MainWindow(object):
         cbp.stop_button.clicked.connect(FIT_WORKER.terminate)
         cbp.save_button.clicked.connect(self.save_model_file)
         cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
-        # cbp.add_plot_button.connect('changed', self.add_plot)
+        cbp.add_plot_button.activated[str].connect(self.add_plot)
         # cbp.command_entry.connect('activate', self.command_activated)
 
         # # Add plots from previous Save
@@ -571,15 +564,19 @@ class MainWindow(object):
 
         self.window.show()
 
-    def add_plot(self, widget):
-        model = widget.get_model()
-        index = widget.get_active()
+    def add_plot(self, plotname):
+        sender = self.window.sender()
+        # model = widget.get_model()
+        # index = widget.get_active()
         pp = self.main_left_panel.plots_panel
-        if index:
-            print "Add plot", model[index][0]
-            pp.add_plot_panel(model[index][0])
-            pp.update()
-        widget.set_active(0)
+        print('Add plot {} {}'.format(plotname, sender))
+        pp.add_plot_panel(plotname)
+        sender.setCurrentIndex(0)
+        # if index:
+        #     print "Add plot", model[index][0]
+        #     pp.add_plot_panel(model[index][0])
+        #     pp.update()
+        # widget.set_active(0)
 
     def fit_monitor(self, *args):
         msg = None
@@ -652,7 +649,7 @@ class MainWindow(object):
 def get_options():
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename",
-                        default='pftank2t_spec.json',
+                        default='test_gui.json',
                         help="Model file")
     parser.add_argument("--days",
                         type=float,
