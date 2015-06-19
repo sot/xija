@@ -237,36 +237,76 @@ class Panel(object):
 
     def pack_end(self, child, expand=True, fill=True, padding=0):
         return self.pack_start(child, expand, fill, padding)
-        #if isinstance(child, Panel):
-        #    child = child.box
-        #return self.box.addWidget(child, expand, fill, padding)
 
 
-class PlotsPanel(Panel):
+def clearLayout(layout):
+    """
+    From http://stackoverflow.com/questions/9374063/pyqt4-remove-widgets-and-layout-as-well
+    """
+    if layout is not None:
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            else:
+                clearLayout(item.layout())
+
+
+class PlotBox(QtGui.QVBoxLayout):
+    def __init__(self, plot_name, plots_box):
+        super(PlotBox, self).__init__()
+
+        comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
+        self.comp = MODEL.comp[comp_name]
+        self.plot_method = plot_method
+
+        self.plot_name = plot_name
+
+        mpl_canvas = MplCanvas(parent=None)
+        toolbar = NavigationToolbar(mpl_canvas, parent=None)
+
+        delete_plot_button = QtGui.QPushButton('Delete')
+        delete_plot_button.clicked.connect(
+            functools.partial(plots_box.delete_plot_box, plot_name))
+
+        toolbar_box = QtGui.QHBoxLayout()
+        toolbar_box.addWidget(toolbar)
+        toolbar_box.addStretch(1)
+        toolbar_box.addWidget(delete_plot_button)
+
+        self.addWidget(mpl_canvas)
+        self.addLayout(toolbar_box)
+
+    def update(self):
+        plot_func = getattr(self.comp, 'plot_' + self.plot_method)
+        plot_func(fig=self.fig, ax=self.ax)
+        self.canvas.draw()
+
+
+class PlotsBox(QtGui.QVBoxLayout):
     def __init__(self, main_window):
-        Panel.__init__(self, orient='v')
+        super(QtGui.QVBoxLayout, self).__init__()
         self.main_window = main_window
-        self.plot_panels = []
         self.sharex = {}        # Shared x-axes keyed by x-axis type
 
-    def add_plot_panel(self, plot_name):
+    def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
         print('adding plot ', plot_name)
-        plot_panel = PlotPanel(plot_name, self)
-        self.pack_start(plot_panel)
-        self.plot_panels.append(plot_panel)
+        plot_box = PlotBox(plot_name, self)
+        self.addLayout(plot_box)
+        # self.plot_boxs.append(plot_box)
         # self.main_window.window.show_all()
 
-    def delete_plot_panel(self, plot_name):
-        plot_panels = []
-        for plot_panel in self.plot_panels:
-            if plot_panel.plot_name == plot_name:
-                self.box.removeItem(plot_panel.box)
-            else:
-                plot_panels.append(plot_panel)
-        self.plot_panels = plot_panels
+    def delete_plot_box(self, plot_name):
+        for plot_box in self.findChildren(PlotBox):
+            print(plot_box.plot_name)
+            if plot_box.plot_name == plot_name:
+                self.removeItem(plot_box)
+                clearLayout(plot_box)
+        self.update()
 
-    def update(self, widget=None):
+    def _update(self, widget=None):
         cbp = self.main_window.main_left_panel.control_buttons_panel
         cbp.update_status.setText(' BUSY... ')
         MODEL.calc()
@@ -289,57 +329,6 @@ class MplCanvas(FigureCanvas):
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
         self.updateGeometry()
-
-
-class PlotPanel(Panel):
-    def __init__(self, plot_name, plots_panel):
-        super(PlotPanel, self).__init__(orient='v')
-
-        comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
-        # self.comp = [comp for comp in MODEL.comps if comp.name == comp_name][0]
-        self.comp = MODEL.comp[comp_name]
-        self.plot_method = plot_method
-
-        self.plot_name = plot_name
-
-        mpl_canvas = MplCanvas(None)  # self.box)
-        toolbar = NavigationToolbar(mpl_canvas, None)  # , self.box)
-
-        delete_plot_button = QtGui.QPushButton('Delete')
-        delete_plot_button.clicked.connect(
-            functools.partial(plots_panel.delete_plot_panel, plot_name))
-
-        toolbar_box = QtGui.QHBoxLayout()
-        toolbar_box.addWidget(toolbar)
-        toolbar_box.addStretch(1)
-        toolbar_box.addWidget(delete_plot_button)
-
-        self.pack_start(mpl_canvas)
-        self.pack_start(toolbar_box)
-
-        if 0:
-            self.fig = fig
-
-            # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
-            # First such plot has sharex=None, subsequent ones use the first axis.
-            try:
-                xaxis_type = plot_method.split('__')[1]
-            except IndexError:
-                self.ax = fig.add_subplot(111)
-            else:
-                sharex = plots_panel.sharex.get(xaxis_type)
-                self.ax = fig.add_subplot(111, sharex=sharex)
-                if sharex is not None:
-                    self.ax.autoscale(enable=False, axis='x')
-                plots_panel.sharex.setdefault(xaxis_type, self.ax)
-
-            self.canvas = canvas
-            self.canvas.show()
-
-    def update(self):
-        plot_func = getattr(self.comp, 'plot_' + self.plot_method)
-        plot_func(fig=self.fig, ax=self.ax)
-        self.canvas.draw()
 
 
 class ParamsPanel(Panel):
@@ -492,9 +481,9 @@ class MainLeftPanel(Panel):
     def __init__(self, main_window):
         Panel.__init__(self, orient='v')
         self.control_buttons_panel = ControlButtonsPanel()
-        self.plots_panel = PlotsPanel(main_window)
+        self.plots_box = PlotsBox(main_window)
         self.pack_start(self.control_buttons_panel, False, False, 0)
-        self.pack_start(self.plots_panel)
+        self.pack_start(self.plots_box)
         self.add_stretch(1)
         # self.plots_panel.add_plot_panel('pftank2t fit_resid')
         # self.box.addStretch(1)
@@ -542,7 +531,7 @@ class MainWindow(object):
         self.main_left_panel = MainLeftPanel(self)
         mlp = self.main_left_panel
 
-        self.main_right_panel = MainRightPanel(mlp.plots_panel)
+        self.main_right_panel = MainRightPanel(mlp.plots_box)
 
         cbp = mlp.control_buttons_panel
         cbp.fit_button.clicked.connect(FIT_WORKER.start)
@@ -574,9 +563,9 @@ class MainWindow(object):
         sender = self.window.sender()
         # model = widget.get_model()
         # index = widget.get_active()
-        pp = self.main_left_panel.plots_panel
+        pp = self.main_left_panel.plots_box
         print('Add plot {} {}'.format(plotname, sender))
-        pp.add_plot_panel(plotname)
+        pp.add_plot_box(plotname)
         sender.setCurrentIndex(0)
         # if index:
         #     print("Add plot", model[index][0])
@@ -604,7 +593,7 @@ class MainWindow(object):
             # params table widget.
             MODEL.parvals = msg['parvals']
             self.main_right_panel.params_panel.update()
-            self.main_left_panel.plots_panel.update()
+            self.main_left_panel.plots_box.update()
 
         # If fit has not stopped then set another timeout 200 msec from now
         if not fit_stopped:
@@ -641,7 +630,7 @@ class MainWindow(object):
         if filename != '':
             model_spec = MODEL.model_spec
             gui_config['plot_names'] = [x.plot_name
-                                        for x in self.main_left_panel.plots_panel.plot_panels]
+                                        for x in self.main_left_panel.plots_box.plot_panels]
             gui_config['size'] = (self.window.size().width(), self.window.size().height())
             model_spec['gui_config'] = gui_config
             try:
