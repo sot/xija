@@ -247,6 +247,18 @@ def clearLayout(layout):
                 clearLayout(item.layout())
 
 
+class MplCanvas(FigureCanvas):
+    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        self.fig = Figure()  # figsize=(width, height), dpi=dpi)
+
+        super(MplCanvas, self).__init__(self.fig)
+        self.setParent(parent)
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                           QtGui.QSizePolicy.Expanding)
+        self.updateGeometry()
+
+
 class PlotBox(QtGui.QVBoxLayout):
     def __init__(self, plot_name, plots_box):
         super(PlotBox, self).__init__()
@@ -257,8 +269,8 @@ class PlotBox(QtGui.QVBoxLayout):
 
         self.plot_name = plot_name
 
-        mpl_canvas = MplCanvas(parent=None)
-        toolbar = NavigationToolbar(mpl_canvas, parent=None)
+        canvas = MplCanvas(parent=None)
+        toolbar = NavigationToolbar(canvas, parent=None)
 
         delete_plot_button = QtGui.QPushButton('Delete')
         delete_plot_button.clicked.connect(
@@ -269,8 +281,25 @@ class PlotBox(QtGui.QVBoxLayout):
         toolbar_box.addStretch(1)
         toolbar_box.addWidget(delete_plot_button)
 
-        self.addWidget(mpl_canvas)
+        self.addWidget(canvas)
         self.addLayout(toolbar_box)
+
+        self.fig = canvas.fig
+        # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
+        # First such plot has sharex=None, subsequent ones use the first axis.
+        try:
+            xaxis_type = plot_method.split('__')[1]
+        except IndexError:
+            self.ax = self.fig.add_subplot(111)
+        else:
+            sharex = plots_box.sharex.get(xaxis_type)
+            self.ax = self.fig.add_subplot(111, sharex=sharex)
+            if sharex is not None:
+                self.ax.autoscale(enable=False, axis='x')
+            plots_box.sharex.setdefault(xaxis_type, self.ax)
+
+        self.canvas = canvas
+        self.canvas.show()
 
     def update(self):
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
@@ -289,8 +318,7 @@ class PlotsBox(QtGui.QVBoxLayout):
         print('adding plot ', plot_name)
         plot_box = PlotBox(plot_name, self)
         self.addLayout(plot_box)
-        # self.plot_boxs.append(plot_box)
-        # self.main_window.window.show_all()
+        plot_box.update()
 
     def delete_plot_box(self, plot_name):
         for plot_box in self.findChildren(PlotBox):
@@ -300,29 +328,14 @@ class PlotsBox(QtGui.QVBoxLayout):
                 clearLayout(plot_box)
         self.update()
 
-    def _update(self, widget=None):
+    def update_plots(self):
         cbp = self.main_window.main_left_panel.control_buttons_panel
         cbp.update_status.setText(' BUSY... ')
         MODEL.calc()
-        for plot_panel in self.plot_panels:
-            plot_panel.update()
+        for plot_box in self.findChildren(PlotBox):
+            print('Updating plot {}'.format(plot_box.plot_name))
+            plot_box.update()
         cbp.update_status.setText('')
-
-
-class MplCanvas(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure()  # figsize=(width, height), dpi=dpi)
-        self.axes = self.fig.add_subplot(111)
-        t = np.arange(0.0, 3.0, 0.01)
-        s = np.sin(2 * np.pi * t)
-        self.axes.plot(t, s)
-
-        super(MplCanvas, self).__init__(self.fig)
-        self.setParent(parent)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
-        self.updateGeometry()
 
 
 class ParamsPanel(Panel):
@@ -587,7 +600,7 @@ class MainWindow(object):
             # params table widget.
             MODEL.parvals = msg['parvals']
             self.main_right_panel.params_panel.update()
-            self.main_left_panel.plots_box.update()
+            self.main_left_panel.plots_box.update_plots()
 
         # If fit has not stopped then set another timeout 200 msec from now
         if not fit_stopped:
@@ -624,7 +637,7 @@ class MainWindow(object):
         if filename != '':
             model_spec = MODEL.model_spec
             gui_config['plot_names'] = [x.plot_name
-                                        for x in self.main_left_panel.plots_box.plot_panels]
+                                        for x in self.main_left_panel.plots_box.plot_boxes]
             gui_config['size'] = (self.window.size().width(), self.window.size().height())
             model_spec['gui_config'] = gui_config
             try:
