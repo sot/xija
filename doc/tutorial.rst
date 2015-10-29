@@ -66,7 +66,7 @@ residuals versus temperature for the ACIS DPA model.  You can run this with
   msid = '1dpamzt'
   model_spec = 'dpa.json'
 
-  model = xija.ThermalModel('dpa', start=start, stop=stop,
+  model = xija.XijaModel('dpa', start=start, stop=stop,
                             model_spec=model_spec)
   model.make()
   model.calc()
@@ -115,6 +115,10 @@ residuals versus temperature for the ACIS DPA model.  You can run this with
 
   plt.savefig('dpa_resid_{}_{}.png'.format(start, stop))
 
+.. Note::
+
+   ``ThermalModel`` is a synonym for ``XijaModel`` available for back-compatibility,
+   but new code should use ``XijaModel``.
 
 Modifying an existing model
 ----------------------------
