@@ -43,6 +43,54 @@ class ActiveHeatPower(ModelComponent):
     pass
 
 
+class SolarHeatOffNomRoll(PrecomputedHeatPower):
+    """
+    Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
+    heating is proportional to the projection of the sun on body +Y axis (which is a value
+    from -1 to 1).  There are two parameters ``P_plus_y`` and ``P_minus_y``.  For sun on
+    the +Y side the ``P_plus_y`` parameter is used, and likewise for sun on -Y.  For
+    example for +Y sun::
+
+       heat = P_plus_y * sun_body_y
+
+    The following reference has useful diagrams concerning off-nominal roll and
+    projections: http://occweb.cfa.harvard.edu/twiki/pub/Aspect/WebHome/ROLLDEV3.pdf.
+    """
+
+    def __init__(self, model, node, pitch_comp, roll_comp, eclipse_comp=None,
+                 P_plus_y=0.0, P_minus_y=0.0):
+        ModelComponent.__init__(self, model)
+        self.node = self.model.get_comp(node)
+        self.pitch_comp = self.model.get_comp(pitch_comp)
+        self.roll_comp = self.model.get_comp(roll_comp)
+        self.eclipse_comp = self.model.get_comp(eclipse_comp)
+
+        self.add_par('P_plus_y', P_plus_y, min=-5.0, max=5.0)
+        self.add_par('P_minus_y', P_minus_y, min=-5.0, max=5.0)
+        self.n_mvals = 1
+
+    @property
+    def dvals(self):
+        if not hasattr(self, 'sun_body_y'):
+            # Compute the projection of the sun vector on the body +Y axis.
+            # Pitch and off-nominal roll (theta_S and d_phi in OFLS terminology)
+            theta_S = np.radians(self.pitch_comp.dvals)
+            d_phi = np.radians(self.roll_comp.dvals)
+            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi)
+            self.plus_y = self.sun_body_y > 0
+
+        self._dvals = np.where(self.plus_y, self.P_plus_y, self.P_minus_y) * self.sun_body_y
+
+        # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
+        if self.eclipse_comp is not None:
+            self._dvals[self.eclipse_comp.dvals] = 0.0
+
+        return self._dvals
+
+    def __str__(self):
+        return 'solarheat_off_nom_roll__{0}'.format(self.node)
+
+
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)
 

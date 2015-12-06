@@ -424,3 +424,8 @@ class SimZ(TelemData):
     def get_dvals_tlm(self):
         sim_z_mm = self.model.fetch(self.msid)
         return np.rint(sim_z_mm * -397.7225924607)
+
+
+class Roll(TelemData):
+    def __init__(self, model):
+        TelemData.__init__(self, model, 'roll')
