@@ -6,6 +6,12 @@ import pytest
 from xija import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
 from numpy import sin, cos, abs
 
+try:
+    import Ska.Matplotlib
+    HAS_PLOTDATE = True
+except ImportError:
+    HAS_PLOTDATE = False
+
 print
 print 'Version =', __version__
 
@@ -60,7 +66,7 @@ def test_pitch_clip():
     mdl.calc()
 
 
-def test_dpa():
+def get_dpa_model():
     mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
                             model_spec=abs_path('dpa.json'))
     times = (mdl.times - mdl.times[0]) / 10000.0
@@ -80,6 +86,11 @@ def test_dpa():
 
     mdl.make()
     mdl.calc()
+    return mdl
+
+
+def test_dpa():
+    mdl = get_dpa_model()
     dpa = mdl.comp['1dpamzt']
     reffile = abs_path('dpa.npz')
     if not os.path.exists(reffile):
@@ -91,6 +102,13 @@ def test_dpa():
     assert np.allclose(mdl.times, regr['times'])
     assert np.allclose(dpa.dvals, regr['dvals'])
     assert np.allclose(dpa.mvals, regr['mvals'])
+
+
+@pytest.mark.skipif('not HAS_PLOTDATE')
+def test_plotdate():
+    # Make sure model_plotdate property works
+    mdl = get_dpa_model()
+    mdl.comp['1dpamzt'].model_plotdate
 
 
 def test_data_types():
