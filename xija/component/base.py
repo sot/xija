@@ -44,10 +44,15 @@ class ModelComponent(object):
         self.predict = False  # Predict values for this model component
         self.data = None
         self.data_times = None
-        self.model_plotdate = cxctime2plotdate(self.model.times)
 
     n_parvals = property(lambda self: len(self.parvals))
     times = property(lambda self: self.model.times)
+
+    @property
+    def model_plotdate(self):
+        if not hasattr(self, '_model_plotdate'):
+            self._model_plotdate = cxctime2plotdate(self.model.times)
+        return self._model_plotdate
 
     def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{:.4g}",
                 frozen=False):
