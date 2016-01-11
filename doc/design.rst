@@ -25,11 +25,35 @@ Xija features
 * Fitting engine provided by `Sherpa <http://cxc.harvard.edu/contrib/sherpa>`_.
 
 
+Conceptual overview
+^^^^^^^^^^^^^^^^^^^^
+
+The schematic diagram below of the ACIS focal plane model graphically illustrates the basic
+idea of the Xija framework.  A model consists of one or more nodes (blue boxes) which
+can be heated or cooled in different ways:
+
+* Coupling to other nodes (red arrows)
+* External heating from external sources:
+  * Sun
+  * Electronics (not shown in diagram)
+  * Earth
+  * Thermostat heater
+* Passive cooling to a fixed temperature bath (heat sink)
+
+.. image:: acis_fp_model_schematic.png
+   :width: 800 px
+
+.. Note::
+   The schematic above shows a separate Cold Radiator component, but the actual ACIS FP model
+   does not include this component, so the arrows pointing there instead go directly to the
+   Focal Plane node.  Also the passive cooling to "space" is not literally to 2.7 K, and the
+   real model has other heat sinks that are not shown.
+
 Modular and extensible
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``xija`` package provides functions and classes to assemble and
-calculate a thermal model.  
+calculate a thermal model.
 
 At the top level there is a single class :class:`xija.XijaModel` that
 encapsulates the key information about a model including the model components,
@@ -38,15 +62,15 @@ model parameters, and the times at which the model is evaluated.
 Each model component is handled by a
 separate Python class.  Some currently implemented examples include:
 
-* :class:`~xija.ModelComponent` : model component base class (name, parameter methods)
-* :class:`~xija.Node` : single node with a temperature, sigma, data_quantization, etc
-* :class:`~xija.Coupling` : Couple two nodes together (one-way coupling)
-* :class:`~xija.HeatSink` : Fixed temperature external heat bath
-* :class:`~xija.SolarHeat` : Solar heating (pitch dependent)
-* :class:`~xija.EarthHeat` : Earth heating of ACIS cold radiator (attitude, ephem dependent)
-* :class:`~xija.PropHeater` : Proportional heater (P = k * (T - T_set) for T > T_set)
-* :class:`~xija.ThermostatHeater` : Thermostat heater (with configurable deadband)
-* :class:`~xija.AcisDpaStatePower` : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)
+* :class:`~xija.component.base.ModelComponent` : model component base class (name, parameter methods)
+* :class:`~xija.component.base.Node` : single node with a temperature, sigma, data_quantization, etc
+* :class:`~xija.component.base.Coupling` : Couple two nodes together (one-way coupling)
+* :class:`~xija.component.base.HeatSink` : Fixed temperature external heat bath
+* :class:`~xija.component.heat.SolarHeat` : Solar heating (pitch dependent)
+* :class:`~xija.component.heat.EarthHeat` : Earth heating of ACIS cold radiator (attitude, ephem dependent)
+* :class:`~xija.component.heat.PropHeater` : Proportional heater (P = k * (T - T_set) for T > T_set)
+* :class:`~xija.component.heat.ThermostatHeater` : Thermostat heater (with configurable deadband)
+* :class:`~xija.component.heat.AcisDpaStatePower` : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)
 
 As needed additional model components can be added.
 
