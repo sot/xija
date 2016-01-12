@@ -134,6 +134,10 @@ class XijaModel(object):
             raise ValueError('Number of spec pars does not match model: \n'
                              '{0}\n{1}'.format(len(pars), len(self.pars)))
         for par, specpar in zip(self.pars, pars):
+            if par['full_name'] != specpar['full_name']:
+                raise ValueError('Par full name from model spec {} '
+                                 'does not match expected {}'
+                                 .format(specpar['full_name'], par['full_name']))
             for attr in specpar:
                 setattr(par, attr, specpar[attr])
 
