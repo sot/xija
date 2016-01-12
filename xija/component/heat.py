@@ -248,6 +248,16 @@ class SolarHeat(PrecomputedHeatPower):
             ax.set_xlim(40, 180)
             ax.grid()
 
+    def plot_solar_heat__time(self, fig, ax):
+        lines = ax.get_lines()
+        if not lines:
+            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data'.format(self.name))
+            ax.margins(0.05)
+        else:
+            lines[0].set_data(self.model_plotdate, self.dvals)
+
 
 class SolarHeatAcisCameraBody(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent)
