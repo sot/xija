@@ -49,6 +49,11 @@ can be heated or cooled in different ways:
    Focal Plane node.  Also the passive cooling to "space" is not literally to 2.7 K, and the
    real model has other heat sinks that are not shown.
 
+Points to remember:
+
+* No physical units. Everything is scale-free and it is assumed that each node has unit thermal mass.
+* Coupling is one-way and this is how one effectively generates different node masses.
+
 Modular and extensible
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
