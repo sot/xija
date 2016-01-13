@@ -302,11 +302,12 @@ class PlotPanel(Panel):
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         plot_func(fig=self.fig, ax=self.ax)
         lines = self.ax.get_lines()
-        ymin, ymax = self.ax.get_ylim()
-        for line in lines:
-            ymin = min(ymin, np.min(line.get_ydata()))
-            ymax = max(ymax, np.max(line.get_ydata()))
-        self.ax.set_ylim(ymin, ymax)
+        if gui_config['autoscale']:
+            ymin, ymax = self.ax.get_ylim()
+            for line in lines:
+                ymin = min(ymin, np.min(line.get_ydata()))
+                ymax = max(ymax, np.max(line.get_ydata()))
+            self.ax.set_ylim(ymin, ymax)
         self.canvas.draw()
 
 
@@ -660,6 +661,10 @@ def get_options():
                       default=False,
                       action='store_true',
                       help="Maintain epoch in SolarHeat models (default=recenter on fit interval)")
+    parser.add_argument("--autoscale",
+                      default=False,
+                      action='store_true',
+                      help="Autoscale the y-axis")
 
     return parser.parse_args()
 
@@ -726,6 +731,7 @@ def main():
 
     gui_config['filename'] = os.path.abspath(opt.filename)
     gui_config['set_data_vals'] = set_data_vals
+    gui_config['autoscale'] = opt.autoscale
 
     if not opt.keep_epoch:
         new_epoch = np.mean(model.times[[0, -1]])
