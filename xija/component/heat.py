@@ -281,8 +281,8 @@ class SolarHeatAcisCameraBody(SolarHeat):
     :param dh_heater_bias: bias power when DH heater is on
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
-                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 P_pitches=None, Ps=None, dPs=None, var_func='linear',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch=None,
                  dh_heater_comp=None, dh_heater_bias=0.0):
 
         super(SolarHeatAcisCameraBody, self).__init__(
@@ -318,8 +318,8 @@ class SolarHeatHrc(SolarHeat):
     :param hrc_bias: solar heating bias when SIM-Z < 0 (HRC)
     """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
-                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 P_pitches=None, Ps=None, dPs=None, var_func='linear',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch=None,
                  hrc_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, var_func, tau, ampl, bias,
