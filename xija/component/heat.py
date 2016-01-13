@@ -108,8 +108,8 @@ class SolarHeat(PrecomputedHeatPower):
     :param epoch: reference date at which ``Ps`` values apply
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
-                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
+                 P_pitches=None, Ps=None, dPs=None, var_func='linear',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch=None):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
@@ -128,6 +128,8 @@ class SolarHeat(PrecomputedHeatPower):
             dPs = np.zeros_like(self.P_pitches)
         self.dPs = np.array(dPs, dtype=np.float)
 
+        if epoch is None:
+            raise ValueError('Error - epoch must be explicitly specified in SolarHeat component')
         self.epoch = epoch
 
         for pitch, power in zip(self.P_pitches, self.Ps):
