@@ -360,6 +360,7 @@ class ParamsPanel(Panel):
             entry.set_width_chars(6)
             entry.connect('activate', self.par_attr_changed, adj, par, 'max')
 
+        params_table.box.set_size_request(500, -1)
         self.pack_start(params_table.box, True, True, padding=10)
         self.params_table = params_table
 
@@ -410,8 +411,8 @@ class ParamsPanel(Panel):
 class ConsolePanel(Panel):
     def __init__(self, fit_worker):
         Panel.__init__(self, orient='v')
-        self.fit_worker = fit_worker
-        self.pack_start(gtk.Label('console_panel'), False, False, 0)
+        self.box.set_size_request(-1, 1)
+        self.pack_start(gtk.Label(''), False, False, 0)
 
 
 class ControlButtonsPanel(Panel):
@@ -473,8 +474,8 @@ class MainRightPanel(Panel):
         self.params_panel = ParamsPanel(fit_worker, plots_panel)
         self.console_panel = ConsolePanel(fit_worker)
 
-        self.pack_start(self.params_panel)
-        self.pack_start(self.console_panel, False)
+        self.pack_start(self.params_panel, True, True, 0)
+        self.pack_end(gtk.Label(''), True, False, 0)
 
 
 class MainWindow(object):
