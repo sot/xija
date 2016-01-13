@@ -294,13 +294,19 @@ class PlotPanel(Panel):
             if sharex is not None:
                 self.ax.autoscale(enable=False, axis='x')
             plots_panel.sharex.setdefault(xaxis_type, self.ax)
-            
+
         self.canvas = canvas
         self.canvas.show()
 
     def update(self):
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         plot_func(fig=self.fig, ax=self.ax)
+        lines = self.ax.get_lines()
+        ymin, ymax = self.ax.get_ylim()
+        for line in lines:
+            ymin = min(ymin, np.min(line.get_ydata()))
+            ymax = max(ymax, np.max(line.get_ydata()))
+        self.ax.set_ylim(ymin, ymax)
         self.canvas.draw()
 
 
