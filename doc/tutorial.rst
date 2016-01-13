@@ -40,12 +40,89 @@ model fitting tool.  Within the ``xija`` directory the key files are::
             heat.py    Heat components (SolarHeat, passive and active heaters)
             mask.py    Mask components
 
-Creating a model
----------------------
+Creating and understanding models
+----------------------------------
 
-The basics of defining a new model and exploring the model and components for
-that model are illustrated in the `Xija create model <xija_create_model.html>`_
-IPython notebook page.
+The example models show here are available in the ``examples/doc/`` directory of the Xija git repository.
+
+Example 1: simplest model
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Start with the simplest example with a single node with solar heating.  We use only two
+bin points at 45 and 180 degrees.
+::
+
+  model = xija.XijaModel(name, start='2015:001', stop='2015:050')
+
+  model.add(xija.Node, 'aacccdpt')
+
+  model.add(xija.Pitch)
+
+  model.add(xija.Eclipse)
+
+  model.add(xija.SolarHeat,
+            node='aacccdpt',
+            pitch_comp='pitch',
+            eclipse_comp='eclipse',
+            P_pitches=[45, 180],
+            Ps=[0.0, 0.0],
+            ampl=0.0,
+            epoch='2010:001',
+           )
+
+Points for discussion:
+
+* What is fundamentally wrong with this model?
+
+Example 2: add a heat sink
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Same as example 1, but add a heat sink with a temperature of -16 C and a tau of 30 ksec.
+::
+
+  model.add(xija.HeatSink,
+            node='aacccdpt',
+            tau=30.0,
+            T=-16.0,
+           )
+
+Points for discussion:
+
+* Twiddle each fittable parameter and observe the response.
+* Use a longer interval `./gui_fit.py example2.json --stop=2015:240 --days=400`
+  for dP and solar amplitude.
+* Discuss epoch: `./gui_fit.py example2.json --stop=2015:240 --days=400 --keep-epoch`.
+  It is important to verify that SolarHeat epoch is explicitly in JSON file in order
+  to have auto-epoch updating.  This should be an ``"epoch"`` field in the ``"init_kwargs"``
+  element of ``SolarHeat`` components.  (Note: ``SolarHeatOffNomRoll`` is a bit different
+  and does not have an epoch).
+
+Example 3: add pitch bins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Same as example 2, but now the ``SolarHeat`` component has 6 pitch bins::
+
+  model.add(xija.SolarHeat,
+            node='aacccdpt',
+            pitch_comp='pitch',
+            eclipse_comp='eclipse',
+            [45, 70, 90, 115, 140, 180],
+            [0.0] * 6,
+            ampl=0.0,
+            epoch='2010:001',
+           )
+
+Points for discussion:
+
+* Fit the model
+
+  * Naive try.
+  * Set heat sink time scale
+
+* Managing degenerate model parameters (heatsink T, solarheat bias, solarheat P values).
+* But note: eclipse data breaks degeneracy.  This can be used for short-timescale components.
+* Save the best fit as ``example3_fit.json``
+
 
 Working with a model
 ---------------------
@@ -203,10 +280,10 @@ Command line options
 
 The GUI fit tool supports the following command line options::
 
-  ccosmos$ ./gui_fit.py --help
+  % ./gui_fit.py --help
   usage: gui_fit.py [-h] [--days DAYS] [--stop STOP] [--nproc NPROC]
                     [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
-                    [--set-data SET_DATA_EXPRS] [--quiet]
+                    [--set-data SET_DATA_EXPRS] [--quiet] [--keep-epoch]
                     filename
 
   positional arguments:
@@ -224,11 +301,8 @@ The GUI fit tool supports the following command line options::
     --set-data SET_DATA_EXPRS
                           Set data value as '<comp_name>=<value>'
     --quiet               Suppress screen output
-
-  usage: gui_fit.py [-h] [--days DAYS] [--stop STOP] [--nproc NPROC]
-                    [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
-                    [--quiet]
-                    filename
+    --keep-epoch          Maintain epoch in SolarHeat models (default=recenter
+                          on fit interval)
 
 Most of the time you should use the ``--days`` and ``--stop`` options.  Note that
 if you have saved a model specification and then restart ``gui_fit.py``, the
