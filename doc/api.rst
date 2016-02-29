@@ -1,65 +1,29 @@
 API docs
 ==========
 
-.. automodule:: xija
+Model
+-----
 
-Base Classes
---------------------
-
-.. autoclass:: XijaModel
+.. automodule:: xija.model
    :members:
-   :undoc-members:
 
-.. autoclass:: ModelComponent
+Components
+----------
+
+Base classes
+^^^^^^^^^^^^
+
+.. automodule:: xija.component.base
    :members:
-   :undoc-members:
 
-Model component classes
--------------------------
+Heat classes
+^^^^^^^^^^^^
 
-.. autoclass:: AcisDeaPower
+.. automodule:: xija.component.heat
+   :members:
 
-.. autoclass:: AcisDpaPower
+Mask classes
+^^^^^^^^^^^^
 
-.. autoclass:: AcisDpaStatePower
-
-.. autoclass:: AcisPsmcPower
-
-.. autoclass:: AcisPsmcSolarHeat
-
-.. autoclass:: ActiveHeatPower
-
-.. autoclass:: Coupling
-
-.. autoclass:: DpaSolarHeat
-
-.. autoclass:: EarthHeat
-
-.. autoclass:: Eclipse
-
-.. autoclass:: HeatSink
-
-.. autoclass:: HeatSinkRef
-
-.. autoclass:: Mask
-
-.. autoclass:: ModelComponent
-
-.. autoclass:: Node
-
-.. autoclass:: Param
-
-.. autoclass:: Pitch
-
-.. autoclass:: PrecomputedHeatPower
-
-.. autoclass:: PropHeater
-
-.. autoclass:: SimZ
-
-.. autoclass:: SolarHeat
-
-.. autoclass:: TelemData
-
-.. autoclass:: ThermostatHeater
-
+.. automodule:: xija.component.mask
+   :members:

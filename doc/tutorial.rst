@@ -6,11 +6,12 @@ Setup for Xija modeling
 
 When you first start working with Xija create a local copy of the Xija source code::
 
-  % mkdir -p ~/git
+  % mkdir -p ~/git  # OR WHEREVER, but ~/git is easiest!
   % cd ~/git
   % git clone git://github.com/sot/xija.git  # on HEAD
   % git clone /proj/sot/ska/git/xija         # on GRETA
   % cd xija
+  % setenv XIJA $PWD
   % python setup.py build_ext --inplace  # build C core module
 
 Later on you should work in your xija repository and update to the latest development version of Xija::
@@ -23,7 +24,7 @@ Finally set the PYTHONPATH environment variable to ensure that you import
 your local version of xija from any sub-directory where you might be
 working::
 
-  % setenv PYTHONPATH $PWD
+  % setenv PYTHONPATH $XIJA
 
 Navigating the Xija source
 ---------------------------
@@ -40,12 +41,121 @@ model fitting tool.  Within the ``xija`` directory the key files are::
             heat.py    Heat components (SolarHeat, passive and active heaters)
             mask.py    Mask components
 
-Creating a model
----------------------
+Creating and understanding models
+----------------------------------
 
-The basics of defining a new model and exploring the model and components for
-that model are illustrated in the `Xija create model <xija_create_model.html>`_
-IPython notebook page.
+The example models show here are available in the ``examples/doc/`` directory of the Xija git repository.
+
+Each model component is handled by a
+separate Python class.  Some currently implemented examples include:
+
+* :class:`~xija.component.base.ModelComponent` : model component base class (name, parameter methods)
+* :class:`~xija.component.base.Node` : single node with a temperature, sigma, data_quantization, etc
+* :class:`~xija.component.base.Coupling` : Couple two nodes together (one-way coupling)
+* :class:`~xija.component.base.HeatSink` : Fixed temperature external heat bath
+* :class:`~xija.component.heat.SolarHeat` : Solar heating (pitch dependent)
+* :class:`~xija.component.heat.EarthHeat` : Earth heating of ACIS cold radiator (attitude, ephem dependent)
+* :class:`~xija.component.heat.PropHeater` : Proportional heater (P = k * (T - T_set) for T > T_set)
+* :class:`~xija.component.heat.ThermostatHeater` : Thermostat heater (with configurable deadband)
+* :class:`~xija.component.heat.AcisDpaStatePower` : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)
+
+Example 1: simplest model
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Start with the simplest example with a single node with solar heating.  We use only two
+bin points at 45 and 180 degrees.
+::
+
+  model = xija.XijaModel(name, start='2015:001', stop='2015:050')
+
+  model.add(xija.Node, 'aacccdpt')
+
+  model.add(xija.Pitch)
+
+  model.add(xija.Eclipse)
+
+  model.add(xija.SolarHeat,
+            node='aacccdpt',
+            pitch_comp='pitch',
+            eclipse_comp='eclipse',
+            P_pitches=[45, 180],
+            Ps=[0.0, 0.0],
+            ampl=0.0,
+            epoch='2010:001',
+           )
+
+To make and run the model do::
+
+  % cd $XIJA/examples/doc
+  % python example1.py
+  % ../../gui_fit.py example1.json --autoscale
+
+Points for discussion:
+
+* What is fundamentally wrong with this model?
+
+Example 2: add a heat sink
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Same as example 1, but add a heat sink with a temperature of -16 C and a tau of 30 ksec.
+::
+
+  model.add(xija.HeatSink,
+            node='aacccdpt',
+            tau=30.0,
+            T=-16.0,
+           )
+
+To make and run the model do::
+
+  % cd $XIJA/examples/doc
+  % python example2.py
+  % ../../gui_fit.py example2.json --autoscale
+
+Points for discussion:
+
+* Twiddle each fittable parameter and observe the response.
+* Use a longer interval `./gui_fit.py example2.json --autoscale --stop=2015:240 --days=400`
+  for dP and solar amplitude.
+* Discuss epoch: `./gui_fit.py example2.json --autoscale --stop=2015:240 --days=400 --keep-epoch`.
+  It is important to verify that SolarHeat epoch is explicitly in JSON file in order
+  to have auto-epoch updating.  This should be an ``"epoch"`` field in the ``"init_kwargs"``
+  element of ``SolarHeat`` components.  (Note: ``SolarHeatOffNomRoll`` is a bit different
+  and does not have an epoch).
+
+Example 3: add pitch bins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Same as example 2, but now the ``SolarHeat`` component has 6 pitch bins::
+
+  model.add(xija.SolarHeat,
+            node='aacccdpt',
+            pitch_comp='pitch',
+            eclipse_comp='eclipse',
+            [45, 70, 90, 115, 140, 180],
+            [0.0] * 6,
+            ampl=0.0,
+            epoch='2010:001',
+           )
+
+To make and run the model do::
+
+  % cd $XIJA/examples/doc
+  % python example2.py
+  % ../../gui_fit.py example3.json --stop=2015:240 --days=400
+
+Points for discussion:
+
+* Why no ``--autoscale``?
+* Fit the model
+
+  * Naive try.
+  * Set heat sink time scale
+
+* Managing degenerate model parameters (heatsink T, solarheat bias, solarheat P values).
+* But note: eclipse data breaks degeneracy.  This can be used for short-timescale components.
+* Save the best fit as ``example3_fit.json``
+
 
 Working with a model
 ---------------------
@@ -195,7 +305,7 @@ The image below shows an example of fitting the ACIS DPA model with
 
 Live demo using a Ska window::
 
-  cd ~/git/xija/examples/pcm
+  cd $XIJA/examples/pcm
   ../../gui_fit.py pcm.json --stop 2012:095 --days 30
 
 Command line options
@@ -203,10 +313,10 @@ Command line options
 
 The GUI fit tool supports the following command line options::
 
-  ccosmos$ ./gui_fit.py --help
+  % ./gui_fit.py --help
   usage: gui_fit.py [-h] [--days DAYS] [--stop STOP] [--nproc NPROC]
                     [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
-                    [--set-data SET_DATA_EXPRS] [--quiet]
+                    [--set-data SET_DATA_EXPRS] [--quiet] [--keep-epoch]
                     filename
 
   positional arguments:
@@ -224,11 +334,8 @@ The GUI fit tool supports the following command line options::
     --set-data SET_DATA_EXPRS
                           Set data value as '<comp_name>=<value>'
     --quiet               Suppress screen output
-
-  usage: gui_fit.py [-h] [--days DAYS] [--stop STOP] [--nproc NPROC]
-                    [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
-                    [--quiet]
-                    filename
+    --keep-epoch          Maintain epoch in SolarHeat models (default=recenter
+                          on fit interval)
 
 Most of the time you should use the ``--days`` and ``--stop`` options.  Note that
 if you have saved a model specification and then restart ``gui_fit.py``, the
@@ -299,41 +406,33 @@ Fit strategy
 Fitting Xija models is a bit of an art and will it take some time to develop
 skill here.  A few rules of thumb and tips:
 
-* Start with all long-term variations frozen.  You want to begin with a single
-  relatively short epoch (perhaps 2-3 months) that is centered on the model
-  epoch.  The model epoch is typically defined in the solarheat component and
-  defaults to 2010:001. Start by try to get the model in the
-  right ballpark. Typically this means::
+* Start with all long-term variations frozen.  You want to begin with a single time span
+  that is about a year long and ends near the present.  The more parameters in the model
+  that get fit, the more data you need.  Start by try to get the model in the right
+  ballpark. Typically this means::
 
-    freeze solarheat_*_dP_*
-    freeze solarheat_*_tau
-    freeze solarheat_*_ampl
-    thaw solarheat_*_P_*
-    thaw heatsink_*
-    thaw coupling_*
+    Freeze?   Parameters         Initial values
+    -------   ------------------ ----------------------
+    freeze    solarheat_*_dP_*        0
+    freeze    solarheat_*_tau       365
+    freeze    solarheat_*_ampl        0
+    freeze    heatsink_T          ~10 deg below typical
+    thaw      solarheat_*_P_*         0
+    thaw      heatsink_tau        Typical time scale
+    thaw      coupling_*             30
 
 * Almost always have the ``solarheat_*_bias`` terms frozen at 0.  This
   parameter is degenerate with the ``solarheat_*_P_*`` values and is used for
   certain diagnostics.
 
-* Once you have a model that fits reasonably well over a 3-month time period
-  then freeze all parameters *except* for ``solarheat_*_dP_*``.  Fit over
-  a 3-month time period which is at least a couple of years separated from
-  the initial fit epoch.
+* Once you have a model that fits reasonably well over the one year period then freeze all
+  parameters *except* for ``solarheat_*_dP_*`` and ``solarheat_*_ampl`` parameters.  Fit
+  over a 2-3 year time period which ends at the present time.
 
-* Next do a fit for at least a year (but preferably more depending on the model
-  complexity).  This time also thaw the ``solarheat_*_dP_*`` and
-  ``solarheat_*_ampl`` parameters.  You might want to refine the
-  ``solarheat_*_P_*`` parameters at this point by thawing those ones and
-  freezing the long-term parameters and fitting.  Remember that if the
-  time span is not long enough then ``P`` and ``dP`` are degenerate and
-  the fit may not converge.
-
-* Finally you can re-freeze all the ``solarheat_*_dP_*`` and
-  ``solarheat_*_P_*`` parameters and try to nail the very long term behavior
-  by fitting for just the ``solarheat_*_tau`` and ``solarheat_*_ampl`` params
-  for 5 years of data.  Beyond that is probably not useful because of 
-  changes on-board that probably are not captured by the model.
+* Next you might want to refine the ``solarheat_*_P_*`` parameters at this point by
+  thawing those ones and freezing the long-term parameters and fitting.  Remember that if
+  the time span is not long enough then ``P`` and ``dP`` are degenerate and the fit may
+  not converge.
 
 * It can be useful to include long normal-sun dwells in the fitting to have
   some high-temperature data in the fit dataset.
@@ -346,14 +445,6 @@ skill here.  A few rules of thumb and tips:
   ``<modelname>_model_spec.json``, so avoid using this name during development.
 
 * Saving also saves the state of plots and your parameters.
-
-Example::
-
-  # Initial fit for solarheat and coupling parameters.  Save as minusz_2.json
-  ./gui_fit.py minusz/minusz.json --stop 2010:045 --days 90
-
-  # Initial fit for long term variation.  Save as minusz_3.json
-  ./gui_fit.py minusz/minusz_2.json --stop 2012:095 --days 90
 
 Bad Times
 ---------
