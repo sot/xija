@@ -491,6 +491,52 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         self.var_func = getattr(self, var_func)
 
     @property
+    def epoch(self):
+        return self._epoch
+
+    @epoch.setter
+    def epoch(self, value):
+        if hasattr(self, '_epoch'):
+            if self.var_func is not self.linear:
+                raise AttributeError('can only reset the epoch for var_func=linear')
+
+            new_epoch = DateTime(value)
+            epoch = DateTime(self.epoch)
+            days = new_epoch - epoch
+
+            # Don't make tiny updates to epoch
+            if abs(days) < 10:
+                return
+
+            # Update the Ps params in place.  Note that self.Ps is basically for
+            # setting the array size whereas the self.pars vals are the actual values
+            # taken from the model spec file and used in fitting.
+            n_pitches = len(self.P_pitches)
+            Ps = self.parvals[0:n_pitches * 4]
+            dPs = self.parvals[n_pitches * 4: n_pitches * 5]
+            dPs = np.concatenate([dPs] * 4)
+            Ps += dPs * days / self.tau
+            for par, P in izip(self.pars, Ps):
+                par.val = P
+                if P > par.max:
+                    par.max = P
+                elif P < par.min:
+                    par.min = P
+
+            print('Updated model component {} epoch from {} to {}'
+                  .format(self, epoch.date[:8], new_epoch.date[:8]))
+
+            # In order to capture the new epoch when saving the model we need to
+            # update ``init_kwargs`` since this isn't a formal model parameter
+            self.init_kwargs['epoch'] = new_epoch.date[:8]
+
+            # Delete these cached attributes which depend on epoch
+            delattr(self, 't_days')
+            delattr(self, 't_phase')
+
+        self._epoch = value
+
+    @property
     def dvals(self):
         if not hasattr(self, 'pitches'):
             self.pitches = np.clip(self.pitch_comp.dvals, self.P_pitches[0], self.P_pitches[-1])
