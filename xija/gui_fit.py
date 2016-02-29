@@ -476,7 +476,6 @@ class MainRightPanel(Panel):
         self.console_panel = ConsolePanel(fit_worker)
 
         self.pack_start(self.params_panel, True, True, 0)
-        self.pack_end(gtk.Label(''), True, False, 0)
 
 
 class MainWindow(object):
