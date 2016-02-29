@@ -22,22 +22,21 @@
         }, 
         {
             "class_name": "SolarHeat", 
-            "init_args": [
-                "aacccdpt", 
-                "pitch", 
-                "eclipse", 
-                [
+            "init_args": [], 
+            "init_kwargs": {
+                "P_pitches": [
                     45, 
                     180
                 ], 
-                [
+                "Ps": [
                     0.0, 
                     0.0
-                ]
-            ], 
-            "init_kwargs": {
+                ], 
                 "ampl": 0.0, 
-                "epoch": "2010:001"
+                "eclipse_comp": "eclipse", 
+                "epoch": "2010:001", 
+                "node": "aacccdpt", 
+                "pitch_comp": "pitch"
             }, 
             "name": "solarheat__aacccdpt"
         }
