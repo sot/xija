@@ -109,7 +109,7 @@ class SolarHeat(PrecomputedHeatPower):
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='linear',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch=None):
+                 tau=365.0, ampl=0.05, bias=0.0, epoch=None):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
@@ -282,7 +282,7 @@ class SolarHeatAcisCameraBody(SolarHeat):
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='linear',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch=None,
+                 tau=365.0, ampl=0.05, bias=0.0, epoch=None,
                  dh_heater_comp=None, dh_heater_bias=0.0):
 
         super(SolarHeatAcisCameraBody, self).__init__(
@@ -319,7 +319,7 @@ class SolarHeatHrc(SolarHeat):
     """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='linear',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch=None,
+                 tau=365.0, ampl=0.05, bias=0.0, epoch=None,
                  hrc_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, var_func, tau, ampl, bias,
@@ -459,7 +459,7 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
     """Solar heating of PSMC box.  This is dependent on SIM-Z"""
     def __init__(self, model, node, pitch_comp, simz_comp, dh_heater_comp, P_pitches=None,
                  P_vals=None, dPs=None, var_func='linear',
-                 tau=1732.0, ampl=0.05, epoch='2013:001', dh_heater=0.05):
+                 tau=365.0, ampl=0.05, epoch='2013:001', dh_heater=0.05):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = self.model.get_comp(node)
