@@ -21,6 +21,11 @@ if (os.name == "nt"):
 else:
     link_args = []
 
+try:
+    from testr.setup_helper import cmdclass
+except ImportError:
+    cmdclass = {}
+
 core6_ext = Extension('xija.core', ['xija/core.c'],
                       extra_link_args=link_args)
 
@@ -29,9 +34,10 @@ setup(name='xija',
       description='Thermal modeling framework for Chandra',
       long_description=long_description,
       author='Tom Aldcroft',
-      author_email='aldcroft@head.cfa.harvard.edu',
+      author_email='taldcroft@cfa.harvard.edu',
       url='https://github.com/sot/xija',
       license='BSD',
+      zip_safe=False,
       platforms=['any'],
       ext_modules=[core6_ext],
       classifiers=[
@@ -46,4 +52,6 @@ setup(name='xija',
       packages=['xija', 'xija.component', 'xija.tests'],
       package_data={'xija': ['libcore.so'],
                     'xija.tests': ['*.npz', '*.json']},
+      tests_require=['pytest'],
+      cmdclass=cmdclass,
       )
