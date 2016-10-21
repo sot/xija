@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 long_description = """
 Xija (pronounced "kiy - yuh", rhymes with Maya) is the thermal modeling
