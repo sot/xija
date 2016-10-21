@@ -137,7 +137,7 @@ def test_minusz():
     mdl.make()
     mdl.calc()
 
-    regrfile = 'minusz.npz'
+    regrfile = abs_path('minusz.npz')
     if not os.path.exists(regrfile):
         print 'Writing reference file', regrfile
         kwargs = {msid: mdl.comp[msid].mvals for msid in msids}
