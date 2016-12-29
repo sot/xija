@@ -1,4 +1,5 @@
 import numpy as np
+import six
 
 try:
     from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
@@ -130,9 +131,9 @@ class ModelComponent(object):
             elif isinstance(self.data, np.ndarray):
                 dvals = self.model.interpolate_data(self.data, self.data_times,
                                                     str(self))
-            elif isinstance(self.data, (int, long, float, np.integer, np.floating,
-                                        bool, basestring)):
-                if isinstance(self.data, basestring):
+            elif isinstance(self.data, (six.integer_types, float, np.integer, np.floating,
+                                        bool, str)):
+                if isinstance(self.data, six.string_types):
                     dtype = 'S{}'.format(len(self.data))
                 else:
                     dtype = type(self.data)

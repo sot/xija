@@ -1,7 +1,8 @@
 from .model import *
 from .component import *
 from .files import files
-from .version import version as __version__
+
+__version__ = '3.7.1'
 
 
 def test(*args, **kwargs):

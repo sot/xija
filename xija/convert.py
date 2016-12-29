@@ -28,12 +28,12 @@ def main():
             outfile = infile + '.py'
 
     if os.path.exists(outfile) and not args.force:
-        print 'Error: {} exists.  Use --force to overwrite.'.format(outfile)
+        print('Error: {} exists.  Use --force to overwrite.'.format(outfile))
         sys.exit(1)
 
     model = xija.XijaModel(model_spec=infile)
     model.write(outfile)
-    print 'Wrote', outfile
+    print('Wrote', outfile)
 
 if __name__ == '__main__':
     main()

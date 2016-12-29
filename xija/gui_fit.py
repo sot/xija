@@ -507,10 +507,10 @@ class MainWindow(object):
             try:
                 plot_index = cbp.plot_names.index(plot_name) + 1
                 cbp.add_plot_button.set_active(plot_index)
-                print "Adding plot {} {}".format(plot_name, plot_index)
+                print("Adding plot {} {}".format(plot_name, plot_index))
                 time.sleep(0.05)  # is it needed?
             except ValueError:
-                print "ERROR: Unexpected plot_name {}".format(plot_name)
+                print("ERROR: Unexpected plot_name {}".format(plot_name))
 
         # Show everything finally
         self.window.show_all()
@@ -528,7 +528,7 @@ class MainWindow(object):
         index = widget.get_active()
         pp = self.main_left_panel.plots_panel
         if index:
-            print "Add plot", model[index][0]
+            print("Add plot", model[index][0])
             pp.add_plot_panel(model[index][0])
             pp.update()
         widget.set_active(0)
@@ -544,9 +544,9 @@ class MainWindow(object):
             fit_stopped = msg['status'] in ('terminated', 'finished')
             if fit_stopped:
                 fit_worker.fit_process.join()
-                print "\n*********************************"
-                print "  FIT", msg['status'].upper()
-                print "*********************************\n"
+                print("\n*********************************")
+                print("  FIT", msg['status'].upper())
+                print("*********************************\n")
                 break
 
         if msg:
@@ -575,7 +575,7 @@ class MainWindow(object):
         cmd = vals[0]  # currently freeze or thaw
         if cmd not in ('freeze', 'thaw') or len(vals) <= 1:
             # dialog box..
-            print "ERROR: bad command: {}".format(command)
+            print("ERROR: bad command: {}".format(command))
             return
         par_regexes = [fnmatch.translate(x) for x in vals[1:]]
 
@@ -617,7 +617,7 @@ class MainWindow(object):
                 self.fit_worker.model.write(filename, model_spec)
                 gui_config['filename'] = filename
             except IOError:
-                print "Error writing {}".format(filename)
+                print("Error writing {}".format(filename))
                 # Raise a dialog box here.
         
 
@@ -710,7 +710,7 @@ def main():
         inherit_pars = {par['full_name']: par for par in inherit_spec['pars']}
         for par in model.pars:
             if par.full_name in inherit_pars:
-                print "Inheriting par {}".format(par.full_name)
+                print("Inheriting par {}".format(par.full_name))
                 par.val = inherit_pars[par.full_name]['val']
                 par.min = inherit_pars[par.full_name]['min']
                 par.max = inherit_pars[par.full_name]['max']
