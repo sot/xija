@@ -1,4 +1,6 @@
 from setuptools import setup, Extension
+import os
+from xija import __version__
 
 long_description = """
 Xija (pronounced "kiy - yuh", rhymes with Maya) is the thermal modeling
@@ -12,9 +14,6 @@ framework used Chandra thermal modeling:
 * GUI interface for model development
 * Matlab interface
 """
-
-from xija.version import version
-import os
 
 if (os.name == "nt"):
     link_args = ['/EXPORT:calc_model']
@@ -30,7 +29,7 @@ core6_ext = Extension('xija.core', ['xija/core.c'],
                       extra_link_args=link_args)
 
 setup(name='xija',
-      version=version,
+      version=__version__,
       description='Thermal modeling framework for Chandra',
       long_description=long_description,
       author='Tom Aldcroft',
