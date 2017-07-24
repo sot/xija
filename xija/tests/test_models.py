@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import tempfile
 import numpy as np
@@ -12,8 +14,8 @@ try:
 except ImportError:
     HAS_PLOTDATE = False
 
-print
-print 'Version =', __version__
+print()
+print('Version =', __version__)
 
 CURRDIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -38,7 +40,7 @@ def test_dpa_real():
     dpa = mdl.comp['1dpamzt']
     reffile = abs_path('dpa_real.npz')
     if not os.path.exists(reffile):
-        print 'Writing reference file', reffile
+        print('Writing reference file', reffile)
         np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
                  mvals=dpa.mvals)
 
@@ -94,7 +96,7 @@ def test_dpa():
     dpa = mdl.comp['1dpamzt']
     reffile = abs_path('dpa.npz')
     if not os.path.exists(reffile):
-        print 'Writing reference file dpa.npz'
+        print('Writing reference file dpa.npz')
         np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
                  mvals=dpa.mvals)
 
@@ -139,7 +141,7 @@ def test_minusz():
 
     regrfile = abs_path('minusz.npz')
     if not os.path.exists(regrfile):
-        print 'Writing reference file', regrfile
+        print('Writing reference file', regrfile)
         kwargs = {msid: mdl.comp[msid].mvals for msid in msids}
         np.savez(regrfile, times=mdl.times, **kwargs)
 
@@ -164,7 +166,7 @@ def test_pftank2t():
 
     regrfile = abs_path('pftank2t.npz')
     if not os.path.exists(regrfile):
-        print 'Writing reference file', regrfile
+        print('Writing reference file', regrfile)
         kwargs = {msid: mdl.comp[msid].mvals for msid in msids}
         np.savez(regrfile, times=mdl.times, **kwargs)
 

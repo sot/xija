@@ -1,7 +1,10 @@
+from __future__ import print_function
+
 import re
-from itertools import izip, count
+from itertools import count
 import glob
 import os
+from six.moves import zip
 
 import numpy as np
 import scipy.interpolate
@@ -166,7 +169,7 @@ class SolarHeat(PrecomputedHeatPower):
             Ps = self.parvals[0:self.n_pitches]
             dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
             Ps += dPs * days / self.tau
-            for par, P in izip(self.pars, Ps):
+            for par, P in zip(self.pars, Ps):
                 par.val = P
                 if P > par.max:
                     par.max = P
@@ -358,10 +361,10 @@ class EarthHeat(PrecomputedHeatPower):
             q_atts = np.array([x.dvals for x in aoattqt_1234s]).transpose()
 
             self._dvals = np.empty(self.model.n_times, dtype=float)
-            for i, ephem, q_att in izip(count(), ephems, q_atts):
+            for i, ephem, q_att in zip(count(), ephems, q_atts):
                 q_norm = np.sqrt(np.sum(q_att ** 2))
                 if q_norm < 0.9:
-                    print "Bad quaternion", i
+                    print("Bad quaternion", i)
                     q_att = np.array([0.0, 0.0, 0.0, 1.0])
                 else:
                     q_att = q_att / q_norm

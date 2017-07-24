@@ -3,12 +3,14 @@ Xija - framework to model complex time-series data using a network of
 coupled nodes with pluggable model components that define the node
 interactions.
 """
+from __future__ import print_function
 
 import os
 import json
 import ctypes
-import StringIO
 from collections import OrderedDict
+from six.moves import cStringIO as StringIO
+import six
 
 import numpy as np
 
@@ -18,7 +20,7 @@ from . import tmal
 try:
     # Optional packages for model fitting or use on HEAD LAN
     from Chandra.Time import DateTime
-    import asciitable
+    from astropy.io import ascii
     import Ska.Numpy
     import Chandra.cmd_states
     import Ska.DBI
@@ -78,7 +80,7 @@ class XijaModel(object):
                  model_spec=None, cmd_states=None):
 
         # If model_spec supplied as a string then read model spec as a dict
-        if isinstance(model_spec, basestring):
+        if isinstance(model_spec, six.string_types):
             model_spec = json.load(open(model_spec, 'r'))
         # If a model_spec is now available (dict) then use as kwarg defaults
         if model_spec:
@@ -278,7 +280,7 @@ class XijaModel(object):
 
         return comp
 
-    comps = property(lambda self: self.comp.values())
+    comps = property(lambda self: list(self.comp.values()))
     """List of model components"""
 
     def get_comp(self, name):
@@ -329,7 +331,7 @@ class XijaModel(object):
             if hasattr(comp, 'mvals') and comp.predict:
                 colvals[comp.name + '_model'] = comp.mvals
 
-        asciitable.write(colvals, filename, names=colvals.keys())
+        ascii.write(colvals, filename, names=list(colvals.keys()))
 
     def write(self, filename, model_spec=None):
         """Write the model specification as JSON or Python to a file.
@@ -358,45 +360,45 @@ class XijaModel(object):
 
         :returns: string of Python code
         """
-        out = StringIO.StringIO()
+        out = StringIO()
         ms = self.model_spec
 
-        print >>out, "import sys"
-        print >>out, "import xija\n"
-        print >>out, "model = xija.XijaModel({}, start={}, stop={}, dt={})\n" \
+        print("import sys", file=out)
+        print("import xija\n", file=out)
+        print("model = xija.XijaModel({}, start={}, stop={}, dt={})\n" \
             .format(repr(ms['name']), repr(ms['datestart']),
-                    repr(ms['datestop']), repr(ms['dt']))
+                    repr(ms['datestop']), repr(ms['dt'])), file=out)
 
         for comp in ms['comps']:
             args = [repr(x) for x in comp['init_args']]
             kwargs = ['{}={}'.format(k, repr(v))
                       for k, v in comp['init_kwargs'].items()]
-            print >>out, 'model.add(xija.{},'.format(comp['class_name'])
+            print('model.add(xija.{},'.format(comp['class_name']), file=out)
             for arg in args:
-                print >>out, '          {},'.format(arg)
+                print('          {},'.format(arg), file=out)
             for kwarg in kwargs:
-                print >>out, '          {},'.format(kwarg)
-            print >>out, '         )'
+                print('          {},'.format(kwarg), file=out)
+            print('         )', file=out)
 
         parattrs = ('val', 'min', 'max', 'fmt', 'frozen')
         last_comp_name = None
         for par in ms['pars']:
             comp_name = par['comp_name']
             if comp_name != last_comp_name:
-                print >>out, '# Set {} component parameters'.format(comp_name)
-                print >>out, 'comp = model.get_comp({})\n' \
-                    .format(repr(comp_name))
-            print >>out, 'par = comp.get_par({})'.format(repr(par['name']))
+                print('# Set {} component parameters'.format(comp_name), file=out)
+                print('comp = model.get_comp({})\n' \
+                    .format(repr(comp_name)), file=out)
+            print('par = comp.get_par({})'.format(repr(par['name'])), file=out)
             par_upds = ['{}={}'.format(attr, repr(par[attr]))
                         for attr in parattrs]
-            print >>out, 'par.update(dict({}))\n'.format(', '.join(par_upds))
+            print('par.update(dict({}))\n'.format(', '.join(par_upds)), file=out)
             last_comp_name = comp_name
 
         if hasattr(self, 'bad_times'):
-            print >>out, "model.bad_times = {}".format(repr(self.bad_times))
+            print("model.bad_times = {}".format(repr(self.bad_times)), file=out)
 
-        print >>out, "if len(sys.argv) > 1:"
-        print >>out, "    model.write(sys.argv[1])"
+        print("if len(sys.argv) > 1:", file=out)
+        print("    model.write(sys.argv[1])", file=out)
 
         return out.getvalue()
 
