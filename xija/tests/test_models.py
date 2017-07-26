@@ -67,9 +67,9 @@ def test_pitch_clip():
     mdl.make()
     mdl.calc()
 
-def test_dpa_new_pow():
-    mdl = ThermalModel('dpa', start='2017:170', stop='2012:190',
-                       model_spec=abs_path('dpa_new_pow.json'))
+def test_dpa_remove_pow():
+    mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+                       model_spec=abs_path('dpa_remove_pow.json'))
     # Check that cmd_states database can be read.  Skip if not, probably
     # running test on a platform without access.
     try:
