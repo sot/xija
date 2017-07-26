@@ -675,9 +675,9 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     state.  See dpa/NOTES.power.
     """
     def __init__(self, model, node, mult=1.0,
-                 pow_states=None, fep_count=None, 
-                 ccd_count=None, vid_board=None, 
-                 clocking=None):
+                 fep_count=None, ccd_count=None, 
+                 vid_board=None, clocking=None,
+                 pow_states=None):
         super(AcisDpaStatePower, self).__init__(model)
         self.node = self.model.get_comp(node)
         self.fep_count = self.model.get_comp(fep_count)
