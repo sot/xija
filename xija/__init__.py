@@ -2,7 +2,7 @@ from .model import *
 from .component import *
 from .files import files
 
-__version__ = '3.7.1'
+__version__ = '3.8'
 
 
 def test(*args, **kwargs):
