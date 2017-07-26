@@ -127,7 +127,6 @@
                     "3xx1",
                     "4xxx",
                     "5xxx",
-                    "55x0",
                     "66x0",
                     "6xxx"
                 ]
@@ -459,16 +458,6 @@
             "min": 20, 
             "name": "pow_66x0", 
             "val": 66.087837582348584
-        }, 
-        {
-            "comp_name": "dpa_power", 
-            "fmt": "{:.4g}", 
-            "frozen": false, 
-            "full_name": "dpa_power__pow_6611", 
-            "max": 140, 
-            "min": 20, 
-            "name": "pow_6611", 
-            "val": 78.443380143132316
         }, 
         {
             "comp_name": "dpa_power", 

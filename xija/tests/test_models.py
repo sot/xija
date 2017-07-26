@@ -81,7 +81,7 @@ def test_dpa_remove_pow():
     mdl.make()
     mdl.calc()
     dpa = mdl.comp['1dpamzt']
-    reffile = abs_path('dpa_new_pow.npz')
+    reffile = abs_path('dpa_remove_pow.npz')
     if not os.path.exists(reffile):
         print('Writing reference file', reffile)
         np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
