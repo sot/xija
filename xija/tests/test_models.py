@@ -67,6 +67,30 @@ def test_pitch_clip():
     mdl.make()
     mdl.calc()
 
+def test_dpa_new_pow():
+    mdl = ThermalModel('dpa', start='2017:170', stop='2012:190',
+                       model_spec=abs_path('dpa_new_pow.json'))
+    # Check that cmd_states database can be read.  Skip if not, probably
+    # running test on a platform without access.
+    try:
+        mdl._get_cmd_states()
+    except:
+        pytest.skip('No commanded states access - '
+                    'cannot run DPA model with real states')
+
+    mdl.make()
+    mdl.calc()
+    dpa = mdl.comp['1dpamzt']
+    reffile = abs_path('dpa_new_pow.npz')
+    if not os.path.exists(reffile):
+        print('Writing reference file', reffile)
+        np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
+                 mvals=dpa.mvals)
+
+    regr = np.load(reffile)
+    assert np.allclose(mdl.times, regr['times'])
+    assert np.allclose(dpa.dvals, regr['dvals'])
+    assert np.allclose(dpa.mvals, regr['mvals'])
 
 def get_dpa_model():
     mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
