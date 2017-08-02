@@ -675,24 +675,21 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     state.  See dpa/NOTES.power.
     """
     def __init__(self, model, node, mult=1.0,
-                 fep_count=None, ccd_count=None,
-                 vid_board=None, clocking=None):
+                 fep_count=None, ccd_count=None, 
+                 vid_board=None, clocking=None,
+                 pow_states=None):
         super(AcisDpaStatePower, self).__init__(model)
         self.node = self.model.get_comp(node)
         self.fep_count = self.model.get_comp(fep_count)
         self.ccd_count = self.model.get_comp(ccd_count)
         self.vid_board = self.model.get_comp(vid_board)
         self.clocking = self.model.get_comp(clocking)
-        self.add_par('pow_0xxx', 21.5, min=10, max=60)
-        self.add_par('pow_1xxx', 29.2, min=15, max=60)
-        self.add_par('pow_2xxx', 39.1, min=20, max=80)
-        self.add_par('pow_3xx0', 55.9, min=20, max=100)
-        self.add_par('pow_3xx1', 47.9, min=20, max=100)
-        self.add_par('pow_4xxx', 57.0, min=20, max=120)
-        self.add_par('pow_5xxx', 66.5, min=20, max=120)
-        self.add_par('pow_66x0', 73.7, min=20, max=140)
-        self.add_par('pow_6611', 76.5, min=20, max=140)
-        self.add_par('pow_6xxx', 75.0, min=20, max=140)
+        if pow_states is None:
+            pow_states = ["0xxx", "1xxx", "2xxx", "3xx0",
+                          "3xx1", "4xxx", "5xxx", "66x0",
+                          "6611", "6xxx"]
+        for ps in pow_states:
+            self.add_par('pow_%s' % ps, 20, min=10, max=100)
         self.add_par('mult', mult, min=0.0, max=2.0)
         self.add_par('bias', 70, min=10, max=100)
 
