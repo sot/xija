@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 files = dict(model_spec =   '{{src.model}}/{{src.model}}',
              out_dir  =     '{{src.model}}/{{src.outdir}}',
              out_values =   '{{src.model}}/{{src.outdir}}/values',

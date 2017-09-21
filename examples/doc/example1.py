@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Example with a single node (ACA CCD temperature) with solar heating
 (2 bins).

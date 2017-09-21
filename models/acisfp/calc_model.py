@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sample code for calculating the ACIS FP Xija model.
 
 This shows necessary inputs and runs without using the eng archive.

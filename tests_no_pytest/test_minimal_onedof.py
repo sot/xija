@@ -1,5 +1,6 @@
 # Build the core.so module and put into the source directory.
 # python setup.py build_ext --inplace
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import xija
 

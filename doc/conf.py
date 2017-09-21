@@ -11,6 +11,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
 import os
