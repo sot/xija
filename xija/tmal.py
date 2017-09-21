@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 OPCODES = {'coupling': 0,
            'heatsink': 1,
            'precomputed_heat': 2,

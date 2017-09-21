@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Xija - framework to model complex time-series data using a network of
 coupled nodes with pluggable model components that define the node
