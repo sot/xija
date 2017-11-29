@@ -73,11 +73,11 @@ class XijaModel(object):
     :param name: model name
     :param start: model start time (any DateTime format)
     :param stop: model stop time (any DateTime format)
-    :param dt: delta time step (default=328 sec, do not change)
+    :param dt: delta time step (default=328 sec)
     :param model_spec: model specification (None | filename | dict)
     :param cmd_states: commanded states input (None | structured array)
     """
-    def __init__(self, name=None, start=None, stop=None, dt=328.0,
+    def __init__(self, name=None, start=None, stop=None, dt=None,
                  model_spec=None, cmd_states=None):
 
         # If model_spec supplied as a string then read model spec as a dict
@@ -88,6 +88,7 @@ class XijaModel(object):
             stop = stop or model_spec['datestop']
             start = start or model_spec['datestart']
             name = name or model_spec['name']
+            dt = dt or model_spec['dt']
 
         if stop is None:
             stop = DateTime() - 30
@@ -95,6 +96,8 @@ class XijaModel(object):
             start = DateTime(stop) - 45
         if name is None:
             name = 'xijamodel'
+        if dt is None:
+            dt = 328.0
 
         self.name = name
         self.comp = OrderedDict()
