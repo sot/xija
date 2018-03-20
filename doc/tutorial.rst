@@ -8,19 +8,35 @@ When you first start working with Xija create a local copy of the Xija source co
 
   % mkdir -p ~/git  # OR WHEREVER, but ~/git is easiest!
   % cd ~/git
+
   % git clone git://github.com/sot/xija.git  # on HEAD
   % git clone /proj/sot/ska/git/xija         # on GRETA
+
   % cd xija
+
+  % git checkout tutorial-code-updates       # for tutorial
+  % git checkout master                      # for production
+
   % setenv XIJA $PWD
+
+For using the ``gui_fit.py`` GUI-fitting tool you need to
+be in the Ska 0.17 environment::
+
+  % source /proj/sot/ska/0.17/bin/ska_envs.sh
+
+To use this from within the git repo you need to build the
+coe C module::
+
   % python setup.py build_ext --inplace  # build C core module
 
-Later on you should work in your xija repository and update to the latest development version of Xija::
+Later on you should work in your xija repository and update to the latest
+development version of Xija::
 
   % cd ~/git/xija
   % git pull   # Update with latest dev version of xija
   % python setup.py build_ext --inplace  # build C core module
 
-Finally set the PYTHONPATH environment variable to ensure that you import
+Now set the PYTHONPATH environment variable to ensure that you import
 your local version of xija from any sub-directory where you might be
 working::
 
@@ -248,7 +264,7 @@ If you have an existing model (e.g. ``pcm03t`` from the previous examples) and
 want to extend it by adding a model component, the technique is to read in the
 model,  add the component, make the model, and then write out the new model.
 This is illustrated in the `Xija extend model
-<xija_extend_model.html>`_ notebook.
+<http://nbviewer.jupyter.org/url/asc.harvard.edu/mta/ASPECT/ipynb/xija/xija_create_model.ipynb>`_ notebook.
 
 Inherit from an existing model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -256,7 +272,7 @@ Inherit from an existing model
 This option provides a way to use some of the existing (calibrated) components
 from an existing model.  In particular if you want to remove a component this
 is one way to do it. This is illustrated in the `Xija inherit
-<xija_inherit.html>`_ IPython notebook.
+<http://nbviewer.jupyter.org/url/asc.harvard.edu/mta/ASPECT/ipynb/xija/xija_inherit.ipynb>`_ IPython notebook.
 
 Edit the model specification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
