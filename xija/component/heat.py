@@ -394,7 +394,7 @@ class EarthHeat(PrecomputedHeatPower):
     @property
     def dvals(self):
         try:
-            import taco
+            import acis_taco as taco
         except ImportError:
             import Chandra.taco as taco
         if not hasattr(self, '_dvals') and not self.get_cached():

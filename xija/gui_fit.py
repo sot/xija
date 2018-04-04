@@ -29,7 +29,7 @@ from Chandra.Time import DateTime
 import pyyaks.context as pyc
 
 try:
-    import taco
+    import acis_taco as taco
 except ImportError:
     import Chandra.taco as taco
 import xija
