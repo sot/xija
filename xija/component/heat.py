@@ -326,6 +326,49 @@ class SolarHeatHrc(SolarHeat):
             self.hrc_mask = self.simz_comp.dvals < 0
         self._dvals[self.hrc_mask] += self.hrc_bias
 
+class SolarHeatHrcOpts(SolarHeat):
+    """Solar heating (pitch and SIM-Z dependent, two parameters for
+    HRC-I and HRC-S)
+
+    :param model: parent model
+    :param node: node which is coupled to solar heat
+    :param simz_comp: SimZ component
+    :param pitch_comp: solar Pitch component
+    :param eclipse_comp: Eclipse component (optional)
+    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
+    :param Ps: list of solar heating values (default=[1.0, ...])
+    :param dPs: list of delta heating values (default=[0.0, ...])
+    :param var_func: variability function ('exp' | 'linear')
+    :param tau: variability timescale (days)
+    :param ampl: ampl of annual sinusoidal heating variation
+    :param bias: constant offset to all solar heating values
+    :param epoch: reference date at which ``Ps`` values apply
+    :param hrci_bias: solar heating bias when HRC-I is in the focal plane.
+    :param hrcs_bias: solar heating bias when HRC-S is in the focal plane.
+    """
+    def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
+                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 hrci_bias=0.0, hrcs_bias=0.0):
+        SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
+                           P_pitches, Ps, dPs, var_func, tau, ampl, bias,
+                           epoch)
+        self.simz_comp = model.get_comp(simz_comp)
+        self.add_par('hrci_bias', hrci_bias, min=-1.0, max=1.0)
+        self.add_par('hrcs_bias', hrcs_bias, min=-1.0, max=1.0)
+
+    def dvals_post_hook(self):
+        """Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.
+        """
+        if not hasattr(self, 'hrci_mask'):
+            self.hrci_mask = (self.simz_comp.dvals < 0) & \
+                             (self.simz_comp.dvals > -86147)
+        self._dvals[self.hrci_mask] += self.hrci_bias
+        if not hasattr(self, 'hrcs_mask'):
+            self.hrcs_mask = (self.simz_comp.dvals <= -86147) & \
+                             (self.simz_comp.dvals >= -104362)
+        self._dvals[self.hrcs_mask] += self.hrcs_bias
+
 
 # For back compatibility prior to Xija 0.2
 DpaSolarHeat = SolarHeatHrc
