@@ -365,8 +365,7 @@ class SolarHeatHrcOpts(SolarHeat):
                              (self.simz_comp.dvals > -86147)
         self._dvals[self.hrci_mask] += self.hrci_bias
         if not hasattr(self, 'hrcs_mask'):
-            self.hrcs_mask = (self.simz_comp.dvals <= -86147) & \
-                             (self.simz_comp.dvals >= -104362)
+            self.hrcs_mask = self.simz_comp.dvals <= -86147
         self._dvals[self.hrcs_mask] += self.hrcs_bias
 
 
