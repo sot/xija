@@ -28,7 +28,10 @@ import sherpa.ui as ui
 from Chandra.Time import DateTime
 import pyyaks.context as pyc
 
-import Chandra.taco
+try:
+    import acis_taco as taco
+except ImportError:
+    import Chandra.taco as taco
 import xija
 import xija.clogging as clogging   # get rid of this or something
 
@@ -662,7 +665,7 @@ def get_options():
 def main():
     # Enable fully-randomized evaluation of ACIS-FP model which is desirable
     # for fitting.
-    Chandra.taco.taco.set_random_salt(None)
+    taco.taco.set_random_salt(None)
 
     opt = get_options()
 

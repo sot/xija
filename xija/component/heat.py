@@ -393,7 +393,10 @@ class EarthHeat(PrecomputedHeatPower):
 
     @property
     def dvals(self):
-        import Chandra.taco
+        try:
+            import acis_taco as taco
+        except ImportError:
+            import Chandra.taco as taco
         if not hasattr(self, '_dvals') and not self.get_cached():
             # Collect individual MSIDs for use in calc_earth_vis()
             ephem_xyzs = [getattr(self, 'orbitephem0_{}'.format(x))
@@ -411,7 +414,7 @@ class EarthHeat(PrecomputedHeatPower):
                     q_att = np.array([0.0, 0.0, 0.0, 1.0])
                 else:
                     q_att = q_att / q_norm
-                _, illums, _ = Chandra.taco.calc_earth_vis(ephem, q_att)
+                _, illums, _ = taco.calc_earth_vis(ephem, q_att)
                 self._dvals[i] = illums.sum()
 
             self.put_cache()
