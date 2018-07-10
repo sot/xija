@@ -236,18 +236,26 @@ class SolarHeat(PrecomputedHeatPower):
         Ps = self.parvals[0:self.n_pitches] + self.bias
         Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
                                                kind='linear')
-        # dPs = self.parvals[self.n_pitches:2*self.n_pitches]
-        # dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
-        #                                        kind='linear')
+
+        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
+                                                kind='linear')
+
         pitches = np.linspace(self.P_pitches[0], self.P_pitches[-1], 100)
         P_vals = Ps_interp(pitches)
+        dP_vals = dPs_interp(pitches)
+
         lines = ax.get_lines()
         if lines:
             lines[0].set_data(self.P_pitches, Ps)
             lines[1].set_data(pitches, P_vals)
+            lines[2].set_data(self.P_pitches, dPs + Ps)
+            lines[3].set_data(pitches, dP_vals + P_vals)
         else:
             ax.plot(self.P_pitches, Ps, 'or', markersize=3)
             ax.plot(pitches, P_vals, '-b')
+            ax.plot(self.P_pitches, dPs + Ps, 'om', markersize=3)
+            ax.plot(pitches, dP_vals + P_vals, '-m')
             ax.set_title('{} solar heat input'.format(self.node.name))
             ax.set_xlim(40, 180)
             ax.grid()
