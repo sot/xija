@@ -10,7 +10,7 @@ import multiprocessing
 import time
 import functools
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 from itertools import count
 import argparse
@@ -183,7 +183,7 @@ class WidgetTable(dict):
         self.n_rows = n_rows
         self.show_header = show_header
 
-        self.table = QtGui.QTableWidget(self.n_rows, self.n_cols)
+        self.table = QtWidgets.QTableWidget(self.n_rows, self.n_cols)
 
         if show_header and colnames:
             self.table.setHorizontalHeaderLabels(colnames)
@@ -219,7 +219,7 @@ class WidgetTable(dict):
 
 class Panel(object):
     def __init__(self, orient='h', homogeneous=False, spacing=0):
-        Box = QtGui.QHBoxLayout if orient == 'h' else QtGui.QVBoxLayout
+        Box = QtWidgets.QHBoxLayout if orient == 'h' else QtWidgets.QVBoxLayout
         self.box = Box()  # homogeneous, spacing ??
         self.orient = orient
 
@@ -229,7 +229,7 @@ class Panel(object):
     def pack_start(self, child, expand=True, fill=True, padding=0):
         if isinstance(child, Panel):
             child = child.box
-        if isinstance(child, QtGui.QBoxLayout):
+        if isinstance(child, QtWidgets.QBoxLayout):
             out = self.box.addLayout(child)
         else:
             out = self.box.addWidget(child)  # , expand, fill, padding
@@ -260,12 +260,12 @@ class MplCanvas(FigureCanvas):
 
         super(MplCanvas, self).__init__(self.fig)
         self.setParent(parent)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         self.updateGeometry()
 
 
-class PlotBox(QtGui.QVBoxLayout):
+class PlotBox(QtWidgets.QVBoxLayout):
     def __init__(self, plot_name, plots_box):
         super(PlotBox, self).__init__()
 
@@ -278,11 +278,11 @@ class PlotBox(QtGui.QVBoxLayout):
         canvas = MplCanvas(parent=None)
         toolbar = NavigationToolbar(canvas, parent=None)
 
-        delete_plot_button = QtGui.QPushButton('Delete')
+        delete_plot_button = QtWidgets.QPushButton('Delete')
         delete_plot_button.clicked.connect(
             functools.partial(plots_box.delete_plot_box, plot_name))
 
-        toolbar_box = QtGui.QHBoxLayout()
+        toolbar_box = QtWidgets.QHBoxLayout()
         toolbar_box.addWidget(toolbar)
         toolbar_box.addStretch(1)
         toolbar_box.addWidget(delete_plot_button)
@@ -313,9 +313,9 @@ class PlotBox(QtGui.QVBoxLayout):
         self.canvas.draw()
 
 
-class PlotsBox(QtGui.QVBoxLayout):
+class PlotsBox(QtWidgets.QVBoxLayout):
     def __init__(self, main_window):
-        super(QtGui.QVBoxLayout, self).__init__()
+        super(QtWidgets.QVBoxLayout, self).__init__()
         self.main_window = main_window
         self.sharex = {}        # Shared x-axes keyed by x-axis type
 
@@ -356,17 +356,17 @@ class ParamsPanel(Panel):
         self.adj_handlers = {}
         for row, par in zip(count(), MODEL.pars):
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = QtGui.QCheckBox()
+            frozen = params_table[row, 0] = QtWidgets.QCheckBox()
             # frozen.set_active(not par.frozen)
             # frozen.connect('toggled', self.frozen_toggled, par)
 
             # par full name
-            params_table[row, 1] = QtGui.QLabel(par.full_name)
+            params_table[row, 1] = QtWidgets.QLabel(par.full_name)
             # params_table[row, 1].set_alignment(0, 0.5)
 
             # Slider
             # incr = (par.max - par.min) / 100.0
-            slider = QtGui.QSlider(QtCore.Qt.Horizontal)  # (par.val, par.min, par.max, incr, incr, 0.0)
+            slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)  # (par.val, par.min, par.max, incr, incr, 0.0)
             slider.setMinimum(par.min)
             slider.setMaximum(par.max)
             slider.setValue(par.val)
@@ -378,19 +378,19 @@ class ParamsPanel(Panel):
             # self.adj_handlers[row] = handler
 
             # Value
-            entry = params_table[row, 2] = QtGui.QLineEdit()
+            entry = params_table[row, 2] = QtWidgets.QLineEdit()
             # entry.set_width_chars(10)
             entry.setText(par.fmt.format(par.val))
             # entry.connect('activate', self.par_attr_changed, adj, par, 'val')
 
             # Min of slider
-            entry = params_table[row, 3] = QtGui.QLineEdit()
+            entry = params_table[row, 3] = QtWidgets.QLineEdit()
             entry.setText(par.fmt.format(par.min))
             # entry.set_width_chars(4)
             # entry.connect('activate', self.par_attr_changed, adj, par, 'min')
 
             # Max of slider
-            entry = params_table[row, 5] = QtGui.QLineEdit()
+            entry = params_table[row, 5] = QtWidgets.QLineEdit()
             entry.setText(par.fmt.format(par.max))
             # entry.set_width_chars(6)
             # entry.connect('activate', self.par_attr_changed, adj, par, 'max')
@@ -444,25 +444,25 @@ class ParamsPanel(Panel):
 class ConsolePanel(Panel):
     def __init__(self):
         Panel.__init__(self, orient='v')
-        self.pack_start(QtGui.QLabel('console_panel'), False, False, 0)
+        self.pack_start(QtWidgets.QLabel('console_panel'), False, False, 0)
 
 
 class ControlButtonsPanel(Panel):
     def __init__(self):
         Panel.__init__(self, orient='h')
 
-        self.fit_button = QtGui.QPushButton("Fit")
-        self.stop_button = QtGui.QPushButton("Stop")
-        self.save_button = QtGui.QPushButton("Save")
+        self.fit_button = QtWidgets.QPushButton("Fit")
+        self.stop_button = QtWidgets.QPushButton("Stop")
+        self.save_button = QtWidgets.QPushButton("Save")
         self.add_plot_button = self.make_add_plot_button()
-        self.update_status = QtGui.QLabel()
+        self.update_status = QtWidgets.QLabel()
         # self.update_status.set_width_chars(10)
-        self.quit_button = QtGui.QPushButton('Quit')
-        self.command_entry = QtGui.QLineEdit()
+        self.quit_button = QtWidgets.QPushButton('Quit')
+        self.command_entry = QtWidgets.QLineEdit()
         # self.command_entry.set_width_chars(10)
         # self.command_entry.setText('')
         self.command_panel = Panel()
-        self.command_panel.pack_start(QtGui.QLabel('Command:'), False, False, 0)
+        self.command_panel.pack_start(QtWidgets.QLabel('Command:'), False, False, 0)
         self.command_panel.pack_start(self.command_entry, False, False, 0)
 
         self.pack_start(self.fit_button, False, False, 0)
@@ -475,7 +475,7 @@ class ControlButtonsPanel(Panel):
         self.pack_start(self.quit_button, False, False, 0)
 
     def make_add_plot_button(self):
-        apb = QtGui.QComboBox()
+        apb = QtWidgets.QComboBox()
         apb.addItem('Add plot...')
 
         plot_names = ['{} {}'.format(comp.name, attr[5:])
@@ -508,7 +508,7 @@ class MainRightPanel(Panel):
         self.params_panel = ParamsPanel(plots_panel)
         self.console_panel = ConsolePanel()
 
-        okButton = QtGui.QPushButton("OK right")
+        okButton = QtWidgets.QPushButton("OK right")
         self.pack_start(self.params_panel)
         self.pack_start(self.console_panel, False)
         # self.pack_start(okButton, False)
@@ -521,11 +521,11 @@ class MainWindow(object):
     # in this example. More on callbacks below.
     def __init__(self):
         # create a new window
-        self.window = QtGui.QWidget()
+        self.window = QtWidgets.QWidget()
         # self.window.connect("destroy", self.destroy)
         self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
 
-        # hbox = QtGui.QHBoxLayout()
+        # hbox = QHBoxLayout()
         # hbox.addStretch(1)
         # hbox.addWidget(okButton)
         # hbox.addWidget(cancelButton)
@@ -538,7 +538,7 @@ class MainWindow(object):
         # cancelButton = QtGui.QPushButton("Cancel")
 
         # This is the Layout Box that holds the top-level stuff in the main window
-        main_window_hbox = QtGui.QHBoxLayout()
+        main_window_hbox = QtWidgets.QHBoxLayout()
         self.window.setLayout(main_window_hbox)
 
         self.main_left_panel = MainLeftPanel(self)
@@ -777,7 +777,7 @@ def main():
     PARENT_PIPE, CHILD_PIPE = multiprocessing.Pipe()
     POOL = multiprocessing.Pool(processes=1)
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     MainWindow()
     sys.exit(app.exec_())
 
