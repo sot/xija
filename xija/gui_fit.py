@@ -50,7 +50,6 @@ CALC_STAT = None
 
 # from xija.fit import (FitTerminated, CalcModel, CalcStat, FitWorker)
 
-
 fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
                                       format='[%(levelname)s] (%(processName)-10s) %(message)s')
 
@@ -167,7 +166,7 @@ def sherpa_fit(*args):
             CALC_STAT.message['status'] = 'terminated'
             logging.debug('Got FitTerminated exception {}'.format(err))
 
-    CHILD_PIPE.send(CALC_STAT.message)
+        CHILD_PIPE.send(CALC_STAT.message)
 
 
 class WidgetTable(dict):
@@ -344,21 +343,31 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         cbp.update_status.setText('')
 
 
+class PanelCheckBox(QtWidgets.QCheckBox):
+    def __init__(self, row):
+        super(PanelCheckBox, self).__init__() 
+        self.row = row
+    
+    def frozen_toggled(self, state):
+        MODEL.pars[self.row].frozen = state != QtCore.Qt.Checked
+
+
 class ParamsPanel(Panel):
     def __init__(self, plots_panel):
         Panel.__init__(self, orient='v')
         self.plots_panel = plots_panel
 
         params_table = WidgetTable(n_rows=len(MODEL.pars),
-                                   colnames=['fit', 'name', 'val', 'thawed', 'min', 'max'],
+                                   colnames=['fit', 'name', 'val', 'min', '', 'max'],
                                    colwidths={0: 30, 1: 250},
                                    show_header=True)
+
         self.adj_handlers = {}
         for row, par in zip(count(), MODEL.pars):
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = QtWidgets.QCheckBox()
-            # frozen.set_active(not par.frozen)
-            # frozen.connect('toggled', self.frozen_toggled, par)
+            frozen = params_table[row, 0] = PanelCheckBox(row)
+            frozen.setCheckState(not par.frozen)
+            frozen.stateChanged.connect(frozen.frozen_toggled)
 
             # par full name
             params_table[row, 1] = QtWidgets.QLabel(par.full_name)
@@ -377,7 +386,7 @@ class ParamsPanel(Panel):
             # handler = adj.connect('value_changed', self.slider_changed, row)
             # self.adj_handlers[row] = handler
 
-            # Value
+            # Value 
             entry = params_table[row, 2] = QtWidgets.QLineEdit()
             # entry.set_width_chars(10)
             entry.setText(par.fmt.format(par.val))
@@ -397,9 +406,6 @@ class ParamsPanel(Panel):
 
         self.pack_start(params_table.table, True, True, padding=10)
         self.params_table = params_table
-
-    def frozen_toggled(self, widget, par):
-        par.frozen = not widget.get_active()
 
     def par_attr_changed(self, widget, adj, par, par_attr):
         """Min, val, or max Entry box value changed.  Update the slider (adj)
