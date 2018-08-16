@@ -1,6 +1,12 @@
 /* Core model integration using TMAL code */
 
+#include "Python.h"
+
+#if PY_MAJOR_VERSION < 3
 void initcore(void)
+#else
+void PyInit_core(void)
+#endif
 {
     /* stub initialization function needed by distutils on Windows */
 }
