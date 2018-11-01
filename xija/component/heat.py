@@ -909,11 +909,11 @@ class StepFunctionBias(PrecomputedHeatPower):
     A class that applies a constant temperature shift only 
     after a certain point in time.
     """
-    def __init__(self, model, node, bias=0.0, time=0.0):
+    def __init__(self, model, node, time, bias=0.0):
         super(StepFunctionBias, self).__init__(model)
+        self.time = DateTime(time).secs
         self.node = self.model.get_comp(node)
         self.add_par('bias', bias, min=-10.0, max=10.0)
-        self.add_par('time', time, min=0.0, max=3218832068.184)
         self.n_mvals = 1
 
     def __str__(self):
