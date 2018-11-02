@@ -904,20 +904,20 @@ class ThermostatHeater(ActiveHeatPower):
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power')
 
-class StepFunctionBias(PrecomputedHeatPower):
+class StepFunctionPower(PrecomputedHeatPower):
     """
     A class that applies a constant temperature shift only 
     after a certain point in time.
     """
-    def __init__(self, model, node, time, bias=0.0):
-        super(StepFunctionBias, self).__init__(model)
+    def __init__(self, model, node, time, P=0.0):
+        super(StepFunctionPower, self).__init__(model)
         self.time = DateTime(time).secs
         self.node = self.model.get_comp(node)
-        self.add_par('bias', bias, min=-10.0, max=10.0)
+        self.add_par('P', P, min=-10.0, max=10.0)
         self.n_mvals = 1
 
     def __str__(self):
-        return 'step_bias__{0}'.format(self.node)
+        return 'step_power__{0}'.format(self.node)
 
     def get_dvals_tlm(self):
         """Return an array of zeros => no activation of the heater.
@@ -927,7 +927,7 @@ class StepFunctionBias(PrecomputedHeatPower):
     def update(self):
         """Update the model prediction as a precomputed heat.
         """
-        self.mvals = self.bias*np.ones_like(self.model.times)
+        self.mvals = self.P*np.ones_like(self.model.times)
         self.mvals[self.model.times < self.time] = 0.0
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                           self.node.mvals_i,  # dy1/dt index
@@ -943,4 +943,4 @@ class StepFunctionBias(PrecomputedHeatPower):
             plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('T bias')
+            ax.set_ylabel('Power')
