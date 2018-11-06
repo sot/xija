@@ -167,7 +167,7 @@ class FitWorker(object):
                 calc_stat.message['status'] = 'terminated'
                 logging.debug('Got FitTerminated exception {}'.format(err))
 
-        self.child_pipe.send(calc_stat.message)
+            self.child_pipe.send(calc_stat.message)
 
 
 class WidgetTable(dict):
@@ -343,6 +343,9 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             plot_box.update()
         cbp.update_status.setText('')
 
+    @property
+    def plot_boxes(self):
+        return [plot_box for plot_box in self.findChildren(PlotBox)]
 
 class PanelCheckBox(QtWidgets.QCheckBox):
     def __init__(self, model, row):
@@ -637,8 +640,8 @@ class MainWindow(object):
         widget.setText('')
 
     def save_model_file(self, *args):
-        filename = QtGui.QFileDialog.getOpenFileName(None, 'Open file', os.getcwd(),
-                                                     'JSON files (*.json);; All files (*)')
+        filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Open file', os.getcwd(),
+                                                         'JSON files (*.json);; All files (*)')
         filename = str(filename)
         if filename != '':
             model_spec = self.model.model_spec
@@ -755,6 +758,8 @@ def main():
     gui_config['set_data_vals'] = set_data_vals
 
     fit_worker = FitWorker(model)
+
+    model.calc()
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow(model, fit_worker)
