@@ -614,9 +614,11 @@ class MainWindow(object):
         widget.setText('')
 
     def save_model_file(self, *args):
-        filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Open file', os.getcwd(),
-                                                         'JSON files (*.json);; All files (*)')
-        filename = str(filename)
+        dlg = QtWidgets.QFileDialog()
+        dlg.selectFile(gui_config["filename"])
+        dlg.setAcceptMode(dlg.AcceptSave)
+        dlg.exec_()
+        filename = str(dlg.selectedFiles()[0])
         if filename != '':
             model_spec = self.model.model_spec
             gui_config['plot_names'] = [x.plot_name
