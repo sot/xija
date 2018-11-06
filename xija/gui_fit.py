@@ -40,14 +40,6 @@ import sherpa.ui as ui
 logging.basicConfig(level=logging.DEBUG)
 logging.debug('Importing gui_fit from {}'.format(__file__))
 
-# Globals for fitting, set in main
-MODEL = None
-POOL = None
-PARENT_PIPE = None
-CHILD_PIPE = None
-FIT_WORKER = None
-CALC_STAT = None
-
 # from xija.fit import (FitTerminated, CalcModel, CalcStat, FitWorker)
 
 fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
@@ -61,112 +53,123 @@ sherpa_configs = dict(
     )
 gui_config = {}
 
-
 class FitTerminated(Exception):
     pass
 
+class CalcModel(object):
+    def __init__(self, model):
+        self.model = model
 
-def sherpa_xija_model(parvals, x):
-    """This is the Sherpa calc_model function, but in this case calc_model does not
-    actually calculate anything but instead just stores the desired paramters.  This
-    allows for multiprocessing where only the fit statistic gets passed between nodes.
-    """
-    print('fit call: {}'.format(x))
-    logging.info('Calculating params:')
-    for parname, parval, newparval in zip(MODEL.parnames, MODEL.parvals, parvals):
-        if parval != newparval:
-            fit_logger.info('  {0}: {1}'.format(parname, newparval))
-    MODEL.parvals = parvals
+    def __call__(self, parvals, x):
+        """This is the Sherpa calc_model function, but in this case calc_model does not
+        actually calculate anything but instead just stores the desired paramters.  This
+        allows for multiprocessing where only the fit statistic gets passed between nodes.
+        """
+        logging.info('Calculating params:')
+        for parname, parval, newparval in zip(self.model.parnames, self.model.parvals, parvals):
+            if parval != newparval:
+                fit_logger.info('  {0}: {1}'.format(parname, newparval))
+        self.model.parvals = parvals
 
-    return np.ones_like(x)
+        return np.ones_like(x)
 
 
 class CalcStat(object):
-    def __init__(self):
+    def __init__(self, model, pipe):
+        self.pipe = pipe
+        self.model = model
         self.cache_fit_stat = {}
         self.min_fit_stat = None
-        self.min_par_vals = MODEL.parvals
+        self.min_par_vals = self.model.parvals
 
     def __call__(self, _data, _model, staterror=None, syserror=None, weight=None):
         """Calculate fit statistic for the xija model.  The args _data and _model
         are sent by Sherpa but they are fictitious -- the real data and model are
-        stored in the xija model MODEL.
+        stored in the xija model self.model.
         """
-        # parvals_key = tuple('%.4e' % x for x in MODEL.parvals)
+        # parvals_key = tuple('%.4e' % x for x in self.model.parvals)
         try:
             raise KeyError
             # fit_stat = self.cache_fit_stat[parvals_key]
             # fit_logger.info('nmass_model: Cache hit %s' % str(parvals_key))
         except KeyError:
-            fit_stat = MODEL.calc_stat()
+            fit_stat = self.model.calc_stat()
 
         fit_logger.info('Fit statistic: %.4f' % fit_stat)
         # self.cache_fit_stat[parvals_key] = fit_stat
 
         if self.min_fit_stat is None or fit_stat < self.min_fit_stat:
             self.min_fit_stat = fit_stat
-            self.min_parvals = MODEL.parvals
+            self.min_parvals = self.model.parvals
 
         self.message = {'status': 'fitting',
                         'time': time.time(),
-                        'parvals': MODEL.parvals,
+                        'parvals': self.model.parvals,
                         'fit_stat': fit_stat,
                         'min_parvals': self.min_parvals,
                         'min_fit_stat': self.min_fit_stat}
+        self.pipe.send(self.message)
 
-        CHILD_PIPE.send(self.message)
-
-        while CHILD_PIPE.poll():
-            pipe_val = CHILD_PIPE.recv()
+        while self.pipe.poll():
+            pipe_val = self.pipe.recv()
             if pipe_val == 'terminate':
-                MODEL.parvals = self.min_parvals
+                self.model.parvals = self.min_parvals
                 raise FitTerminated('terminated')
 
         return fit_stat, np.ones(1)
 
-
 class FitWorker(object):
+    def __init__(self, model, method='simplex'):
+        self.model = model
+        self.method = method
+        self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
+
     def start(self, widget=None):
         """Start a Sherpa fit process as a spawned (non-blocking) process.
         """
-        self.fit_process = POOL.apply_async(sherpa_fit, [()],
-                                            callback=sherpa_fit_finished)
+        self.fit_process = multiprocessing.Process(target=self.fit)
+        self.fit_process.start()
         logging.debug('Fit started')
 
     def terminate(self, widget=None):
         """Terminate a Sherpa fit process in a controlled way by sending a
         message.  Get the final parameter values if possible.
         """
-        PARENT_PIPE.send('terminate')
-        self.fit_process.wait()
+        self.parent_pipe.send('terminate')
+        self.fit_process.join()
         logging.debug('Fit terminated')
 
+    def fit(self):
+        dummy_data = np.zeros(1)
+        dummy_times = np.arange(1)
+        ui.load_arrays(1, dummy_times, dummy_data)
+        ui.set_method(self.method)
+        ui.get_method().config.update(sherpa_configs.get(self.method, {}))
+        ui.load_user_model(CalcModel(self.model), 'xijamod')  # sets global xijamod
+        ui.add_user_pars('xijamod', self.model.parnames)
+        ui.set_model(1, 'xijamod')
+        calc_stat = CalcStat(self.model, self.child_pipe)
+        ui.load_user_stat('xijastat', calc_stat, lambda x: np.ones_like(x))
+        ui.set_stat(xijastat)
 
-def sherpa_fit_finished(result):
-    logging.debug('Finished fit {}'.format(result))
+        # Set frozen, min, and max attributes for each xijamod parameter
+        for par in self.model.pars:
+            xijamod_par = getattr(xijamod, par.full_name)
+            xijamod_par.val = par.val
+            xijamod_par.frozen = par.frozen
+            xijamod_par.min = par.min
+            xijamod_par.max = par.max
 
+        if any(not par.frozen for par in self.model.pars):
+            try:
+                ui.fit(1)
+                calc_stat.message['status'] = 'finished'
+                logging.debug('Fit finished normally')
+            except FitTerminated as err:
+                calc_stat.message['status'] = 'terminated'
+                logging.debug('Got FitTerminated exception {}'.format(err))
 
-def sherpa_fit(*args):
-    print('Here in global_fit{}'.format(args))
-
-    # Set frozen, min, and max attributes for each xijamod parameter
-    for par in MODEL.pars:
-        xijamod_par = getattr(xijamod, par.full_name)
-        xijamod_par.val = par.val
-        xijamod_par.frozen = par.frozen
-        xijamod_par.min = par.min
-        xijamod_par.max = par.max
-
-    if any(not par.frozen for par in MODEL.pars):
-        try:
-            ui.fit(1)
-            CALC_STAT.message['status'] = 'finished'
-            logging.debug('Fit finished normally')
-        except FitTerminated as err:
-            CALC_STAT.message['status'] = 'terminated'
-            logging.debug('Got FitTerminated exception {}'.format(err))
-
-        CHILD_PIPE.send(CALC_STAT.message)
+        self.child_pipe.send(calc_stat.message)
 
 
 class WidgetTable(dict):
@@ -269,7 +272,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         super(PlotBox, self).__init__()
 
         comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
-        self.comp = MODEL.comp[comp_name]
+        self.comp = plots_box.model.comp[comp_name]
         self.plot_method = plot_method
 
         self.plot_name = plot_name
@@ -313,10 +316,11 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
 
 class PlotsBox(QtWidgets.QVBoxLayout):
-    def __init__(self, main_window):
+    def __init__(self, model, main_window):
         super(QtWidgets.QVBoxLayout, self).__init__()
         self.main_window = main_window
         self.sharex = {}        # Shared x-axes keyed by x-axis type
+        self.model = model
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
@@ -336,7 +340,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     def update_plots(self):
         cbp = self.main_window.main_left_panel.control_buttons_panel
         cbp.update_status.setText(' BUSY... ')
-        MODEL.calc()
+        self.model.calc()
         for plot_box in self.findChildren(PlotBox):
             print('Updating plot {}'.format(plot_box.plot_name))
             plot_box.update()
@@ -344,28 +348,30 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
 
 class PanelCheckBox(QtWidgets.QCheckBox):
-    def __init__(self, row):
+    def __init__(self, model, row):
         super(PanelCheckBox, self).__init__() 
         self.row = row
-    
+        self.model = model
+
     def frozen_toggled(self, state):
-        MODEL.pars[self.row].frozen = state != QtCore.Qt.Checked
+        self.model.pars[self.row].frozen = state != QtCore.Qt.Checked
 
 
 class ParamsPanel(Panel):
-    def __init__(self, plots_panel):
+    def __init__(self, model, plots_panel):
         Panel.__init__(self, orient='v')
         self.plots_panel = plots_panel
+        self.model = model
 
-        params_table = WidgetTable(n_rows=len(MODEL.pars),
+        params_table = WidgetTable(n_rows=len(self.model.pars),
                                    colnames=['fit', 'name', 'val', 'min', '', 'max'],
                                    colwidths={0: 30, 1: 250},
                                    show_header=True)
 
         self.adj_handlers = {}
-        for row, par in zip(count(), MODEL.pars):
+        for row, par in zip(count(), self.model.pars):
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = PanelCheckBox(row)
+            frozen = params_table[row, 0] = PanelCheckBox(model, row)
             frozen.setCheckState(not par.frozen)
             frozen.stateChanged.connect(frozen.frozen_toggled)
 
@@ -429,13 +435,13 @@ class ParamsPanel(Panel):
 
     def slider_changed(self, widget, row):
         parval = widget.value  # widget is an adjustment
-        par = MODEL.pars[row]
+        par = self.model.pars[row]
         par.val = parval
         self.params_table[row, 2].setText(par.fmt.format(parval))
         self.plots_panel.update()
 
     def update(self):
-        for row, par in enumerate(MODEL.pars):
+        for row, par in enumerate(self.model.pars):
             val_label = self.params_table[row, 2]
             par_val_text = par.fmt.format(par.val)
             if str(val_label.text) != par_val_text:
@@ -454,8 +460,10 @@ class ConsolePanel(Panel):
 
 
 class ControlButtonsPanel(Panel):
-    def __init__(self):
+    def __init__(self, model):
         Panel.__init__(self, orient='h')
+
+        self.model = model
 
         self.fit_button = QtWidgets.QPushButton("Fit")
         self.stop_button = QtWidgets.QPushButton("Stop")
@@ -485,7 +493,7 @@ class ControlButtonsPanel(Panel):
         apb.addItem('Add plot...')
 
         plot_names = ['{} {}'.format(comp.name, attr[5:])
-                      for comp in MODEL.comps
+                      for comp in self.model.comps
                       for attr in dir(comp)
                       if attr.startswith('plot_')]
 
@@ -497,21 +505,22 @@ class ControlButtonsPanel(Panel):
 
 
 class MainLeftPanel(Panel):
-    def __init__(self, main_window):
+    def __init__(self, model, main_window):
         Panel.__init__(self, orient='v')
-        self.control_buttons_panel = ControlButtonsPanel()
-        self.plots_box = PlotsBox(main_window)
+        self.control_buttons_panel = ControlButtonsPanel(model)
+        self.plots_box = PlotsBox(model, main_window)
         self.pack_start(self.control_buttons_panel, False, False, 0)
         self.pack_start(self.plots_box)
         self.add_stretch(1)
+        self.model = model
         # self.plots_panel.add_plot_panel('pftank2t fit_resid')
         # self.box.addStretch(1)
 
 
 class MainRightPanel(Panel):
-    def __init__(self, plots_panel):
+    def __init__(self, model, plots_panel):
         Panel.__init__(self, orient='v')
-        self.params_panel = ParamsPanel(plots_panel)
+        self.params_panel = ParamsPanel(model, plots_panel)
         self.console_panel = ConsolePanel()
 
         okButton = QtWidgets.QPushButton("OK right")
@@ -525,7 +534,9 @@ class MainRightPanel(Panel):
 class MainWindow(object):
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
-    def __init__(self):
+    def __init__(self, model, fit_worker):
+        self.model = model
+        self.fit_worker = fit_worker
         # create a new window
         self.window = QtWidgets.QWidget()
         # self.window.connect("destroy", self.destroy)
@@ -547,15 +558,15 @@ class MainWindow(object):
         main_window_hbox = QtWidgets.QHBoxLayout()
         self.window.setLayout(main_window_hbox)
 
-        self.main_left_panel = MainLeftPanel(self)
+        self.main_left_panel = MainLeftPanel(model, self)
         mlp = self.main_left_panel
 
-        self.main_right_panel = MainRightPanel(mlp.plots_box)
+        self.main_right_panel = MainRightPanel(model, mlp.plots_box)
 
         cbp = mlp.control_buttons_panel
-        cbp.fit_button.clicked.connect(FIT_WORKER.start)
+        cbp.fit_button.clicked.connect(self.fit_worker.start)
         cbp.fit_button.clicked.connect(self.fit_monitor)
-        cbp.stop_button.clicked.connect(FIT_WORKER.terminate)
+        cbp.stop_button.clicked.connect(self.fit_worker.terminate)
         cbp.save_button.clicked.connect(self.save_model_file)
         cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         cbp.add_plot_button.activated[str].connect(self.add_plot)
@@ -595,13 +606,13 @@ class MainWindow(object):
     def fit_monitor(self, *args):
         msg = None
         fit_stopped = False
-        while PARENT_PIPE.poll():
+        while self.fit_worker.parent_pipe.poll():
             # Keep reading messages until there are no more or until getting
             # a message indicating fit is stopped.
-            msg = PARENT_PIPE.recv()
+            msg = self.fit_worker.parent_pipe.recv()
             fit_stopped = msg['status'] in ('terminated', 'finished')
             if fit_stopped:
-                FIT_WORKER.fit_process.wait()
+                self.fit_worker.fit_process.join()
                 print("\n*********************************")
                 print("  FIT", msg['status'].upper())
                 print("*********************************\n")
@@ -610,7 +621,7 @@ class MainWindow(object):
         if msg:
             # Update the fit_worker model parameters and then the corresponding
             # params table widget.
-            MODEL.parvals = msg['parvals']
+            self.fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update()
             self.main_left_panel.plots_box.update_plots()
 
@@ -635,7 +646,7 @@ class MainWindow(object):
         par_regexes = [fnmatch.translate(x) for x in vals[1:]]
 
         params_table = self.main_right_panel.params_panel.params_table
-        for row, par in enumerate(MODEL.pars):
+        for row, par in enumerate(self.model.pars):
             for par_regex in par_regexes:
                 if re.match(par_regex, par.full_name):
                      checkbutton = params_table[row, 0]
@@ -647,13 +658,13 @@ class MainWindow(object):
                                                      'JSON files (*.json);; All files (*)')
         filename = str(filename)
         if filename != '':
-            model_spec = MODEL.model_spec
+            model_spec = self.model.model_spec
             gui_config['plot_names'] = [x.plot_name
                                         for x in self.main_left_panel.plots_box.plot_boxes]
             gui_config['size'] = (self.window.size().width(), self.window.size().height())
             model_spec['gui_config'] = gui_config
             try:
-                MODEL.write(filename, model_spec)
+                self.model.write(filename, model_spec)
                 gui_config['filename'] = filename
             except IOError:
                 print("Error writing {}".format(filename))
@@ -699,7 +710,7 @@ def main():
     # for fitting.
 
     taco.set_random_salt(None)
-    global MODEL, POOL, PARENT_PIPE, CHILD_PIPE, FIT_WORKER, CALC_STAT
+    global CHILD_PIPE
 
     opt = get_options()
 
@@ -727,7 +738,7 @@ def main():
         start = model_spec['datestart']
         stop = model_spec['datestop']
 
-    MODEL = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
+    model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
 
     set_data_vals = gui_config.get('set_data_vals', {})
     for set_data_expr in opt.set_data_exprs:
@@ -741,14 +752,14 @@ def main():
         set_data_vals[comp_name] = ast.literal_eval(val)
 
     for comp_name, val in set_data_vals.items():
-        MODEL.comp[comp_name].set_data(val)
+        model.comp[comp_name].set_data(val)
 
-    MODEL.make()
+    model.make()
 
     if opt.inherit_from:
         inherit_spec = json.load(open(opt.inherit_from, 'r'))
         inherit_pars = {par['full_name']: par for par in inherit_spec['pars']}
-        for par in MODEL.pars:
+        for par in model.pars:
             if par.full_name in inherit_pars:
                 print("Inheriting par {}".format(par.full_name))
                 par.val = inherit_pars[par.full_name]['val']
@@ -757,34 +768,13 @@ def main():
                 par.frozen = inherit_pars[par.full_name]['frozen']
                 par.fmt = inherit_pars[par.full_name]['fmt']
 
-    dummy_data = np.zeros(1)
-    dummy_times = np.arange(1)
-    ui.load_arrays(1, dummy_times, dummy_data)
-
-    ui.set_method(opt.fit_method)
-    ui.get_method().config.update(sherpa_configs.get(opt.fit_method, {}))
-
-    ui.load_user_model(sherpa_xija_model, 'xijamod')  # sets global xijamod
-    ui.add_user_pars('xijamod', MODEL.parnames)
-    ui.set_model(1, xijamod)
-    print('model stat is {}'.format(MODEL.calc_stat()))
-
-    # ui.load_user_stat("new_stat", custom_stat_func, custom_staterr_func)
-    # ui.set_stat(new_stat)
-    CALC_STAT = CalcStat()
-    ui.load_user_stat('xijastat', CALC_STAT, lambda x: np.ones_like(x))
-    ui.set_stat(xijastat)
-
     gui_config['filename'] = os.path.abspath(opt.filename)
     gui_config['set_data_vals'] = set_data_vals
 
-    FIT_WORKER = FitWorker()
-
-    PARENT_PIPE, CHILD_PIPE = multiprocessing.Pipe()
-    POOL = multiprocessing.Pool(processes=1)
+    fit_worker = FitWorker(model)
 
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow()
+    MainWindow(model, fit_worker)
     sys.exit(app.exec_())
 
 
