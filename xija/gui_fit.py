@@ -192,9 +192,6 @@ class WidgetTable(dict):
             for col, width in colwidths.items():
                 self.table.setColumnWidth(col, width)
 
-        # self.box.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        # self.box.setWidget(self.table)
-
         dict.__init__(self)
 
     def __getitem__(self, rowcol):
@@ -214,7 +211,6 @@ class WidgetTable(dict):
         row, col = rowcol
         dict.__setitem__(self, rowcol, widget)
         self.table.setCellWidget(row, col, widget)
-        # widget.show()
 
 
 class Panel(object):
@@ -464,11 +460,8 @@ class ControlButtonsPanel(Panel):
         self.save_button = QtWidgets.QPushButton("Save")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
-        # self.update_status.set_width_chars(10)
         self.quit_button = QtWidgets.QPushButton('Quit')
         self.command_entry = QtWidgets.QLineEdit()
-        # self.command_entry.set_width_chars(10)
-        # self.command_entry.setText('')
         self.command_panel = Panel()
         self.command_panel.pack_start(QtWidgets.QLabel('Command:'), False, False, 0)
         self.command_panel.pack_start(self.command_entry, False, False, 0)
@@ -525,20 +518,9 @@ class MainWindow(object):
         self.fit_worker = fit_worker
         # create a new window
         self.window = QtWidgets.QWidget()
-        # self.window.connect("destroy", self.destroy)
         self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
 
-        # hbox = QHBoxLayout()
-        # hbox.addStretch(1)
-        # hbox.addWidget(okButton)
-        # hbox.addWidget(cancelButton)
-
-        # Sets the border width of the window.
-        # self.window.set_border_width(10)
         self.main_box = Panel(orient='h')
-
-        # okButton = QtGui.QPushButton("OK")
-        # cancelButton = QtGui.QPushButton("Cancel")
 
         # This is the Layout Box that holds the top-level stuff in the main window
         main_window_hbox = QtWidgets.QHBoxLayout()
@@ -570,24 +552,16 @@ class MainWindow(object):
 
         # Show everything finally
         main_window_hbox.addLayout(mlp.box)
-        # main_window_hbox.addStretch(1)
         main_window_hbox.addLayout(self.main_right_panel.box)
 
         self.window.show()
 
     def add_plot(self, plotname):
         sender = self.window.sender()
-        # model = widget.get_model()
-        # index = widget.get_active()
         pp = self.main_left_panel.plots_box
         print('Add plot {} {}'.format(plotname, sender))
         pp.add_plot_box(plotname)
         sender.setCurrentIndex(0)
-        # if index:
-        #     print("Add plot", model[index][0])
-        #     pp.add_plot_panel(model[index][0])
-        #     pp.update()
-        # widget.set_active(0)
 
     def fit_monitor(self, *args):
         msg = None
@@ -696,7 +670,6 @@ def main():
     # for fitting.
 
     taco.set_random_salt(None)
-    global CHILD_PIPE
 
     opt = get_options()
 
