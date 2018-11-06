@@ -40,8 +40,6 @@ import sherpa.ui as ui
 logging.basicConfig(level=logging.DEBUG)
 logging.debug('Importing gui_fit from {}'.format(__file__))
 
-# from xija.fit import (FitTerminated, CalcModel, CalcStat, FitWorker)
-
 fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
                                       format='[%(levelname)s] (%(processName)-10s) %(message)s')
 
@@ -331,7 +329,6 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
     def delete_plot_box(self, plot_name):
         for plot_box in self.findChildren(PlotBox):
-            print(plot_box.plot_name)
             if plot_box.plot_name == plot_name:
                 self.removeItem(plot_box)
                 clearLayout(plot_box)
@@ -453,12 +450,6 @@ class ParamsPanel(Panel):
                 # adj.handler_unblock(self.adj_handlers[row])
 
 
-class ConsolePanel(Panel):
-    def __init__(self):
-        Panel.__init__(self, orient='v')
-        self.pack_start(QtWidgets.QLabel('console_panel'), False, False, 0)
-
-
 class ControlButtonsPanel(Panel):
     def __init__(self, model):
         Panel.__init__(self, orient='h')
@@ -521,15 +512,7 @@ class MainRightPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient='v')
         self.params_panel = ParamsPanel(model, plots_panel)
-        self.console_panel = ConsolePanel()
-
-        okButton = QtWidgets.QPushButton("OK right")
         self.pack_start(self.params_panel)
-        self.pack_start(self.console_panel, False)
-        # self.pack_start(okButton, False)
-        self.box.addWidget(okButton)
-        # self.box.addStretch(1)
-
 
 class MainWindow(object):
     # This is a callback function. The data arguments are ignored
