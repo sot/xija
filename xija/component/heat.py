@@ -927,8 +927,9 @@ class StepFunctionPower(PrecomputedHeatPower):
     def update(self):
         """Update the model prediction as a precomputed heat.
         """
-        self.mvals = self.P*np.ones_like(self.model.times)
-        self.mvals[self.model.times < self.time] = 0.0
+        self.mvals = np.full_like(self.model.times, fill_value=self.P)
+        idx0 = np.searchsorted(self.model.times, self.time)
+        self.mvals[:idx0] = 0.0
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                           self.node.mvals_i,  # dy1/dt index
                           self.mvals_i,
