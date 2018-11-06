@@ -615,6 +615,9 @@ class MainWindow(object):
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
+        dlg.setDirectory(os.getcwd())
+        dlg.setFilters(["JSON files (*.json)", "All files (*)"])
+        dlg.selectNameFilter("JSON files (*.json)")
         dlg.selectFile(gui_config["filename"])
         dlg.setAcceptMode(dlg.AcceptSave)
         dlg.exec_()
