@@ -618,7 +618,7 @@ class MainWindow(object):
         dlg.setDirectory(os.getcwd())
         dlg.setFilters(["JSON files (*.json)", "All files (*)"])
         dlg.selectNameFilter("JSON files (*.json)")
-        dlg.selectFile(gui_config["filename"])
+        dlg.selectFile(os.path.abspath(gui_config["filename"]))
         dlg.setAcceptMode(dlg.AcceptSave)
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
@@ -631,9 +631,12 @@ class MainWindow(object):
             try:
                 self.model.write(filename, model_spec)
                 gui_config['filename'] = filename
-            except IOError:
-                print("Error writing {}".format(filename))
-                # Raise a dialog box here.
+            except IOError as ioerr:
+                msg = QtWidgets.QMessageBox()
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                msg.setText("There was a problem writing the file:")
+                msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
+                msg.exec_()
 
 
 def get_options():
