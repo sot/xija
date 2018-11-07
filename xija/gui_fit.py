@@ -357,8 +357,8 @@ class PanelCheckBox(QtWidgets.QCheckBox):
 
 
 class PanelText(QtWidgets.QLineEdit):
-    def __init__(self, par, attr, slider):
-        super(PanelText, self).__init__()
+    def __init__(self, parent, par, attr, slider):
+        super(PanelText, self).__init__(parent)
         self.par = par
         self.attr = attr
         self.slider = slider
@@ -378,6 +378,7 @@ class PanelText(QtWidgets.QLineEdit):
             incr = (self.slider.maximum - self.slider.minimum) / 100.0
             self.slider.setTickInterval(incr)
             setattr(self.par, self.attr, val)
+        self.parent.plots_panel.update()
 
 
 class ParamsPanel(Panel):
@@ -413,17 +414,17 @@ class ParamsPanel(Panel):
             # self.adj_handlers[row] = handler
 
             # Value
-            entry = params_table[row, 2] = PanelText(par, 'val', slider)
+            entry = params_table[row, 2] = PanelText(self, par, 'val', slider)
             entry.setText(par.fmt.format(par.val))
             entry.editingFinished.connect(entry.par_attr_changed)
 
             # Min of slider
-            entry = params_table[row, 3] = PanelText(par, 'min', slider)
+            entry = params_table[row, 3] = PanelText(self, par, 'min', slider)
             entry.setText(par.fmt.format(par.min))
             entry.editingFinished.connect(entry.par_attr_changed)
 
             # Max of slider
-            entry = params_table[row, 5] = PanelText(par, 'max', slider)
+            entry = params_table[row, 5] = PanelText(self, par, 'max', slider)
             entry.setText(par.fmt.format(par.max))
             entry.editingFinished.connect(entry.par_attr_changed)
 
