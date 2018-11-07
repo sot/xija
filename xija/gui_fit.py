@@ -348,13 +348,36 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
 
 class PanelCheckBox(QtWidgets.QCheckBox):
-    def __init__(self, model, row):
+    def __init__(self, par):
         super(PanelCheckBox, self).__init__() 
-        self.row = row
-        self.model = model
+        self.par = par
 
     def frozen_toggled(self, state):
-        self.model.pars[self.row].frozen = state != QtCore.Qt.Checked
+        self.par.frozen = state != QtCore.Qt.Checked
+
+
+class PanelText(QtWidgets.QLineEdit):
+    def __init__(self, par, attr, slider):
+        super(PanelText, self).__init__()
+        self.par = par
+        self.attr = attr
+        self.slider = slider
+
+    def par_attr_changed(self):
+        try:
+            val = float(self.text.strip())
+        except ValueError:
+            pass
+        else:
+            if self.attr == 'min':
+                self.slider.setMinimum(val)
+            elif self.attr == 'max':
+                self.slider.setMaximum(val)
+            elif self.attr == 'val':
+                self.slider.setValue(val)
+            incr = (self.slider.maximum - self.slider.minimum) / 100.0
+            self.slider.setTickInterval(incr)
+            setattr(self.par, self.attr, val)
 
 
 class ParamsPanel(Panel):
@@ -371,67 +394,41 @@ class ParamsPanel(Panel):
         self.adj_handlers = {}
         for row, par in zip(count(), self.model.pars):
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = PanelCheckBox(model, row)
+            frozen = params_table[row, 0] = PanelCheckBox(par, row)
             frozen.setCheckState(not par.frozen)
             frozen.stateChanged.connect(frozen.frozen_toggled)
 
             # par full name
             params_table[row, 1] = QtWidgets.QLabel(par.full_name)
-            # params_table[row, 1].set_alignment(0, 0.5)
 
             # Slider
-            # incr = (par.max - par.min) / 100.0
-            slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)  # (par.val, par.min, par.max, incr, incr, 0.0)
+            incr = (par.max - par.min) / 100.0
+            slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
             slider.setMinimum(par.min)
             slider.setMaximum(par.max)
             slider.setValue(par.val)
-            # slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
-            # slider.set_draw_value(False)
-            # slider.set_size_request(70, -1)
+            slider.setTickInterval(incr)
             params_table[row, 4] = slider
             # handler = adj.connect('value_changed', self.slider_changed, row)
             # self.adj_handlers[row] = handler
 
             # Value
-            entry = params_table[row, 2] = QtWidgets.QLineEdit()
-            # entry.set_width_chars(10)
+            entry = params_table[row, 2] = PanelText(par, 'val', slider)
             entry.setText(par.fmt.format(par.val))
-            # entry.connect('activate', self.par_attr_changed, adj, par, 'val')
+            entry.editingFinished.connect(entry.par_attr_changed)
 
             # Min of slider
-            entry = params_table[row, 3] = QtWidgets.QLineEdit()
+            entry = params_table[row, 3] = PanelText(par, 'min', slider)
             entry.setText(par.fmt.format(par.min))
-            # entry.set_width_chars(4)
-            # entry.connect('activate', self.par_attr_changed, adj, par, 'min')
+            entry.editingFinished.connect(entry.par_attr_changed)
 
             # Max of slider
-            entry = params_table[row, 5] = QtWidgets.QLineEdit()
+            entry = params_table[row, 5] = PanelText(par, 'max', slider)
             entry.setText(par.fmt.format(par.max))
-            # entry.set_width_chars(6)
-            # entry.connect('activate', self.par_attr_changed, adj, par, 'max')
+            entry.editingFinished.connect(entry.par_attr_changed)
 
         self.pack_start(params_table.table, True, True, padding=10)
         self.params_table = params_table
-
-    def par_attr_changed(self, widget, adj, par, par_attr):
-        """Min, val, or max Entry box value changed.  Update the slider (adj)
-        limits and the par min/val/max accordingly.
-        """
-        try:
-            val = float(widget.get_text())
-        except ValueError:
-            pass
-        else:
-            if par_attr == 'min':
-                adj.set_lower(val)
-            elif par_attr == 'max':
-                adj.set_upper(val)
-            elif par_attr == 'val':
-                adj.set_value(val)
-            incr = (adj.get_upper() - adj.get_lower()) / 100.0
-            adj.set_step_increment(incr)
-            adj.set_page_increment(incr)
-            setattr(par, par_attr, val)
 
     def slider_changed(self, widget, row):
         parval = widget.value  # widget is an adjustment
