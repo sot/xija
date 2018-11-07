@@ -504,8 +504,6 @@ class MainLeftPanel(Panel):
         self.pack_start(self.plots_box)
         self.add_stretch(1)
         self.model = model
-        # self.plots_panel.add_plot_panel('pftank2t fit_resid')
-        # self.box.addStretch(1)
 
 
 class MainRightPanel(Panel):
@@ -543,7 +541,7 @@ class MainWindow(object):
         cbp.save_button.clicked.connect(self.save_model_file)
         cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         cbp.add_plot_button.activated[str].connect(self.add_plot)
-        cbp.command_entry.connect('activate', self.command_activated)
+        cbp.command_entry.textChanged.connect(self.command_activated)
 
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
