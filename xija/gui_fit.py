@@ -357,11 +357,12 @@ class PanelCheckBox(QtWidgets.QCheckBox):
 
 
 class PanelText(QtWidgets.QLineEdit):
-    def __init__(self, parent, par, attr, slider):
-        super(PanelText, self).__init__(parent)
+    def __init__(self, params_panel, par, attr, slider):
+        super(PanelText, self).__init__()
         self.par = par
         self.attr = attr
         self.slider = slider
+        self.params_panel = params_panel
 
     def par_attr_changed(self):
         try:
@@ -369,16 +370,51 @@ class PanelText(QtWidgets.QLineEdit):
         except ValueError:
             pass
         else:
-            if self.attr == 'min':
-                self.slider.setMinimum(val)
-            elif self.attr == 'max':
-                self.slider.setMaximum(val)
-            elif self.attr == 'val':
-                self.slider.setValue(val)
-            incr = (self.slider.maximum() - self.slider.minimum()) / 100.0
-            self.slider.setTickInterval(incr)
+            self.slider.update_slider_val(val, self.attr)
             setattr(self.par, self.attr, val)
-        self.parent.plots_panel.update()
+            self.params_panel.plots_panel.update_plots()
+
+
+class PanelSlider(QtWidgets.QSlider):
+    def __init__(self, params_panel, par, row):
+        super(PanelSlider, self).__init__(QtCore.Qt.Horizontal)
+        self.par = par
+        self.row = row
+        self.params_panel = params_panel
+        self.parmin = par.min
+        self.parmax = par.max
+        self.parval = par.val
+        self.setMinimum(0)
+        self.setMaximum(100)
+        self.setTickInterval(101)
+        self.setSingleStep(1)
+        self.setPageStep(10)
+        self.set_dx()
+        self.set_step_from_value(par.val)
+
+    def set_dx(self):
+        self.dx = 100.0/(self.parmax-self.parmin)
+        self.idx = 1.0/self.dx
+
+    def set_step_from_value(self, val):
+        step = int((val-self.parmin)*self.dx)
+        self.setValue(step)
+
+    def get_value_from_step(self):
+        val = self.value()*self.idx + self.parmin
+        return val
+
+    def update_slider_val(self, val, attr):
+        setattr(self, "par{}".format(attr), val)
+        if attr in ["min", "max"]:
+            self.set_dx()
+        self.set_step_from_value(val)
+
+    def slider_changed(self):
+        val = self.get_value_from_step()
+        setattr(self.par, "val", val)
+        self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(val))
+        self.params_panel.plots_panel.update_plots()
 
 
 class ParamsPanel(Panel):
@@ -403,40 +439,28 @@ class ParamsPanel(Panel):
             params_table[row, 1] = QtWidgets.QLabel(par.full_name)
 
             # Slider
-            incr = (par.max - par.min) / 100.0
-            slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-            slider.setMinimum(par.min)
-            slider.setMaximum(par.max)
-            slider.setValue(par.val)
-            slider.setTickInterval(incr)
+            slider = PanelSlider(self, par, row)
             params_table[row, 4] = slider
-            # handler = adj.connect('value_changed', self.slider_changed, row)
-            # self.adj_handlers[row] = handler
+            handler = slider.valueChanged.connect(slider.slider_changed)
+            self.adj_handlers[row] = handler
 
             # Value
             entry = params_table[row, 2] = PanelText(self, par, 'val', slider)
             entry.setText(par.fmt.format(par.val))
-            entry.editingFinished.connect(entry.par_attr_changed)
+            entry.returnPressed.connect(entry.par_attr_changed)
 
             # Min of slider
             entry = params_table[row, 3] = PanelText(self, par, 'min', slider)
             entry.setText(par.fmt.format(par.min))
-            entry.editingFinished.connect(entry.par_attr_changed)
+            entry.returnPressed.connect(entry.par_attr_changed)
 
             # Max of slider
             entry = params_table[row, 5] = PanelText(self, par, 'max', slider)
             entry.setText(par.fmt.format(par.max))
-            entry.editingFinished.connect(entry.par_attr_changed)
+            entry.returnPressed.connect(entry.par_attr_changed)
 
         self.pack_start(params_table.table, True, True, padding=10)
         self.params_table = params_table
-
-    def slider_changed(self, widget, row):
-        parval = widget.value  # widget is an adjustment
-        par = self.model.pars[row]
-        par.val = parval
-        self.params_table[row, 2].setText(par.fmt.format(parval))
-        self.plots_panel.update()
 
     def update(self):
         for row, par in enumerate(self.model.pars):
@@ -445,10 +469,11 @@ class ParamsPanel(Panel):
             if str(val_label.text) != par_val_text:
                 val_label.setText(par_val_text)
                 # Change the slider value but block the signal to update the plot
-                # adj = self.params_table[row, 4].get_adjustment()
-                # adj.handler_block(self.adj_handlers[row])
-                # adj.set_value(par.val)
-                # adj.handler_unblock(self.adj_handlers[row])
+                slider = self.params_table[row, 4]
+                handler = self.adj_handlers[row]
+                handler.block_signals(True)
+                slider.set_step_from_value(par.val)
+                handler.block_signals(False)
 
 
 class ControlButtonsPanel(Panel):
@@ -539,7 +564,7 @@ class MainWindow(object):
         self.cbp.save_button.clicked.connect(self.save_model_file)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
-        self.cbp.command_entry.editingFinished.connect(self.command_activated)
+        self.cbp.command_entry.returnPressed.connect(self.command_activated)
 
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
