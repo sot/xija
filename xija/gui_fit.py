@@ -318,7 +318,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
-        print('adding plot ', plot_name)
+        print('Adding plot ', plot_name)
         plot_box = PlotBox(plot_name, self)
         self.addLayout(plot_box)
         plot_box.update()
@@ -540,15 +540,13 @@ class MainWindow(object):
         cbp.add_plot_button.activated[str].connect(self.add_plot)
         # cbp.command_entry.connect('activate', self.command_activated)
 
-        # # Add plots from previous Save
-        # for plot_name in gui_config.get('plot_names', []):
-        #     try:
-        #         plot_index = cbp.plot_names.index(plot_name) + 1
-        #         cbp.add_plot_button.set_active(plot_index)
-        #         print("Adding plot {} {}".format(plot_name, plot_index))
-        #         time.sleep(0.05)  # is it needed?
-        #     except ValueError:
-        #         print("ERROR: Unexpected plot_name {}".format(plot_name))
+        # Add plots from previous Save
+        for plot_name in gui_config.get('plot_names', []):
+            try:
+                self.add_plot(plot_name)
+                time.sleep(0.05)  # is it needed?
+            except ValueError:
+                print("ERROR: Unexpected plot_name {}".format(plot_name))
 
         # Show everything finally
         main_window_hbox.addLayout(mlp.box)
@@ -557,11 +555,8 @@ class MainWindow(object):
         self.window.show()
 
     def add_plot(self, plotname):
-        sender = self.window.sender()
         pp = self.main_left_panel.plots_box
-        print('Add plot {} {}'.format(plotname, sender))
         pp.add_plot_box(plotname)
-        sender.setCurrentIndex(0)
 
     def fit_monitor(self, *args):
         msg = None
