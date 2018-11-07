@@ -391,6 +391,7 @@ class PanelSlider(QtWidgets.QSlider):
         self.setPageStep(10)
         self.set_dx()
         self.set_step_from_value(par.val)
+        self.update_plots = True
 
     def set_dx(self):
         self.dx = 100.0/(self.parmax-self.parmin)
@@ -410,11 +411,15 @@ class PanelSlider(QtWidgets.QSlider):
             self.set_dx()
         self.set_step_from_value(val)
 
+    def block_plotting(self, block):
+        self.update_plots = not block
+
     def slider_changed(self):
         val = self.get_value_from_step()
         setattr(self.par, "val", val)
         self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(val))
-        self.params_panel.plots_panel.update_plots()
+        if self.update_plots:
+            self.params_panel.plots_panel.update_plots()
 
 
 class ParamsPanel(Panel):
@@ -428,7 +433,6 @@ class ParamsPanel(Panel):
                                    colwidths={0: 30, 1: 250},
                                    show_header=True)
 
-        self.adj_handlers = {}
         for row, par in zip(count(), self.model.pars):
             # Thawed (i.e. fit the parameter)
             frozen = params_table[row, 0] = PanelCheckBox(par)
@@ -441,8 +445,7 @@ class ParamsPanel(Panel):
             # Slider
             slider = PanelSlider(self, par, row)
             params_table[row, 4] = slider
-            handler = slider.valueChanged.connect(slider.slider_changed)
-            self.adj_handlers[row] = handler
+            slider.valueChanged.connect(slider.slider_changed)
 
             # Value
             entry = params_table[row, 2] = PanelText(self, par, 'val', slider)
@@ -470,10 +473,9 @@ class ParamsPanel(Panel):
                 val_label.setText(par_val_text)
                 # Change the slider value but block the signal to update the plot
                 slider = self.params_table[row, 4]
-                handler = self.adj_handlers[row]
-                handler.block_signals(True)
+                slider.block_plots(True)
                 slider.set_step_from_value(par.val)
-                handler.block_signals(False)
+                slider.block_plots(False)
 
 
 class ControlButtonsPanel(Panel):
