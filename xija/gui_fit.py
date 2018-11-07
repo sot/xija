@@ -10,7 +10,7 @@ import multiprocessing
 import time
 import functools
 
-from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from itertools import count
 import argparse
@@ -671,7 +671,6 @@ def get_options():
 def main():
     # Enable fully-randomized evaluation of ACIS-FP model which is desirable
     # for fitting.
-
     taco.set_random_salt(None)
 
     opt = get_options()
