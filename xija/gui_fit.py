@@ -619,7 +619,6 @@ class MainWindow(object):
         dlg.selectNameFilter("JSON files (*.json)")
         dlg.selectFile(os.path.abspath(gui_config["filename"]))
         dlg.setAcceptMode(dlg.AcceptSave)
-        dlg.setDirectory(os.getcwd())
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
         if filename != '':
