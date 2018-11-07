@@ -251,8 +251,8 @@ class Node(TelemData):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
-            plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, '-r', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
             if hasattr(self.model, 'bad_times_indices'):
                 for i0, i1 in self.model.bad_times_indices:

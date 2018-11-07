@@ -821,8 +821,8 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             lines[0].set_data(self.model_plotdate, self.dvals)
             lines[1].set_data(self.model_plotdate, powers)
         else:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
-            plot_cxctime(self.model.times, powers, '-r', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, '-r', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, powers, '-b', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
