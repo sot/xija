@@ -16,7 +16,7 @@ framework used Chandra thermal modeling:
 * Matlab interface
 """
 
-if (os.name == "nt"):
+if os.name == "nt":
     link_args = ['/EXPORT:calc_model']
 else:
     link_args = []
@@ -28,6 +28,8 @@ except ImportError:
 
 core6_ext = Extension('xija.core', ['xija/core.c'],
                       extra_link_args=link_args)
+
+entry_points = {'console_scripts': 'gui_fit = xija.gui_fit:main'}
 
 setup(name='xija',
       version=__version__,
@@ -55,4 +57,5 @@ setup(name='xija',
                     'xija.tests': ['*.npz', '*.json']},
       tests_require=['pytest'],
       cmdclass=cmdclass,
+      entry_points=entry_points,
       )
