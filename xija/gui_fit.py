@@ -365,7 +365,7 @@ class PanelText(QtWidgets.QLineEdit):
 
     def par_attr_changed(self):
         try:
-            val = float(self.text.strip())
+            val = float(self.text().strip())
         except ValueError:
             pass
         else:
@@ -375,7 +375,7 @@ class PanelText(QtWidgets.QLineEdit):
                 self.slider.setMaximum(val)
             elif self.attr == 'val':
                 self.slider.setValue(val)
-            incr = (self.slider.maximum - self.slider.minimum) / 100.0
+            incr = (self.slider.maximum() - self.slider.minimum()) / 100.0
             self.slider.setTickInterval(incr)
             setattr(self.par, self.attr, val)
         self.parent.plots_panel.update()
@@ -395,7 +395,7 @@ class ParamsPanel(Panel):
         self.adj_handlers = {}
         for row, par in zip(count(), self.model.pars):
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = PanelCheckBox(par, row)
+            frozen = params_table[row, 0] = PanelCheckBox(par)
             frozen.setCheckState(not par.frozen)
             frozen.stateChanged.connect(frozen.frozen_toggled)
 
