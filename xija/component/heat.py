@@ -334,6 +334,7 @@ class SolarHeatHrc(SolarHeat):
             self.hrc_mask = self.simz_comp.dvals < 0
         self._dvals[self.hrc_mask] += self.hrc_bias
 
+
 class SolarHeatHrcOpts(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent, two parameters for
     HRC-I and HRC-S)

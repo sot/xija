@@ -259,7 +259,7 @@ class Node(TelemData):
                     plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
                                  fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
-            ax.set_title('{}: model (red) and data (blue)'.format(self.name))
+            ax.set_title('{}: model (blue) and data (red)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
         else:
             lines[1].set_ydata(self.mvals)
