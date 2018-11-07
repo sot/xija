@@ -334,7 +334,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.update()
 
     def update_plots(self):
-        cbp = self.main_window.main_left_panel.control_buttons_panel
+        cbp = self.main_window.cbp
         cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.findChildren(PlotBox):
@@ -534,14 +534,14 @@ class MainWindow(object):
 
         self.main_right_panel = MainRightPanel(model, mlp.plots_box)
 
-        cbp = mlp.control_buttons_panel
-        cbp.fit_button.clicked.connect(self.fit_worker.start)
-        cbp.fit_button.clicked.connect(self.fit_monitor)
-        cbp.stop_button.clicked.connect(self.fit_worker.terminate)
-        cbp.save_button.clicked.connect(self.save_model_file)
-        cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
-        cbp.add_plot_button.activated[str].connect(self.add_plot)
-        cbp.command_entry.textChanged.connect(self.command_activated)
+        self.cbp = mlp.control_buttons_panel
+        self.cbp.fit_button.clicked.connect(self.fit_worker.start)
+        self.cbp.fit_button.clicked.connect(self.fit_monitor)
+        self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
+        self.cbp.save_button.clicked.connect(self.save_model_file)
+        self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        self.cbp.add_plot_button.activated[str].connect(self.add_plot)
+        self.cbp.command_entry.editingFinished.connect(self.command_activated)
 
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
@@ -587,14 +587,17 @@ class MainWindow(object):
         if not fit_stopped:
             QtCore.QTimer.singleShot(200, self.fit_monitor)
 
-    def command_activated(self, widget):
+    def command_activated(self):
         """Respond to a command like "freeze solarheat*dP*" submitted via the
         command entry box.  The first word is either "freeze" or "thaw" (with
         possibility for other commands later) and the subsequent args are
         space-delimited parameter globs using the UNIX file-globbing syntax.
         This then sets the corresponding params_table checkbuttons.
         """
-        command = widget.get_text().strip()
+        widget = self.cbp.command_entry
+        command = widget.text().strip()
+        if command == '':
+            return
         vals = command.split()
         cmd = vals[0]  # currently freeze or thaw
         if cmd not in ('freeze', 'thaw') or len(vals) <= 1:
@@ -608,7 +611,9 @@ class MainWindow(object):
             for par_regex in par_regexes:
                 if re.match(par_regex, par.full_name):
                      checkbutton = params_table[row, 0]
-                     checkbutton.set_active(cmd == 'thaw')
+                     checkbutton.setCheckState(cmd == 'thaw')
+                     par.frozen = cmd != 'thaw'
+
         widget.setText('')
 
     def save_model_file(self, *args):
