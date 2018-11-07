@@ -51,8 +51,10 @@ sherpa_configs = dict(
     )
 gui_config = {}
 
+
 class FitTerminated(Exception):
     pass
+
 
 class CalcModel(object):
     def __init__(self, model):
@@ -115,6 +117,7 @@ class CalcStat(object):
                 raise FitTerminated('terminated')
 
         return fit_stat, np.ones(1)
+
 
 class FitWorker(object):
     def __init__(self, model, method='simplex'):
@@ -343,6 +346,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     def plot_boxes(self):
         return [plot_box for plot_box in self.findChildren(PlotBox)]
 
+
 class PanelCheckBox(QtWidgets.QCheckBox):
     def __init__(self, model, row):
         super(PanelCheckBox, self).__init__() 
@@ -388,7 +392,7 @@ class ParamsPanel(Panel):
             # handler = adj.connect('value_changed', self.slider_changed, row)
             # self.adj_handlers[row] = handler
 
-            # Value 
+            # Value
             entry = params_table[row, 2] = QtWidgets.QLineEdit()
             # entry.set_width_chars(10)
             entry.setText(par.fmt.format(par.val))
@@ -510,6 +514,7 @@ class MainRightPanel(Panel):
         self.params_panel = ParamsPanel(model, plots_panel)
         self.pack_start(self.params_panel)
 
+
 class MainWindow(object):
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
@@ -538,7 +543,7 @@ class MainWindow(object):
         cbp.save_button.clicked.connect(self.save_model_file)
         cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         cbp.add_plot_button.activated[str].connect(self.add_plot)
-        # cbp.command_entry.connect('activate', self.command_activated)
+        cbp.command_entry.connect('activate', self.command_activated)
 
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
