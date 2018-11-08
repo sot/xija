@@ -903,3 +903,45 @@ class ThermostatHeater(ActiveHeatPower):
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power')
+
+class StepFunctionPower(PrecomputedHeatPower):
+    """
+    A class that applies a constant temperature shift only 
+    after a certain point in time.
+    """
+    def __init__(self, model, node, time, P=0.0):
+        super(StepFunctionPower, self).__init__(model)
+        self.time = DateTime(time).secs
+        self.node = self.model.get_comp(node)
+        self.add_par('P', P, min=-10.0, max=10.0)
+        self.n_mvals = 1
+
+    def __str__(self):
+        return 'step_power__{0}'.format(self.node)
+
+    def get_dvals_tlm(self):
+        """Return an array of zeros => no activation of the heater.
+        """
+        return np.zeros_like(self.model.times)
+
+    def update(self):
+        """Update the model prediction as a precomputed heat.
+        """
+        self.mvals = np.full_like(self.model.times, fill_value=self.P)
+        idx0 = np.searchsorted(self.model.times, self.time)
+        self.mvals[:idx0] = 0.0
+        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
+                          self.node.mvals_i,  # dy1/dt index
+                          self.mvals_i,
+                          )
+        self.tmal_floats = ()
+
+    def plot_data__time(self, fig, ax):
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(self.model_plotdate, self.mvals)
+        else:
+            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_ylabel('Power')
