@@ -338,7 +338,6 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.findChildren(PlotBox):
-            print('Updating plot {}'.format(plot_box.plot_name))
             plot_box.update()
         cbp.update_status.setText('')
 
@@ -473,9 +472,9 @@ class ParamsPanel(Panel):
                 val_label.setText(par_val_text)
                 # Change the slider value but block the signal to update the plot
                 slider = self.params_table[row, 4]
-                slider.block_plots(True)
+                slider.block_plotting(True)
                 slider.set_step_from_value(par.val)
-                slider.block_plots(False)
+                slider.block_plotting(False)
 
 
 class ControlButtonsPanel(Panel):
