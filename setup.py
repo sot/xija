@@ -29,7 +29,7 @@ except ImportError:
 core6_ext = Extension('xija.core', ['xija/core.c'],
                       extra_link_args=link_args)
 
-entry_points = {'console_scripts': 'gui_fit = xija.gui_fit:main'}
+entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit:main'}
 
 setup(name='xija',
       version=__version__,
