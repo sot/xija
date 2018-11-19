@@ -435,7 +435,7 @@ class ParamsPanel(Panel):
         for row, par in zip(count(), self.model.pars):
             # Thawed (i.e. fit the parameter)
             frozen = params_table[row, 0] = PanelCheckBox(par)
-            frozen.setCheckState(not par.frozen)
+            frozen.setChecked(not par.frozen)
             frozen.stateChanged.connect(frozen.frozen_toggled)
 
             # par full name
@@ -635,7 +635,7 @@ class MainWindow(object):
             for par_regex in par_regexes:
                 if re.match(par_regex, par.full_name):
                      checkbutton = params_table[row, 0]
-                     checkbutton.setCheckState(cmd == 'thaw')
+                     checkbutton.setChecked(cmd == 'thaw')
                      par.frozen = cmd != 'thaw'
 
         widget.setText('')
