@@ -3,7 +3,7 @@ from .model import *
 from .component import *
 from .files import files
 
-__version__ = '3.12'
+__version__ = '3.13'
 
 def test(*args, **kwargs):
     '''
