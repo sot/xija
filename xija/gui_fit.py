@@ -358,12 +358,24 @@ class PanelCheckBox(QtWidgets.QCheckBox):
 
 
 class PanelText(QtWidgets.QLineEdit):
-    def __init__(self, params_panel, par, attr, slider):
+    def __init__(self, params_panel, row, par, attr, slider):
         super(PanelText, self).__init__()
         self.par = par
+        self.row = row
         self.attr = attr
         self.slider = slider
         self.params_panel = params_panel
+
+    def _bounds_check(self):
+        if self.par.val < self.par.min:
+            print("Attempted to set parameter value below minimum. Setting to min value.")
+            self.par.val = self.par.min
+            self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(self.par.val))
+        if self.par.val > self.par.max:
+            print("Attempted to set parameter value below maximum. Setting to max value.")
+            self.par.val = self.par.max
+            self.setText(self.par.fmt.format(self.par.val))
+            self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(self.par.val))
 
     def par_attr_changed(self):
         try:
@@ -371,8 +383,9 @@ class PanelText(QtWidgets.QLineEdit):
         except ValueError:
             pass
         else:
-            self.slider.update_slider_val(val, self.attr)
             setattr(self.par, self.attr, val)
+            self._bounds_check()
+            self.slider.update_slider_val(val, self.attr)
             self.params_panel.plots_panel.update_plots()
 
 
@@ -410,12 +423,12 @@ class PanelSlider(QtWidgets.QSlider):
         setattr(self, "par{}".format(attr), val)
         if attr in ["min", "max"]:
             self.set_dx()
-        self.set_step_from_value(val)
+        self.set_step_from_value(self.parval)
 
     def block_plotting(self, block):
         self.update_plots = not block
-
-    def slider_changed(self):
+        
+    def slider_moved(self):
         val = self.get_value_from_step()
         setattr(self.par, "val", val)
         self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(val))
@@ -446,20 +459,20 @@ class ParamsPanel(Panel):
             # Slider
             slider = PanelSlider(self, par, row)
             params_table[row, 4] = slider
-            slider.valueChanged.connect(slider.slider_changed)
+            slider.sliderMoved.connect(slider.slider_moved)
 
             # Value
-            entry = params_table[row, 2] = PanelText(self, par, 'val', slider)
+            entry = params_table[row, 2] = PanelText(self, row, par, 'val', slider)
             entry.setText(par.fmt.format(par.val))
             entry.returnPressed.connect(entry.par_attr_changed)
 
             # Min of slider
-            entry = params_table[row, 3] = PanelText(self, par, 'min', slider)
+            entry = params_table[row, 3] = PanelText(self, row, par, 'min', slider)
             entry.setText(par.fmt.format(par.min))
             entry.returnPressed.connect(entry.par_attr_changed)
 
             # Max of slider
-            entry = params_table[row, 5] = PanelText(self, par, 'max', slider)
+            entry = params_table[row, 5] = PanelText(self, row, par, 'max', slider)
             entry.setText(par.fmt.format(par.max))
             entry.returnPressed.connect(entry.par_attr_changed)
 
