@@ -321,6 +321,8 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
+        if plot_name == "Add plot...":
+            return
         print('Adding plot ', plot_name)
         plot_box = PlotBox(plot_name, self)
         self.addLayout(plot_box)
