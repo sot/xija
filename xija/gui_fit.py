@@ -682,7 +682,7 @@ class MainWindow(object):
 
 def get_options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename",
+    parser.add_argument("filename",
                         default='test_gui.json',
                         help="Model file")
     parser.add_argument("--days",
