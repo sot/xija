@@ -170,7 +170,7 @@ class FitWorker(object):
                 calc_stat.message['status'] = 'terminated'
                 logging.debug('Got FitTerminated exception {}'.format(err))
 
-            self.child_pipe.send(calc_stat.message)
+        self.child_pipe.send(calc_stat.message)
 
 
 class WidgetTable(dict):
