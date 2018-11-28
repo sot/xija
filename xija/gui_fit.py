@@ -217,25 +217,25 @@ class WidgetTable(dict):
 
 
 class Panel(object):
-    def __init__(self, orient='h', homogeneous=False, spacing=0):
+    def __init__(self, orient='h'):
         Box = QtWidgets.QHBoxLayout if orient == 'h' else QtWidgets.QVBoxLayout
-        self.box = Box()  # homogeneous, spacing ??
+        self.box = Box()
         self.orient = orient
 
     def add_stretch(self, value):
         self.box.addStretch(value)
 
-    def pack_start(self, child, expand=True, fill=True, padding=0):
+    def pack_start(self, child):
         if isinstance(child, Panel):
             child = child.box
         if isinstance(child, QtWidgets.QBoxLayout):
             out = self.box.addLayout(child)
         else:
-            out = self.box.addWidget(child)  # , expand, fill, padding
+            out = self.box.addWidget(child)
         return out
 
-    def pack_end(self, child, expand=True, fill=True, padding=0):
-        return self.pack_start(child, expand, fill, padding)
+    def pack_end(self, child):
+        return self.pack_start(child)
 
 
 def clearLayout(layout):
@@ -254,8 +254,8 @@ def clearLayout(layout):
 
 class MplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure()  # figsize=(width, height), dpi=dpi)
+    def __init__(self, parent=None):
+        self.fig = Figure()
 
         super(MplCanvas, self).__init__(self.fig)
         self.setParent(parent)
@@ -427,7 +427,7 @@ class PanelSlider(QtWidgets.QSlider):
 
     def block_plotting(self, block):
         self.update_plots = not block
-        
+
     def slider_moved(self):
         val = self.get_value_from_step()
         setattr(self.par, "val", val)
@@ -476,7 +476,7 @@ class ParamsPanel(Panel):
             entry.setText(par.fmt.format(par.max))
             entry.returnPressed.connect(entry.par_attr_changed)
 
-        self.pack_start(params_table.table, True, True, padding=10)
+        self.pack_start(params_table.table)
         self.params_table = params_table
 
     def update(self):
@@ -506,17 +506,17 @@ class ControlButtonsPanel(Panel):
         self.quit_button = QtWidgets.QPushButton('Quit')
         self.command_entry = QtWidgets.QLineEdit()
         self.command_panel = Panel()
-        self.command_panel.pack_start(QtWidgets.QLabel('Command:'), False, False, 0)
-        self.command_panel.pack_start(self.command_entry, False, False, 0)
+        self.command_panel.pack_start(QtWidgets.QLabel('Command:'))
+        self.command_panel.pack_start(self.command_entry)
 
-        self.pack_start(self.fit_button, False, False, 0)
-        self.pack_start(self.stop_button, False, False, 0)
-        self.pack_start(self.save_button, False, False, 0)
-        self.pack_start(self.add_plot_button, False, False, 0)
-        self.pack_start(self.update_status, False, False, 0)
-        self.pack_start(self.command_panel, False, False, 0)
+        self.pack_start(self.fit_button)
+        self.pack_start(self.stop_button)
+        self.pack_start(self.save_button)
+        self.pack_start(self.add_plot_button)
+        self.pack_start(self.update_status)
+        self.pack_start(self.command_panel)
         self.add_stretch(1)
-        self.pack_start(self.quit_button, False, False, 0)
+        self.pack_start(self.quit_button)
 
     def make_add_plot_button(self):
         apb = QtWidgets.QComboBox()
@@ -539,7 +539,7 @@ class MainLeftPanel(Panel):
         Panel.__init__(self, orient='v')
         self.control_buttons_panel = ControlButtonsPanel(model)
         self.plots_box = PlotsBox(model, main_window)
-        self.pack_start(self.control_buttons_panel, False, False, 0)
+        self.pack_start(self.control_buttons_panel)
         self.pack_start(self.plots_box)
         self.add_stretch(1)
         self.model = model
