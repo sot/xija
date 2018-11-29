@@ -137,9 +137,11 @@ class FitWorker(object):
         """Terminate a Sherpa fit process in a controlled way by sending a
         message.  Get the final parameter values if possible.
         """
-        self.parent_pipe.send('terminate')
-        self.fit_process.join()
-        logging.debug('Fit terminated')
+        if hasattr(self, "fit_process"):
+            # Only do this if we had started a fit to begin with
+            self.parent_pipe.send('terminate')
+            self.fit_process.join()
+            logging.debug('Fit terminated')
 
     def fit(self):
         dummy_data = np.zeros(1)
