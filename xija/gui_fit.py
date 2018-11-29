@@ -9,6 +9,7 @@ import ast
 import multiprocessing
 import time
 import functools
+import platform
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -500,6 +501,8 @@ class ControlButtonsPanel(Panel):
 
         self.fit_button = QtWidgets.QPushButton("Fit")
         self.stop_button = QtWidgets.QPushButton("Stop")
+        if platform.system() == "Darwin":
+            self.stop_button.setEnabled(False)
         self.save_button = QtWidgets.QPushButton("Save")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
