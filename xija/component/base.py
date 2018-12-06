@@ -251,15 +251,15 @@ class Node(TelemData):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
-            plot_cxctime(self.model.times, self.mvals, '-r', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, '-r', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
             if hasattr(self.model, 'bad_times_indices'):
                 for i0, i1 in self.model.bad_times_indices:
                     plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
                                  fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
-            ax.set_title('{}: model (red) and data (blue)'.format(self.name))
+            ax.set_title('{}: model (blue) and data (red)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
         else:
             lines[1].set_ydata(self.mvals)
