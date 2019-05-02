@@ -99,6 +99,9 @@ class XijaModel(object):
         if dt is None:
             dt = 328.0
 
+        if dt > 328.0:
+            raise RuntimeError("dt = %g s greater than upper limit of 328 s!" % dt)
+
         self.name = name
         self.comp = OrderedDict()
         self.dt = dt
