@@ -382,9 +382,9 @@ class Pitch(TelemData):
         # the spacecraft is at normal sun.  So set these values to 90.
         bad = (vals >= 180.0) | (vals <= 45.0)
         vals[bad] = 90.0
-        # Thermal models typically calibrated between 45 to 170 degrees
-        # so clip values to that range.
-        vals.clip(45.001, 169.999, out=vals)
+        # Spacecraft must operate between 45 and 180 degrees pitch, so clip
+        # values to that range.
+        vals.clip(45.001, 179.999, out=vals)
         return vals
 
     def __str__(self):
