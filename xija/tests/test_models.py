@@ -68,6 +68,28 @@ def test_pitch_clip():
     mdl.make()
     mdl.calc()
 
+
+def test_pitch_range_clip():
+    """
+    Pitch in this time range goes from approximately 48.5 to 175.0 degrees.
+    pftank2t.json is used as a placeholder to load a new thermal model, and
+    should be able to be replaced with any other model. Make sure the pitch
+    range stored in the model object does not get clipped to a narrower range.
+    Make sure the pitch range stored does not include values outside of the 45
+    to 180 degree range.
+    """
+    mdl = ThermalModel('tank', start='2019:120', stop='2019:122',
+                       model_spec=abs_path('pftank2t.json'))
+
+    mdl.comp['pf0tank2t'].set_data(20.0)
+    mdl.make()
+    mdl.calc()
+
+    pitch = mdl.get_comp('pitch')
+    assert np.any(pitch.mvals > 170)
+    assert np.all((pitch.mvals > 45) & (pitch.mvals < 180))
+
+
 def test_dpa_remove_pow():
     mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
                        model_spec=abs_path('dpa_remove_pow.json'))
