@@ -6,6 +6,7 @@ from itertools import count
 import glob
 import os
 from six.moves import zip
+from pathlib import Path
 
 from numba import jit
 import numpy as np
@@ -388,6 +389,8 @@ class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
 
     use_earth_vis_grid = True
+    earth_vis_grid_path = Path(os.environ['SKA'], 'data', 'acis_taco',
+                               'earth_vis_grid_nside32.npy')
 
     def __init__(self, model, node,
                  orbitephem0_x, orbitephem0_y, orbitephem0_z,
@@ -413,7 +416,7 @@ class EarthHeat(PrecomputedHeatPower):
 
         if not hasattr(self, 'earth_vis_grid'):
             # TODO: make this a FITS file
-            self.__class__.earth_vis_grid = np.load('vis_grid.npy')
+            self.__class__.earth_vis_grid = np.load(self.earth_vis_grid_path)
             # TODO: get the distances from the FITS file
             alts = np.logspace(np.log10(200 * 1000),
                                np.log10(300000 * 1000),
