@@ -420,23 +420,8 @@ class EarthHeat(PrecomputedHeatPower):
                                100)
             self.__class__.log_earth_vis_dists = np.log(6371000 + alts)
 
-        n_vals = len(ephems)
-        lons = np.empty(n_vals, dtype=np.float64)
-        lats = np.empty(n_vals, dtype=np.float64)
-        dists = np.empty(n_vals, dtype=np.float64)
-
-        ephems = -ephems  # swap to Chandra-body-centric
-
-        for ii, ephem, q_att in zip(count(), ephems, q_atts):
-            # Earth vector in Chandra body coords (p_earth_body)
-            xform = quat_to_transform(q_att).transpose()
-            peb = np.dot(xform, ephem)
-
-            # Convert cartesian to spherical coords
-            s = np.hypot(peb[0], peb[1])
-            dists[ii] = np.hypot(s, peb[2])
-            lons[ii] = np.arctan2(peb[1], peb[0])
-            lats[ii] = np.arctan2(peb[2], s)
+        ephems = ephems.astype(np.float64)
+        dists, lons, lats = get_dists_lons_lats(ephems, q_atts)
 
         hp_idxs = self.healpix.lonlat_to_healpix(lons * u.rad, lats * u.rad)
 
@@ -1006,27 +991,53 @@ class StepFunctionPower(PrecomputedHeatPower):
 
 
 @jit(nopython=True)
-def quat_to_transform(q):
-        x, y, z, w = q
-        xx2 = 2 * x * x
-        yy2 = 2 * y * y
-        zz2 = 2 * z * z
-        xy2 = 2 * x * y
-        wz2 = 2 * w * z
-        zx2 = 2 * z * x
-        wy2 = 2 * w * y
-        yz2 = 2 * y * z
-        wx2 = 2 * w * x
+def quat_to_transform_transpose(q):
+    """Return transpose of transform matrix for Quat q"""
+    x, y, z, w = q
+    xx2 = 2 * x * x
+    yy2 = 2 * y * y
+    zz2 = 2 * z * z
+    xy2 = 2 * x * y
+    wz2 = 2 * w * z
+    zx2 = 2 * z * x
+    wy2 = 2 * w * y
+    yz2 = 2 * y * z
+    wx2 = 2 * w * x
 
-        rmat = np.empty((3, 3), np.float64)
-        rmat[0, 0] = 1. - yy2 - zz2
-        rmat[0, 1] = xy2 - wz2
-        rmat[0, 2] = zx2 + wy2
-        rmat[1, 0] = xy2 + wz2
-        rmat[1, 1] = 1. - xx2 - zz2
-        rmat[1, 2] = yz2 - wx2
-        rmat[2, 0] = zx2 - wy2
-        rmat[2, 1] = yz2 + wx2
-        rmat[2, 2] = 1. - xx2 - yy2
+    rmat = np.empty((3, 3), np.float64)
+    rmat[0, 0] = 1. - yy2 - zz2
+    rmat[1, 0] = xy2 - wz2
+    rmat[2, 0] = zx2 + wy2
+    rmat[0, 1] = xy2 + wz2
+    rmat[1, 1] = 1. - xx2 - zz2
+    rmat[2, 1] = yz2 - wx2
+    rmat[0, 2] = zx2 - wy2
+    rmat[1, 2] = yz2 + wx2
+    rmat[2, 2] = 1. - xx2 - yy2
 
-        return rmat
+    return rmat
+
+
+@jit(nopython=True)
+def get_dists_lons_lats(ephems, q_atts):
+    n_vals = len(ephems)
+    lons = np.empty(n_vals, dtype=np.float64)
+    lats = np.empty(n_vals, dtype=np.float64)
+    dists = np.empty(n_vals, dtype=np.float64)
+
+    ephems = -ephems  # swap to Chandra-body-centric
+
+    for ii in range(n_vals):
+        ephem = ephems[ii]
+        q_att = q_atts[ii]
+        # Earth vector in Chandra body coords (p_earth_body)
+        xform = quat_to_transform_transpose(q_att)
+        peb = np.dot(xform, ephem)
+
+        # Convert cartesian to spherical coords
+        s = np.hypot(peb[0], peb[1])
+        dists[ii] = np.hypot(s, peb[2])
+        lons[ii] = np.arctan2(peb[1], peb[0])
+        lats[ii] = np.arctan2(peb[2], s)
+
+    return dists, lons, lats
