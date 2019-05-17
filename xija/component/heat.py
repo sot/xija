@@ -7,6 +7,7 @@ import glob
 import os
 from six.moves import zip
 
+from numba import jit
 import numpy as np
 import scipy.interpolate
 import astropy.units as u
@@ -15,7 +16,6 @@ try:
     import Ska.Numpy
     from Ska.Matplotlib import plot_cxctime
     from Chandra.Time import DateTime
-    from Quaternion import Quat
 except ImportError:
     pass
 
@@ -29,8 +29,8 @@ class PrecomputedHeatPower(ModelComponent):
     def update(self):
         self.mvals = self.dvals
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,
+                          self.node.mvals_i,  # dy1/dt index
+                          self.mvals_i,
                           )
         self.tmal_floats = ()
 
@@ -420,22 +420,29 @@ class EarthHeat(PrecomputedHeatPower):
                                100)
             self.__class__.log_earth_vis_dists = np.log(6371000 + alts)
 
-        for ii, ephem, q_att in zip(count(), ephems, q_atts):
-            q_att = Quat(q_att)
+        n_vals = len(ephems)
+        lons = np.empty(n_vals, dtype=np.float64)
+        lats = np.empty(n_vals, dtype=np.float64)
+        dists = np.empty(n_vals, dtype=np.float64)
 
+        ephems = -ephems  # swap to Chandra-body-centric
+
+        for ii, ephem, q_att in zip(count(), ephems, q_atts):
             # Earth vector in Chandra body coords (p_earth_body)
-            peb = np.dot(q_att.transform.transpose(), -np.asarray(ephem))
+            xform = quat_to_transform(q_att).transpose()
+            peb = np.dot(xform, ephem)
 
             # Convert cartesian to spherical coords
             s = np.hypot(peb[0], peb[1])
-            dist = np.hypot(s, peb[2])
-            lon = np.arctan2(peb[1], peb[0])
-            lat = np.arctan2(peb[2], s)
+            dists[ii] = np.hypot(s, peb[2])
+            lons[ii] = np.arctan2(peb[1], peb[0])
+            lats[ii] = np.arctan2(peb[2], s)
 
-            hp_idx = self.healpix.lonlat_to_healpix(lon * u.rad, lat * u.rad)
+        hp_idxs = self.healpix.lonlat_to_healpix(lons * u.rad, lats * u.rad)
+
+        for ii, dist, hp_idx in zip(count(), dists, hp_idxs):
             vis = np.interp(x=np.log(dist), fp=self.earth_vis_grid[:, hp_idx],
                             xp=self.log_earth_vis_dists)
-
             self._dvals[ii] = vis
 
     def calc_earth_vis_from_taco(self, ephems, q_atts):
@@ -996,3 +1003,30 @@ class StepFunctionPower(PrecomputedHeatPower):
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power')
+
+
+@jit(nopython=True)
+def quat_to_transform(q):
+        x, y, z, w = q
+        xx2 = 2 * x * x
+        yy2 = 2 * y * y
+        zz2 = 2 * z * z
+        xy2 = 2 * x * y
+        wz2 = 2 * w * z
+        zx2 = 2 * z * x
+        wy2 = 2 * w * y
+        yz2 = 2 * y * z
+        wx2 = 2 * w * x
+
+        rmat = np.empty((3, 3), np.float64)
+        rmat[0, 0] = 1. - yy2 - zz2
+        rmat[0, 1] = xy2 - wz2
+        rmat[0, 2] = zx2 + wy2
+        rmat[1, 0] = xy2 + wz2
+        rmat[1, 1] = 1. - xx2 - zz2
+        rmat[1, 2] = yz2 - wx2
+        rmat[2, 0] = zx2 - wy2
+        rmat[2, 1] = yz2 + wx2
+        rmat[2, 2] = 1. - xx2 - yy2
+
+        return rmat
