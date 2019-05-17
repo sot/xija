@@ -9,11 +9,13 @@ from six.moves import zip
 
 import numpy as np
 import scipy.interpolate
+import astropy.units as u
 
 try:
     import Ska.Numpy
     from Ska.Matplotlib import plot_cxctime
     from Chandra.Time import DateTime
+    from Quaternion import Quat
 except ImportError:
     pass
 
@@ -381,6 +383,62 @@ class SolarHeatHrcOpts(SolarHeat):
 # For back compatibility prior to Xija 0.2
 DpaSolarHeat = SolarHeatHrc
 
+CONF = {}
+CONF['use_earth_vis_grid'] = True
+
+
+def calc_earth_vis_from_grid(p_chandra_eci, q_att, hp=None):
+    if hp is None:
+        import astropy_healpix as ahp
+        hp = ahp.HEALPix(nside=32, order='nested')
+
+    from acis_taco import calc_earth_vis
+    if 'earth_vis_grid' not in CONF:
+        print('Reading vis_grid.npy')
+        CONF['earth_vis_grid'] = np.load('vis_grid.npy')
+        alts = np.logspace(np.log10(200 * 1000),
+                           np.log10(300000 * 1000),
+                           100)
+        CONF['log_earth_vis_dists'] = np.log(6371000 + alts)
+
+    q_att = Quat(q_att)
+    p = np.dot(q_att.transform.transpose(), -np.asarray(p_chandra_eci))
+    # print(p)
+    _, illums, _ = calc_earth_vis(p_chandra_eci, q_att)
+    taco_vis = np.sum(illums)
+
+    # Convert to equatorial + distance
+    # from astropy.coordinates import CartesianRepresentation, SphericalRepresentation
+    # xyz = CartesianRepresentation(x=p[0], y=p[1], z=p[2])
+    # sph = xyz.to_spherical()
+    dist = np.sqrt(np.sum(p ** 2))
+    # lat = np.arccos(p[2] / dist)  # problem: goes from 0 to 180 not -90 to 90
+    # lon = np.arctan2(p[1], p[0])
+
+    s = np.hypot(p[0], p[1])
+    dist = np.hypot(s, p[2])
+    lon = np.arctan2(p[1], p[0])
+    lat = np.arctan2(p[2], s)
+    # print(dist, np.rad2deg(lon), np.rad2deg(lat))
+
+    hp_idx, dx, dy = hp.lonlat_to_healpix(lon * u.rad, lat * u.rad, return_offsets=True)
+    vis = np.interp(x=np.log(dist), fp=CONF['earth_vis_grid'][:, hp_idx],
+                    xp=CONF['log_earth_vis_dists'])
+    print(hp_idx, f'{vis:.6f} {taco_vis:.6f} {dist / 1000:.1f} '
+          f'{np.rad2deg(lon):.4f} {np.rad2deg(lat):.4f} {(vis - taco_vis):.6f} '
+          f'{dx:.2f} {dy:.2f}')
+    if np.abs(vis - taco_vis) > 0.004:
+        print(np.abs(vis - taco_vis))
+        idxs = hp.neighbours(hp_idx)
+        for idx in idxs:
+            vis = np.interp(x=np.log(dist), fp=CONF['earth_vis_grid'][:, idx],
+                            xp=CONF['log_earth_vis_dists'])
+            print(idx, vis)
+
+    # print(vis, np.sum(illums))
+
+    return vis
+
 
 class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
@@ -402,10 +460,14 @@ class EarthHeat(PrecomputedHeatPower):
 
     @property
     def dvals(self):
-        try:
+        if not CONF['use_earth_vis_grid']:
+            print('Using TACO')
             import acis_taco as taco
-        except ImportError:
-            import Chandra.taco as taco
+        else:
+            print('Using GRID')
+            import astropy_healpix as ahp
+            hp = ahp.HEALPix(nside=32, order='nested')
+
         if not hasattr(self, '_dvals') and not self.get_cached():
             # Collect individual MSIDs for use in calc_earth_vis()
             ephem_xyzs = [getattr(self, 'orbitephem0_{}'.format(x))
@@ -418,13 +480,17 @@ class EarthHeat(PrecomputedHeatPower):
             self._dvals = np.empty(self.model.n_times, dtype=float)
             for i, ephem, q_att in zip(count(), ephems, q_atts):
                 q_norm = np.sqrt(np.sum(q_att ** 2))
-                if q_norm < 0.9:
-                    print("Bad quaternion", i)
+                if q_norm < 0.9 or q_norm > 1.1:
+                    print("Bad quaternion", i, self.model.times[i])
                     q_att = np.array([0.0, 0.0, 0.0, 1.0])
                 else:
                     q_att = q_att / q_norm
-                _, illums, _ = taco.calc_earth_vis(ephem, q_att)
-                self._dvals[i] = illums.sum()
+
+                if CONF['use_earth_vis_grid']:
+                    self._dvals[i] = calc_earth_vis_from_grid(ephem, q_att, hp)
+                else:
+                    _, illums, _ = taco.calc_earth_vis(ephem, q_att)
+                    self._dvals[i] = illums.sum()
 
             self.put_cache()
 
