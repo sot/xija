@@ -12,6 +12,7 @@ from numba import jit
 import numpy as np
 import scipy.interpolate
 import astropy.units as u
+from astropy.io import fits
 
 try:
     import Ska.Numpy
@@ -389,8 +390,7 @@ class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
 
     use_earth_vis_grid = True
-    earth_vis_grid_path = Path(os.environ['SKA'], 'data', 'acis_taco',
-                               'earth_vis_grid_nside32.npy')
+    earth_vis_grid_path = Path(__file__).parent / 'earth_vis_grid_nside32.fits.gz'
 
     def __init__(self, model, node,
                  orbitephem0_x, orbitephem0_y, orbitephem0_z,
@@ -409,27 +409,28 @@ class EarthHeat(PrecomputedHeatPower):
         self.add_par('k', k, min=0.0, max=2.0)
 
     def calc_earth_vis_from_grid(self, ephems, q_atts):
-        if not hasattr(self, 'healpix'):
-            import astropy_healpix
-            # TODO: put the 32 as a FITS header param
-            self.healpix = astropy_healpix.HEALPix(nside=32, order='nested')
+        import astropy_healpix
+        healpix = astropy_healpix.HEALPix(nside=32, order='nested')
 
         if not hasattr(self, 'earth_vis_grid'):
-            # TODO: make this a FITS file
-            self.__class__.earth_vis_grid = np.load(self.earth_vis_grid_path)
-            # TODO: get the distances from the FITS file
-            alts = np.logspace(np.log10(200 * 1000),
-                               np.log10(300000 * 1000),
-                               100)
-            self.__class__.log_earth_vis_dists = np.log(6371000 + alts)
+            with fits.open(self.earth_vis_grid_path) as hdus:
+                hdu = hdus[0]
+                hdr = hdu.header
+                vis_grid = hdu.data / hdr['scale']  # 12288 x 100
+                self.__class__.earth_vis_grid = vis_grid
+
+                alts = np.logspace(np.log10(hdr['alt_min']),
+                                   np.log10(hdr['alt_max']),
+                                   hdr['n_alt'])
+                self.__class__.log_earth_vis_dists = np.log(hdr['earthrad'] + alts)
 
         ephems = ephems.astype(np.float64)
         dists, lons, lats = get_dists_lons_lats(ephems, q_atts)
 
-        hp_idxs = self.healpix.lonlat_to_healpix(lons * u.rad, lats * u.rad)
+        hp_idxs = healpix.lonlat_to_healpix(lons * u.rad, lats * u.rad)
 
         for ii, dist, hp_idx in zip(count(), dists, hp_idxs):
-            vis = np.interp(x=np.log(dist), fp=self.earth_vis_grid[:, hp_idx],
+            vis = np.interp(x=np.log(dist), fp=self.earth_vis_grid[hp_idx],
                             xp=self.log_earth_vis_dists)
             self._dvals[ii] = vis
 
