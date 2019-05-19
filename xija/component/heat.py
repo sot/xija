@@ -429,10 +429,25 @@ class EarthHeat(PrecomputedHeatPower):
 
         hp_idxs = healpix.lonlat_to_healpix(lons * u.rad, lats * u.rad)
 
-        for ii, dist, hp_idx in zip(count(), dists, hp_idxs):
-            vis = np.interp(x=np.log(dist), fp=self.earth_vis_grid[hp_idx],
-                            xp=self.log_earth_vis_dists)
-            self._dvals[ii] = vis
+        # Linearly interpolate distances for appropriate healpix pixels.
+        # Code borrowed a bit from Ska.Numpy.Numpy._interpolate_vectorized.
+        xin = self.log_earth_vis_dists
+        xout = np.log(dists)
+        idxs = np.searchsorted(xin, xout)
+
+        # Extrapolation is linear.  This should never happen in this application
+        # because of how the grid is defined.
+        idxs = idxs.clip(1, len(xin) - 1)
+
+        x0 = xin[idxs - 1]
+        x1 = xin[idxs]
+
+        # Note here the "fancy-indexing" which is indexing into a 2-d array
+        # with two 1-d arrays.
+        y0 = self.earth_vis_grid[hp_idxs, idxs - 1]
+        y1 = self.earth_vis_grid[hp_idxs, idxs]
+
+        self._dvals[:] = (xout - x0) / (x1 - x0) * (y1 - y0) + y0
 
     def calc_earth_vis_from_taco(self, ephems, q_atts):
         import acis_taco
