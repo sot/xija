@@ -821,30 +821,32 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     @property
     def par_idxs(self):
         if not hasattr(self, '_par_idxs'):
-            # Make a regex corresponding to the last bit of each power
-            # parameter name.  E.g. "pow_1xxx" => "1...".
-            power_par_res = [par.name[4:].replace('x', '.')
-                             for par in self.power_pars]
+            if not hasattr(self, '_par_idxs_static'):
+                print('computing new _par_idxs')
+                # Make a regex corresponding to the last bit of each power
+                # parameter name.  E.g. "pow_1xxx" => "1...".
+                power_par_res = [par.name[4:].replace('x', '.')
+                                 for par in self.power_pars]
 
-            par_idxs = np.zeros(6612, dtype=np.int) - 1
-            for fep_count in range(0, 7):
-                for ccd_count in range(0, 7):
-                    for vid_board in range(0, 2):
-                        for clocking in range(0, 2):
-                            state = "{}{}{}{}".format(fep_count, ccd_count,
-                                                      vid_board, clocking)
-                            idx = int(state)
-                            for i, power_par_re in enumerate(power_par_res):
-                                if re.match(power_par_re, state):
-                                    par_idxs[idx] = i
-                                    break
-                            else:
-                                raise ValueError('No match for power state {}'
-                                                 .format(state))
+                self._par_idxs_static = np.zeros(6612, dtype=np.int) - 1
+                for fep_count in range(0, 7):
+                    for ccd_count in range(0, 7):
+                        for vid_board in range(0, 2):
+                            for clocking in range(0, 2):
+                                state = "{}{}{}{}".format(fep_count, ccd_count,
+                                                          vid_board, clocking)
+                                idx = int(state)
+                                for i, power_par_re in enumerate(power_par_res):
+                                    if re.match(power_par_re, state):
+                                        self._par_idxs_static[idx] = i
+                                        break
+                                else:
+                                    raise ValueError('No match for power state {}'
+                                                     .format(state))
 
             idxs = (self.fep_count.dvals * 1000 + self.ccd_count.dvals * 100 +
                     self.vid_board.dvals * 10 + self.clocking.dvals)
-            self._par_idxs = par_idxs[idxs]
+            self._par_idxs = self._par_idxs_static[idxs]
 
             if self._par_idxs.min() < 0:
                 raise ValueError('Fatal problem with par_idxs routine')
