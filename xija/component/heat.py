@@ -6,9 +6,13 @@ from itertools import count
 import glob
 import os
 from six.moves import zip
+from pathlib import Path
 
+from numba import jit
 import numpy as np
 import scipy.interpolate
+import astropy.units as u
+from astropy.io import fits
 
 try:
     import Ska.Numpy
@@ -27,8 +31,8 @@ class PrecomputedHeatPower(ModelComponent):
     def update(self):
         self.mvals = self.dvals
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,
+                          self.node.mvals_i,  # dy1/dt index
+                          self.mvals_i,
                           )
         self.tmal_floats = ()
 
@@ -384,6 +388,10 @@ DpaSolarHeat = SolarHeatHrc
 
 class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
+
+    use_earth_vis_grid = True
+    earth_vis_grid_path = Path(__file__).parent / 'earth_vis_grid_nside32.fits.gz'
+
     def __init__(self, model, node,
                  orbitephem0_x, orbitephem0_y, orbitephem0_z,
                  aoattqt1, aoattqt2, aoattqt3, aoattqt4,
@@ -400,13 +408,58 @@ class EarthHeat(PrecomputedHeatPower):
         self.n_mvals = 1
         self.add_par('k', k, min=0.0, max=2.0)
 
+    def calc_earth_vis_from_grid(self, ephems, q_atts):
+        import astropy_healpix
+        healpix = astropy_healpix.HEALPix(nside=32, order='nested')
+
+        if not hasattr(self, 'earth_vis_grid'):
+            with fits.open(self.earth_vis_grid_path) as hdus:
+                hdu = hdus[0]
+                hdr = hdu.header
+                vis_grid = hdu.data / hdr['scale']  # 12288 x 100
+                self.__class__.earth_vis_grid = vis_grid
+
+                alts = np.logspace(np.log10(hdr['alt_min']),
+                                   np.log10(hdr['alt_max']),
+                                   hdr['n_alt'])
+                self.__class__.log_earth_vis_dists = np.log(hdr['earthrad'] + alts)
+
+        ephems = ephems.astype(np.float64)
+        dists, lons, lats = get_dists_lons_lats(ephems, q_atts)
+
+        hp_idxs = healpix.lonlat_to_healpix(lons * u.rad, lats * u.rad)
+
+        # Linearly interpolate distances for appropriate healpix pixels.
+        # Code borrowed a bit from Ska.Numpy.Numpy._interpolate_vectorized.
+        xin = self.log_earth_vis_dists
+        xout = np.log(dists)
+        idxs = np.searchsorted(xin, xout)
+
+        # Extrapolation is linear.  This should never happen in this application
+        # because of how the grid is defined.
+        idxs = idxs.clip(1, len(xin) - 1)
+
+        x0 = xin[idxs - 1]
+        x1 = xin[idxs]
+
+        # Note here the "fancy-indexing" which is indexing into a 2-d array
+        # with two 1-d arrays.
+        y0 = self.earth_vis_grid[hp_idxs, idxs - 1]
+        y1 = self.earth_vis_grid[hp_idxs, idxs]
+
+        self._dvals[:] = (xout - x0) / (x1 - x0) * (y1 - y0) + y0
+
+    def calc_earth_vis_from_taco(self, ephems, q_atts):
+        import acis_taco
+
+        for i, ephem, q_att in zip(count(), ephems, q_atts):
+            _, illums, _ = acis_taco.calc_earth_vis(ephem, q_att)
+            self._dvals[i] = illums.sum()
+
     @property
     def dvals(self):
-        try:
-            import acis_taco as taco
-        except ImportError:
-            import Chandra.taco as taco
         if not hasattr(self, '_dvals') and not self.get_cached():
+
             # Collect individual MSIDs for use in calc_earth_vis()
             ephem_xyzs = [getattr(self, 'orbitephem0_{}'.format(x))
                           for x in ('x', 'y', 'z')]
@@ -415,16 +468,24 @@ class EarthHeat(PrecomputedHeatPower):
             ephems = np.array([x.dvals for x in ephem_xyzs]).transpose()
             q_atts = np.array([x.dvals for x in aoattqt_1234s]).transpose()
 
+            # Q_atts can have occasional bad values, maybe because the
+            # Ska eng 5-min "midvals" are not lined up, but I'm not quite sure.
+            # TODO: this (legacy) solution isn't great.  Investigate what's
+            # really happening.
+            q_norm = np.sqrt(np.sum(q_atts ** 2, axis=1))
+            bad = np.abs(q_norm - 1.0) > 0.1
+            if np.any(bad):
+                print(f"Replacing bad midval quaternions with [1,0,0,0] at times "
+                      f"{self.model.times[bad]}")
+                q_atts[bad, :] = [0.0, 0.0, 0.0, 1.0]
+            q_atts[~bad, :] = q_atts[~bad, :] / q_norm[~bad, np.newaxis]
+
+            # Finally initialize dvals and update in-place appropriately
             self._dvals = np.empty(self.model.n_times, dtype=float)
-            for i, ephem, q_att in zip(count(), ephems, q_atts):
-                q_norm = np.sqrt(np.sum(q_att ** 2))
-                if q_norm < 0.9:
-                    print("Bad quaternion", i)
-                    q_att = np.array([0.0, 0.0, 0.0, 1.0])
-                else:
-                    q_att = q_att / q_norm
-                _, illums, _ = taco.calc_earth_vis(ephem, q_att)
-                self._dvals[i] = illums.sum()
+            if self.use_earth_vis_grid:
+                self.calc_earth_vis_from_grid(ephems, q_atts)
+            else:
+                self.calc_earth_vis_from_taco(ephems, q_atts)
 
             self.put_cache()
 
@@ -946,3 +1007,56 @@ class StepFunctionPower(PrecomputedHeatPower):
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power')
+
+
+@jit(nopython=True)
+def quat_to_transform_transpose(q):
+    """Return transpose of transform matrix for Quat q"""
+    x, y, z, w = q
+    xx2 = 2 * x * x
+    yy2 = 2 * y * y
+    zz2 = 2 * z * z
+    xy2 = 2 * x * y
+    wz2 = 2 * w * z
+    zx2 = 2 * z * x
+    wy2 = 2 * w * y
+    yz2 = 2 * y * z
+    wx2 = 2 * w * x
+
+    rmat = np.empty((3, 3), np.float64)
+    rmat[0, 0] = 1. - yy2 - zz2
+    rmat[1, 0] = xy2 - wz2
+    rmat[2, 0] = zx2 + wy2
+    rmat[0, 1] = xy2 + wz2
+    rmat[1, 1] = 1. - xx2 - zz2
+    rmat[2, 1] = yz2 - wx2
+    rmat[0, 2] = zx2 - wy2
+    rmat[1, 2] = yz2 + wx2
+    rmat[2, 2] = 1. - xx2 - yy2
+
+    return rmat
+
+
+@jit(nopython=True)
+def get_dists_lons_lats(ephems, q_atts):
+    n_vals = len(ephems)
+    lons = np.empty(n_vals, dtype=np.float64)
+    lats = np.empty(n_vals, dtype=np.float64)
+    dists = np.empty(n_vals, dtype=np.float64)
+
+    ephems = -ephems  # swap to Chandra-body-centric
+
+    for ii in range(n_vals):
+        ephem = ephems[ii]
+        q_att = q_atts[ii]
+        # Earth vector in Chandra body coords (p_earth_body)
+        xform = quat_to_transform_transpose(q_att)
+        peb = np.dot(xform, ephem)
+
+        # Convert cartesian to spherical coords
+        s = np.hypot(peb[0], peb[1])
+        dists[ii] = np.hypot(s, peb[2])
+        lons[ii] = np.arctan2(peb[1], peb[0])
+        lats[ii] = np.arctan2(peb[2], s)
+
+    return dists, lons, lats
