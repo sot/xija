@@ -222,8 +222,8 @@ class SolarHeat(PrecomputedHeatPower):
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
-        self._dvals = (P_vals + dP_vals * self.var_func(self.t_days, self.tau)
-                       + self.ampl * np.cos(self.t_phase)).reshape(-1)
+        self._dvals = ((P_vals + dP_vals * self.var_func(self.t_days, self.tau)) *
+                       (1.0 + self.ampl * np.cos(self.t_phase))).reshape(-1)
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:
             self._dvals[self.eclipse_comp.dvals] = 0.0
