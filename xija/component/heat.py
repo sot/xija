@@ -79,12 +79,20 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
 
     @property
     def dvals(self):
+        if not hasattr(self, 't_phase'):
+            time2000 = DateTime('2000:001:00:00:00').secs
+            time2010 = DateTime('2010:001:00:00:00').secs
+            secs_per_year = (time2010 - time2000) / 10.0
+            t_year = (self.pitch_comp.times - time2000) / secs_per_year
+            self.t_phase = t_year * 2 * np.pi
+
         if not hasattr(self, 'sun_body_y'):
             # Compute the projection of the sun vector on the body +Y axis.
             # Pitch and off-nominal roll (theta_S and d_phi in OFLS terminology)
+            e = 0.0167
             theta_S = np.radians(self.pitch_comp.dvals)
             d_phi = np.radians(self.roll_comp.dvals)
-            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi)
+            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi) * (1.0+2.0*e*np.cos(self.t_phase))
             self.plus_y = self.sun_body_y > 0
 
         self._dvals = np.where(self.plus_y, self.P_plus_y, self.P_minus_y) * self.sun_body_y
