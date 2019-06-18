@@ -51,7 +51,31 @@ class ActiveHeatPower(ModelComponent):
     pass
 
 
-class SolarHeatOffNomRoll(PrecomputedHeatPower):
+class SolarHeatBase(PrecomputedHeatPower):
+
+    _t_phase = None
+
+    @property
+    def t_phase(self):
+        if self._t_phase is None:
+            time2000 = DateTime('2000:001:00:00:00').secs
+            time2010 = DateTime('2010:001:00:00:00').secs
+            secs_per_year = (time2010 - time2000) / 10.0
+            t_year = (self.pitch_comp.times - time2000) / secs_per_year
+            self._t_phase = t_year * 2 * np.pi
+        return self._t_phase
+
+    _h_phase = None
+
+    @property
+    def h_phase(self):
+        if self._h_phase is None:
+            e = 0.0167
+            self._h_phase = (1.0+2.0*e*np.cos(self.t_phase))
+        return self._h_phase
+
+
+class SolarHeatOffNomRoll(SolarHeatBase):
     """
     Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
     heating is proportional to the projection of the sun on body +Y axis (which is a value
@@ -79,12 +103,6 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
 
     @property
     def dvals(self):
-        if not hasattr(self, 't_phase'):
-            time2000 = DateTime('2000:001:00:00:00').secs
-            time2010 = DateTime('2010:001:00:00:00').secs
-            secs_per_year = (time2010 - time2000) / 10.0
-            t_year = (self.pitch_comp.times - time2000) / secs_per_year
-            self.t_phase = t_year * 2 * np.pi
 
         if not hasattr(self, 'sun_body_y'):
             # Compute the projection of the sun vector on the body +Y axis.
@@ -92,7 +110,7 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
             e = 0.0167
             theta_S = np.radians(self.pitch_comp.dvals)
             d_phi = np.radians(self.roll_comp.dvals)
-            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi) * (1.0+2.0*e*np.cos(self.t_phase))
+            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi) * self.h_phase
             self.plus_y = self.sun_body_y > 0
 
         self._dvals = np.where(self.plus_y, self.P_plus_y, self.P_minus_y) * self.sun_body_y
@@ -107,7 +125,7 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
         return 'solarheat_off_nom_roll__{0}'.format(self.node)
 
 
-class SolarHeat(PrecomputedHeatPower):
+class SolarHeat(SolarHeatBase):
     """Solar heating (pitch dependent)
 
     :param model: parent model
@@ -214,12 +232,6 @@ class SolarHeat(PrecomputedHeatPower):
         if not hasattr(self, 't_days'):
             self.t_days = (self.pitch_comp.times
                            - DateTime(self.epoch).secs) / 86400.0
-        if not hasattr(self, 't_phase'):
-            time2000 = DateTime('2000:001:00:00:00').secs
-            time2010 = DateTime('2010:001:00:00:00').secs
-            secs_per_year = (time2010 - time2000) / 10.0
-            t_year = (self.pitch_comp.times - time2000) / secs_per_year
-            self.t_phase = t_year * 2 * np.pi
 
         Ps = self.parvals[0:self.n_pitches] + self.bias
         dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
@@ -231,7 +243,7 @@ class SolarHeat(PrecomputedHeatPower):
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
         self._dvals = ((P_vals + dP_vals * self.var_func(self.t_days, self.tau)) *
-                       (1.0 + self.ampl * np.cos(self.t_phase))).reshape(-1)
+                       self.h_phase).reshape(-1)
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:
             self._dvals[self.eclipse_comp.dvals] = 0.0
@@ -394,7 +406,7 @@ class SolarHeatHrcOpts(SolarHeat):
 DpaSolarHeat = SolarHeatHrc
 
 
-class EarthHeat(PrecomputedHeatPower):
+class EarthHeat(SolarHeatBase):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
 
     use_earth_vis_grid = True
@@ -497,7 +509,7 @@ class EarthHeat(PrecomputedHeatPower):
 
             self.put_cache()
 
-        return self._dvals
+        return self._dvals*self.h_phase
 
     def put_cache(self):
         if os.path.exists('esa_cache'):
