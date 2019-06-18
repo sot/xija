@@ -25,3 +25,4 @@ doc/_templates
 *.pyc
 examples/
 .nfs*
+xija.egg-info
