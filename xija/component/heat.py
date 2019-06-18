@@ -70,7 +70,7 @@ class SolarHeatBase(PrecomputedHeatPower):
     @property
     def h_phase(self):
         if self._h_phase is None:
-            e = 0.0167
+            e = 0.0167 # earth eccentricity
             self._h_phase = (1.0+2.0*e*np.cos(self.t_phase))
         return self._h_phase
 
