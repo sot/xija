@@ -65,14 +65,12 @@ class SolarHeatBase(PrecomputedHeatPower):
             self._t_phase = t_year * 2 * np.pi
         return self._t_phase
 
-    _h_phase = None
-
-    @property
-    def h_phase(self):
-        if self._h_phase is None:
+    def h_phase(self, ampl=None):
+        if ampl is None:
             e = 0.0167 # earth eccentricity
-            self._h_phase = (1.0+2.0*e*np.cos(self.t_phase))
-        return self._h_phase
+            ampl = 2.0*e
+        h_phase = (1.0+ampl*np.cos(self.t_phase))
+        return h_phase
 
 
 class SolarHeatOffNomRoll(SolarHeatBase):
@@ -107,10 +105,9 @@ class SolarHeatOffNomRoll(SolarHeatBase):
         if not hasattr(self, 'sun_body_y'):
             # Compute the projection of the sun vector on the body +Y axis.
             # Pitch and off-nominal roll (theta_S and d_phi in OFLS terminology)
-            e = 0.0167
             theta_S = np.radians(self.pitch_comp.dvals)
             d_phi = np.radians(self.roll_comp.dvals)
-            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi) * self.h_phase
+            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi) * self.h_phase()
             self.plus_y = self.sun_body_y > 0
 
         self._dvals = np.where(self.plus_y, self.P_plus_y, self.P_minus_y) * self.sun_body_y
@@ -243,7 +240,7 @@ class SolarHeat(SolarHeatBase):
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
         self._dvals = ((P_vals + dP_vals * self.var_func(self.t_days, self.tau)) *
-                       self.h_phase).reshape(-1)
+                       self.h_phase(self.ampl)).reshape(-1)
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:
             self._dvals[self.eclipse_comp.dvals] = 0.0
@@ -509,7 +506,7 @@ class EarthHeat(SolarHeatBase):
 
             self.put_cache()
 
-        return self._dvals*self.h_phase
+        return self._dvals*self.h_phase()
 
     def put_cache(self):
         if os.path.exists('esa_cache'):
