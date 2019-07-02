@@ -101,7 +101,6 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
 
     @property
     def dvals(self):
-
         if not hasattr(self, 'sun_body_y'):
             # Compute the projection of the sun vector on the body +Y axis.
             # Pitch and off-nominal roll (theta_S and d_phi in OFLS terminology)
@@ -229,6 +228,12 @@ class SolarHeat(PrecomputedHeatPower):
         if not hasattr(self, 't_days'):
             self.t_days = (self.pitch_comp.times
                            - DateTime(self.epoch).secs) / 86400.0
+        if not hasattr(self, 't_phase'):
+            time2000 = DateTime('2000:001:00:00:00').secs
+            time2010 = DateTime('2010:001:00:00:00').secs
+            secs_per_year = (time2010 - time2000) / 10.0
+            t_year = (self.pitch_comp.times - time2000) / secs_per_year
+            self.t_phase = t_year * 2 * np.pi
 
         Ps = self.parvals[0:self.n_pitches] + self.bias
         dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
@@ -239,8 +244,8 @@ class SolarHeat(PrecomputedHeatPower):
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
-        self._dvals = ((P_vals + dP_vals * self.var_func(self.t_days, self.tau)) *
-                       self.h_phase(self.ampl)).reshape(-1)
+        self._dvals = (P_vals + dP_vals * self.var_func(self.t_days, self.tau)
+                       + self.ampl * np.cos(self.t_phase)).reshape(-1)
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:
             self._dvals[self.eclipse_comp.dvals] = 0.0
@@ -537,7 +542,7 @@ class EarthHeat(PrecomputedHeatPower):
 
             self.put_cache()
 
-        return self._dvals*self.h_phase()
+        return self._dvals
 
     def put_cache(self):
         if os.path.exists('esa_cache'):
