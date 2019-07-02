@@ -73,7 +73,7 @@ class SolarHeatBase(PrecomputedHeatPower):
         return h_phase
 
 
-class SolarHeatOffNomRoll(SolarHeatBase):
+class SolarHeatOffNomRoll(PrecomputedHeatPower):
     """
     Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
     heating is proportional to the projection of the sun on body +Y axis (which is a value
@@ -107,7 +107,7 @@ class SolarHeatOffNomRoll(SolarHeatBase):
             # Pitch and off-nominal roll (theta_S and d_phi in OFLS terminology)
             theta_S = np.radians(self.pitch_comp.dvals)
             d_phi = np.radians(self.roll_comp.dvals)
-            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi) * self.h_phase()
+            self.sun_body_y = np.sin(theta_S) * np.sin(d_phi)
             self.plus_y = self.sun_body_y > 0
 
         self._dvals = np.where(self.plus_y, self.P_plus_y, self.P_minus_y) * self.sun_body_y
@@ -122,7 +122,7 @@ class SolarHeatOffNomRoll(SolarHeatBase):
         return 'solarheat_off_nom_roll__{0}'.format(self.node)
 
 
-class SolarHeat(SolarHeatBase):
+class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)
 
     :param model: parent model
@@ -282,6 +282,37 @@ class SolarHeat(SolarHeatBase):
             ax.grid()
 
 
+class NewSolarHeat(SolarHeat, SolarHeatBase):
+
+    @property
+    def dvals(self):
+        if not hasattr(self, 'pitches'):
+            self.pitches = np.clip(self.pitch_comp.dvals, self.P_pitches[0], self.P_pitches[-1])
+        if not hasattr(self, 't_days'):
+            self.t_days = (self.pitch_comp.times
+                           - DateTime(self.epoch).secs) / 86400.0
+
+        Ps = self.parvals[0:self.n_pitches] + self.bias
+        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
+                                               kind='linear')
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
+                                                kind='linear')
+        P_vals = Ps_interp(self.pitches)
+        dP_vals = dPs_interp(self.pitches)
+        self.P_vals = P_vals
+        self._dvals = ((P_vals + dP_vals * self.var_func(self.t_days, self.tau)) *
+                       self.h_phase(self.ampl)).reshape(-1)
+        # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
+        if self.eclipse_comp is not None:
+            self._dvals[self.eclipse_comp.dvals] = 0.0
+
+        # Allow for customization in SolarHeat subclasses
+        self.dvals_post_hook()
+
+        return self._dvals
+
+
 class SolarHeatAcisCameraBody(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent)
 
@@ -320,7 +351,7 @@ class SolarHeatAcisCameraBody(SolarHeat):
         self._dvals[self.dh_heater_comp.dvals] += self.dh_heater_bias
 
 
-class SolarHeatHrc(SolarHeat):
+class SolarHeatHrc(NewSolarHeat):
     """Solar heating (pitch and SIM-Z dependent)
 
     :param model: parent model
@@ -356,7 +387,7 @@ class SolarHeatHrc(SolarHeat):
         self._dvals[self.hrc_mask] += self.hrc_bias
 
 
-class SolarHeatHrcOpts(SolarHeat):
+class SolarHeatHrcOpts(NewSolarHeat):
     """Solar heating (pitch and SIM-Z dependent, two parameters for
     HRC-I and HRC-S)
 
@@ -403,7 +434,7 @@ class SolarHeatHrcOpts(SolarHeat):
 DpaSolarHeat = SolarHeatHrc
 
 
-class EarthHeat(SolarHeatBase):
+class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
 
     use_earth_vis_grid = True
