@@ -356,7 +356,7 @@ class SolarHeatAcisCameraBody(SolarHeat):
         self._dvals[self.dh_heater_comp.dvals] += self.dh_heater_bias
 
 
-class SolarHeatHrc(NewSolarHeat):
+class SolarHeatHrc(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent)
 
     :param model: parent model
@@ -392,7 +392,7 @@ class SolarHeatHrc(NewSolarHeat):
         self._dvals[self.hrc_mask] += self.hrc_bias
 
 
-class SolarHeatHrcOpts(NewSolarHeat):
+class SolarHeatHrcOpts(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent, two parameters for
     HRC-I and HRC-S)
 
@@ -434,6 +434,8 @@ class SolarHeatHrcOpts(NewSolarHeat):
             self.hrcs_mask = self.simz_comp.dvals <= -86147
         self._dvals[self.hrcs_mask] += self.hrcs_bias
 
+class NewSolarHeatHrcOpts(SolarHeatHrcOpts, NewSolarHeat):
+    pass
 
 # For back compatibility prior to Xija 0.2
 DpaSolarHeat = SolarHeatHrc
