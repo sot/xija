@@ -51,28 +51,6 @@ class ActiveHeatPower(ModelComponent):
     pass
 
 
-class SolarHeatBase(PrecomputedHeatPower):
-
-    _t_phase = None
-
-    @property
-    def t_phase(self):
-        if self._t_phase is None:
-            time2000 = DateTime('2000:001:00:00:00').secs
-            time2010 = DateTime('2010:001:00:00:00').secs
-            secs_per_year = (time2010 - time2000) / 10.0
-            t_year = (self.pitch_comp.times - time2000) / secs_per_year
-            self._t_phase = t_year * 2 * np.pi
-        return self._t_phase
-
-    def h_phase(self, ampl=None):
-        if ampl is None:
-            e = 0.0167 # earth eccentricity
-            ampl = 2.0*e
-        h_phase = (1.0+ampl*np.cos(self.t_phase))
-        return h_phase
-
-
 class SolarHeatOffNomRoll(PrecomputedHeatPower):
     """
     Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
@@ -172,6 +150,22 @@ class SolarHeat(PrecomputedHeatPower):
         self.n_mvals = 1
         self.var_func = getattr(self, var_func)
 
+    _t_phase = None
+
+    @property
+    def t_phase(self):
+        if self._t_phase is None:
+            time2000 = DateTime('2000:001:00:00:00').secs
+            time2010 = DateTime('2010:001:00:00:00').secs
+            secs_per_year = (time2010 - time2000) / 10.0
+            t_year = (self.pitch_comp.times - time2000) / secs_per_year
+            self._t_phase = t_year * 2 * np.pi
+        return self._t_phase
+
+    @t_phase.deleter
+    def t_phase(self):
+        self._t_phase = None
+
     @property
     def epoch(self):
         return self._epoch
@@ -211,8 +205,8 @@ class SolarHeat(PrecomputedHeatPower):
             self.init_kwargs['epoch'] = new_epoch.date[:8]
 
             # Delete these cached attributes which depend on epoch
-            delattr(self, 't_days')
-            delattr(self, 't_phase')
+            del self.t_days
+            del self.t_phase
 
         self._epoch = value
 
@@ -221,6 +215,11 @@ class SolarHeat(PrecomputedHeatPower):
         """
         pass
 
+    def _compute_dvals(self):
+        vf = self.var_func(self.t_days, self.tau)
+        return (self.P_vals + self.dP_vals*vf +
+                self.ampl * np.cos(self.t_phase)).reshape(-1)
+
     @property
     def dvals(self):
         if not hasattr(self, 'pitches'):
@@ -228,12 +227,6 @@ class SolarHeat(PrecomputedHeatPower):
         if not hasattr(self, 't_days'):
             self.t_days = (self.pitch_comp.times
                            - DateTime(self.epoch).secs) / 86400.0
-        if not hasattr(self, 't_phase'):
-            time2000 = DateTime('2000:001:00:00:00').secs
-            time2010 = DateTime('2010:001:00:00:00').secs
-            secs_per_year = (time2010 - time2000) / 10.0
-            t_year = (self.pitch_comp.times - time2000) / secs_per_year
-            self.t_phase = t_year * 2 * np.pi
 
         Ps = self.parvals[0:self.n_pitches] + self.bias
         dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
@@ -241,11 +234,11 @@ class SolarHeat(PrecomputedHeatPower):
                                                kind='linear')
         dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
                                                 kind='linear')
-        P_vals = Ps_interp(self.pitches)
-        dP_vals = dPs_interp(self.pitches)
-        self.P_vals = P_vals
-        self._dvals = (P_vals + dP_vals * self.var_func(self.t_days, self.tau)
-                       + self.ampl * np.cos(self.t_phase)).reshape(-1)
+        self.P_vals = Ps_interp(self.pitches)
+        self.dP_vals = dPs_interp(self.pitches)
+
+        self._dvals = self._compute_dvals()
+
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:
             self._dvals[self.eclipse_comp.dvals] = 0.0
@@ -287,35 +280,19 @@ class SolarHeat(PrecomputedHeatPower):
             ax.grid()
 
 
-class NewSolarHeat(SolarHeat, SolarHeatBase):
+class SolarHeatMulplicative(SolarHeat):
+    def __init__(self, model, node, pitch_comp, eclipse_comp=None,
+                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
+                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001'):
+        super(SolarHeatMulplicative, self).__init__(
+            model, node, pitch_comp, eclipse_comp=eclipse_comp,
+            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func, 
+            tau=tau, ampl=ampl, bias=bias, epoch=epoch)
 
-    @property
-    def dvals(self):
-        if not hasattr(self, 'pitches'):
-            self.pitches = np.clip(self.pitch_comp.dvals, self.P_pitches[0], self.P_pitches[-1])
-        if not hasattr(self, 't_days'):
-            self.t_days = (self.pitch_comp.times
-                           - DateTime(self.epoch).secs) / 86400.0
-
-        Ps = self.parvals[0:self.n_pitches] + self.bias
-        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
-                                               kind='linear')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
-                                                kind='linear')
-        P_vals = Ps_interp(self.pitches)
-        dP_vals = dPs_interp(self.pitches)
-        self.P_vals = P_vals
-        self._dvals = ((P_vals + dP_vals * self.var_func(self.t_days, self.tau)) *
-                       self.h_phase(self.ampl)).reshape(-1)
-        # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
-        if self.eclipse_comp is not None:
-            self._dvals[self.eclipse_comp.dvals] = 0.0
-
-        # Allow for customization in SolarHeat subclasses
-        self.dvals_post_hook()
-
-        return self._dvals
+    def _compute_dvals(self):
+        vf = self.var_func(self.t_days, self.tau)
+        yv = (1.0 + self.ampl*np.cos(self.t_phase))
+        return ((self.P_vals+self.dP_vals*vf)*yv).reshape(-1)
 
 
 class SolarHeatAcisCameraBody(SolarHeat):
@@ -434,8 +411,17 @@ class SolarHeatHrcOpts(SolarHeat):
             self.hrcs_mask = self.simz_comp.dvals <= -86147
         self._dvals[self.hrcs_mask] += self.hrcs_bias
 
-class NewSolarHeatHrcOpts(SolarHeatHrcOpts, NewSolarHeat):
-    pass
+
+class SolarHeatHrcMult(SolarHeatHrcOpts, SolarHeatMulplicative):
+    def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
+                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
+                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001',
+                 hrci_bias=0.0, hrcs_bias=0.0):
+        super(SolarHeatHrcMult, self).__init__(
+            model, node, simz_comp, pitch_comp, eclipse_comp=eclipse_comp,
+            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func, tau=tau,
+            ampl=ampl, bias=bias, epoch=epoch, hrci_bias=hrci_bias, 
+            hrcs_bias=hrcs_bias)
 
 # For back compatibility prior to Xija 0.2
 DpaSolarHeat = SolarHeatHrc
