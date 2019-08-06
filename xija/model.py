@@ -220,7 +220,7 @@ class XijaModel(object):
 
     def fetch(self, msid, attr='vals', method='linear'):
         """Get data from the Chandra engineering archive."""
-        tpad = self.dt * 5
+        tpad = max(self.dt * 5, 328.0*5)
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
         logger.info('Fetching msid: %s over %s to %s' %
