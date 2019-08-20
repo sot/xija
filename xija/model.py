@@ -46,6 +46,8 @@ if 'debug' in globals():
 
 logger = clogging.config_logger('xija', level=clogging.INFO)
 
+DEFAULT_DT = 328.0
+
 #int calc_model(int n_times, int n_preds, int n_tmals, double dt,
 #               double **mvals, int **tmal_ints, double **tmal_floats)
 
@@ -97,10 +99,11 @@ class XijaModel(object):
         if name is None:
             name = 'xijamodel'
         if dt is None:
-            dt = 328.0
+            dt = DEFAULT_DT
 
-        if dt > 328.0:
-            raise RuntimeError("dt = %g s greater than upper limit of 328 s!" % dt)
+        if dt > DEFAULT_DT:
+            raise RuntimeError("dt = %g s greater than upper "
+                               "limit of %g s!" % (dt, DEFAULT_DT))
 
         self.name = name
         self.comp = OrderedDict()
@@ -220,7 +223,7 @@ class XijaModel(object):
 
     def fetch(self, msid, attr='vals', method='linear'):
         """Get data from the Chandra engineering archive."""
-        tpad = max(self.dt * 5, 328.0*5)
+        tpad = DEFAULT_DT*5.0
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
         logger.info('Fetching msid: %s over %s to %s' %
