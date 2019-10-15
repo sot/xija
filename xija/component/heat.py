@@ -388,17 +388,24 @@ class SolarHeatHrcOpts(SolarHeat):
     :param epoch: reference date at which ``Ps`` values apply
     :param hrci_bias: solar heating bias when HRC-I is in the focal plane.
     :param hrcs_bias: solar heating bias when HRC-S is in the focal plane.
+    :param acisi_bias: solar heating bias when ACIS-I is in the focal plane.
+    :param aciss_bias: solar heating bias when ACIS-S is in the focal plane.
     """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
-                 hrci_bias=0.0, hrcs_bias=0.0):
+                 hrci_bias=0.0, hrcs_bias=0.0, acisi_bias=None, 
+                 aciss_bias=None):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, var_func, tau, ampl, bias,
                            epoch)
         self.simz_comp = model.get_comp(simz_comp)
         self.add_par('hrci_bias', hrci_bias, min=-1.0, max=1.0)
         self.add_par('hrcs_bias', hrcs_bias, min=-1.0, max=1.0)
+        if acisi_bias is not None:
+            self.add_par('acisi_bias', acisi_bias, min=-1.0, max=1.0)
+        if aciss_bias is not None:
+            self.add_par('aciss_bias', aciss_bias, min=-1.0, max=1.0)
 
     def dvals_post_hook(self):
         """Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.
@@ -410,18 +417,27 @@ class SolarHeatHrcOpts(SolarHeat):
         if not hasattr(self, 'hrcs_mask'):
             self.hrcs_mask = self.simz_comp.dvals <= -86147
         self._dvals[self.hrcs_mask] += self.hrcs_bias
+        if 'acisi_bias' in self.parnames:
+            if not hasattr(self, 'acisi_mask'):
+                self.acisi_mask = self.simz_comp.dvals >= 82109
+            self._dvals[self.acisi_mask] += self.acisi_bias
+        if 'aciss_bias' in self.parnames:
+            if not hasattr(self, 'aciss_mask'):
+                self.aciss_mask = (self.simz_comp.dvals > 0) & \
+                                  (self.simz_comp.dvals <= 82109)
+            self._dvals[self.aciss_mask] += self.aciss_bias
 
 
 class SolarHeatHrcMult(SolarHeatHrcOpts, SolarHeatMulplicative):
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001',
-                 hrci_bias=0.0, hrcs_bias=0.0):
+                 hrci_bias=0.0, hrcs_bias=0.0, acisi_bias=0.0, aciss_bias=0.0):
         super(SolarHeatHrcMult, self).__init__(
             model, node, simz_comp, pitch_comp, eclipse_comp=eclipse_comp,
             P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func, tau=tau,
             ampl=ampl, bias=bias, epoch=epoch, hrci_bias=hrci_bias, 
-            hrcs_bias=hrcs_bias)
+            hrcs_bias=hrcs_bias, acisi_bias=acisi_bias, aciss_bias=aciss_bias)
 
 # For back compatibility prior to Xija 0.2
 DpaSolarHeat = SolarHeatHrc
