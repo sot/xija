@@ -38,8 +38,7 @@ except ImportError:
 import xija
 import sherpa.ui as ui
 
-logging.basicConfig(level=logging.DEBUG)
-logging.debug('Importing gui_fit from {}'.format(__file__))
+logging.basicConfig(level=logging.WARNING)
 
 fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
                                       format='[%(levelname)s] (%(processName)-10s) %(message)s')
@@ -131,7 +130,7 @@ class FitWorker(object):
         """
         self.fit_process = multiprocessing.Process(target=self.fit)
         self.fit_process.start()
-        logging.debug('Fit started')
+        logging.info('Fit started')
 
     def terminate(self, widget=None):
         """Terminate a Sherpa fit process in a controlled way by sending a
@@ -141,7 +140,7 @@ class FitWorker(object):
             # Only do this if we had started a fit to begin with
             self.parent_pipe.send('terminate')
             self.fit_process.join()
-            logging.debug('Fit terminated')
+            logging.info('Fit terminated')
 
     def fit(self):
         dummy_data = np.zeros(1)
@@ -168,10 +167,10 @@ class FitWorker(object):
             try:
                 ui.fit(1)
                 calc_stat.message['status'] = 'finished'
-                logging.debug('Fit finished normally')
+                logging.info('Fit finished normally')
             except FitTerminated as err:
                 calc_stat.message['status'] = 'terminated'
-                logging.debug('Got FitTerminated exception {}'.format(err))
+                logging.warning('Got FitTerminated exception {}'.format(err))
 
         self.child_pipe.send(calc_stat.message)
 
