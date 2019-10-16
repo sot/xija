@@ -432,7 +432,7 @@ class SolarHeatHrcMult(SolarHeatHrcOpts, SolarHeatMulplicative):
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001',
-                 hrci_bias=0.0, hrcs_bias=0.0, acisi_bias=0.0, aciss_bias=0.0):
+                 hrci_bias=0.0, hrcs_bias=0.0, acisi_bias=None, aciss_bias=None):
         super(SolarHeatHrcMult, self).__init__(
             model, node, simz_comp, pitch_comp, eclipse_comp=eclipse_comp,
             P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func, tau=tau,
