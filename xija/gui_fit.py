@@ -38,7 +38,7 @@ except ImportError:
 import xija
 import sherpa.ui as ui
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
 fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
                                       format='[%(levelname)s] (%(processName)-10s) %(message)s')
