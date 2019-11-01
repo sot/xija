@@ -234,10 +234,9 @@ class Node(TelemData):
     @property
     def resids(self):
         resid = self.dvals - self.mvals
-        # Zero out residuals for any bad times
-        if hasattr(self.model, 'bad_times_indices'):
-            for i0, i1 in self.model.bad_times_indices:
-                resid[i0:i1] = 0.0
+        # Zero out residuals for any masked times
+        for i0, i1 in self.model.mask_times_indices:
+            resid[i0:i1] = 0.0
         return resid
 
     def calc_stat(self):
@@ -254,10 +253,9 @@ class Node(TelemData):
             plot_cxctime(self.model.times, self.dvals, '-r', fig=fig, ax=ax)
             plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
-            if hasattr(self.model, 'bad_times_indices'):
-                for i0, i1 in self.model.bad_times_indices:
-                    plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
-                                 fig=fig, ax=ax, linewidth=5, alpha=0.5)
+            for i0, i1 in self.model.mask_times_indices:
+                plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
+                             fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
             ax.set_title('{}: model (blue) and data (red)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
@@ -273,10 +271,9 @@ class Node(TelemData):
         if not lines:
             plot_cxctime(self.model.times, resids, '-b', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
-            if hasattr(self.model, 'bad_times_indices'):
-                for i0, i1 in self.model.bad_times_indices:
-                    plot_cxctime(self.model.times[i0:i1], resids[i0:i1], '-c',
-                                 fig=fig, ax=ax, linewidth=5, alpha=0.5)
+            for i0, i1 in self.model.mask_times_indices:
+                plot_cxctime(self.model.times[i0:i1], resids[i0:i1], '-c',
+                             fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
             ax.set_title('{}: residuals (data - model)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')

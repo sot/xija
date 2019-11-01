@@ -308,9 +308,23 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         self.canvas = canvas
         self.canvas.show()
+        self.plots_box = plots_box
 
-    def update(self):
+    def update(self, redraw=False):
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
+        if redraw:
+            self.fig.delaxes(self.ax)
+            try:
+                xaxis_type = self.plot_method.split('__')[1]
+            except IndexError:
+                self.ax = self.fig.add_subplot(111)
+            else:
+                sharex = self.plots_box.sharex.get(xaxis_type)
+                self.ax = self.fig.add_subplot(111, sharex=sharex)
+                if sharex is not None:
+                    self.ax.autoscale(enable=False, axis='x')
+                self.plots_box.sharex.setdefault(xaxis_type, self.ax)
+
         plot_func(fig=self.fig, ax=self.ax)
         self.canvas.draw()
 
@@ -338,12 +352,12 @@ class PlotsBox(QtWidgets.QVBoxLayout):
                 clearLayout(plot_box)
         self.update()
 
-    def update_plots(self):
+    def update_plots(self, redraw=False):
         cbp = self.main_window.cbp
         cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.findChildren(PlotBox):
-            plot_box.update()
+            plot_box.update(redraw=redraw)
         cbp.update_status.setText('')
 
     @property
@@ -643,20 +657,36 @@ class MainWindow(object):
         if command == '':
             return
         vals = command.split()
-        cmd = vals[0]  # currently freeze or thaw
-        if cmd not in ('freeze', 'thaw') or len(vals) <= 1:
+        cmd = vals[0]  # currently freeze, thaw, ignore, or notice
+        if cmd not in ('freeze', 'thaw', 'ignore', 'notice') or len(vals) <= 1:
             # dialog box..
             print("ERROR: bad command: {}".format(command))
             return
-        par_regexes = [fnmatch.translate(x) for x in vals[1:]]
 
-        params_table = self.main_right_panel.params_panel.params_table
-        for row, par in enumerate(self.model.pars):
-            for par_regex in par_regexes:
-                if re.match(par_regex, par.full_name):
-                     checkbutton = params_table[row, 0]
-                     checkbutton.setChecked(cmd == 'thaw')
-                     par.frozen = cmd != 'thaw'
+        if cmd in ('freeze', 'thaw'):
+            par_regexes = [fnmatch.translate(x) for x in vals[1:]]
+            params_table = self.main_right_panel.params_panel.params_table
+            for row, par in enumerate(self.model.pars):
+                for par_regex in par_regexes:
+                    if re.match(par_regex, par.full_name):
+                         checkbutton = params_table[row, 0]
+                         checkbutton.setChecked(cmd == 'thaw')
+                         par.frozen = cmd != 'thaw'
+        elif cmd in ('ignore', 'notice'):
+            if cmd == "ignore":
+                lim = vals[1].split("-")
+                if lim[0] == "*":
+                    lim[0] = self.model.datestart
+                if lim[1] == "*":
+                    lim[1] = self.model.datestop
+                lim = DateTime(lim).date
+                self.model.append_mask_times(lim)
+            elif cmd == "notice":
+                if vals[1] in ["**-**", "*", "all"]:
+                    self.model.reset_mask_times()
+                else:
+                    print("ERROR: Invalid input for 'notice'!")
+            self.main_left_panel.plots_box.update_plots(redraw=True)
 
         widget.setText('')
 
