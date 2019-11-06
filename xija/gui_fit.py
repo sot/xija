@@ -326,11 +326,12 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 self.plots_box.sharex.setdefault(xaxis_type, self.ax)
 
         plot_func(fig=self.fig, ax=self.ax)
+        times = self.plots_box.model.times
         if self.plot_method.endswith("time"):
             ybot, ytop = self.ax.get_ylim()
-            tplot = cxctime2plotdate(self.model.times)
-            for t0, t1 in self.model.mask_time_secs:
-                where = (self.model.times >= t0) & (self.model.times <= t1)
+            tplot = cxctime2plotdate(times)
+            for t0, t1 in self.plots_box.model.mask_time_secs:
+                where = (times >= t0) & (times <= t1)
                 self.ax.fill_between(tplot, ybot, ytop, where=where,
                                      color='c', alpha=0.5)
         self.canvas.draw()

@@ -253,7 +253,7 @@ class Node(TelemData):
             plot_cxctime(self.model.times, self.dvals, '-r', fig=fig, ax=ax)
             plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
-            for i0, i1 in self.model.mask_times_indices:
+            for i0, i1 in self.model.bad_times_indices:
                 plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
                              fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
@@ -271,7 +271,7 @@ class Node(TelemData):
         if not lines:
             plot_cxctime(self.model.times, resids, '-b', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
-            for i0, i1 in self.model.mask_times_indices:
+            for i0, i1 in self.model.bad_times_indices:
                 plot_cxctime(self.model.times[i0:i1], resids[i0:i1], '-c',
                              fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
