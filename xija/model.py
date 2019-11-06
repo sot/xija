@@ -20,7 +20,7 @@ from . import tmal
 
 try:
     # Optional packages for model fitting or use on HEAD LAN
-    from Chandra.Time import DateTime
+    from Chandra.Time import DateTime, date2secs
     from astropy.io import ascii
     import Ska.Numpy
     import Chandra.cmd_states
@@ -143,6 +143,7 @@ class XijaModel(object):
                 self.bad_times_indices.append((i0, i1))
         self.mask_times = self.bad_times.copy()
         self.mask_times_indices = self.bad_times_indices.copy()
+        self.mask_time_secs = date2secs(self.mask_times)
 
         self.pars = []
         if model_spec:
@@ -599,9 +600,11 @@ class XijaModel(object):
         if i1 > i0:
             self.mask_times_indices.append((i0, i1))
             self.mask_times.append(new_times)
+        self.mask_time_secs = date2secs(self.mask_times)
 
     def reset_mask_times(self):
         self.mask_times = self.bad_times.copy()
         self.mask_times_indices = self.bad_times_indices.copy()
+        self.mask_time_secs = date2secs(self.mask_times)
 
 ThermalModel = XijaModel
