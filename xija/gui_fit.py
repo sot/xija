@@ -88,7 +88,6 @@ class CalcStat(object):
         are sent by Sherpa but they are fictitious -- the real data and model are
         stored in the xija model self.model.
         """
-        # parvals_key = tuple('%.4e' % x for x in self.model.parvals)
         try:
             raise KeyError
             # fit_stat = self.cache_fit_stat[parvals_key]
@@ -326,14 +325,15 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 self.plots_box.sharex.setdefault(xaxis_type, self.ax)
 
         plot_func(fig=self.fig, ax=self.ax)
-        times = self.plots_box.model.times
-        if self.plot_method.endswith("time"):
-            ybot, ytop = self.ax.get_ylim()
-            tplot = cxctime2plotdate(times)
-            for t0, t1 in self.plots_box.model.mask_time_secs:
-                where = (times >= t0) & (times <= t1)
-                self.ax.fill_between(tplot, ybot, ytop, where=where,
-                                     color='c', alpha=0.5)
+        if redraw:
+            times = self.plots_box.model.times
+            if self.plot_method.endswith("time"):
+                ybot, ytop = self.ax.get_ylim()
+                tplot = cxctime2plotdate(times)
+                for t0, t1 in self.plots_box.model.mask_time_secs:
+                    where = (times >= t0) & (times <= t1)
+                    self.ax.fill_between(tplot, ybot, ytop, where=where,
+                                         color='r', alpha=0.5)
         self.canvas.draw()
 
 
@@ -346,12 +346,14 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
-        if plot_name == "Add plot...":
+        if plot_name == "Add plot..." or plot_name in self.plot_names:
             return
         print('Adding plot ', plot_name)
         plot_box = PlotBox(plot_name, self)
         self.addLayout(plot_box)
         plot_box.update()
+        self.main_window.cbp.add_plot_button.setCurrentIndex(0)
+
 
     def delete_plot_box(self, plot_name):
         for plot_box in self.findChildren(PlotBox):
@@ -371,6 +373,10 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     @property
     def plot_boxes(self):
         return [plot_box for plot_box in self.findChildren(PlotBox)]
+
+    @property
+    def plot_names(self):
+        return [plot_box.plot_name for plot_box in self.plot_boxes]
 
 
 class PanelCheckBox(QtWidgets.QCheckBox):
@@ -411,7 +417,7 @@ class PanelText(QtWidgets.QLineEdit):
             setattr(self.par, self.attr, val)
             self._bounds_check()
             self.slider.update_slider_val(val, self.attr)
-            self.params_panel.plots_panel.update_plots()
+            self.params_panel.plots_panel.update_plots(redraw=True)
 
 
 class PanelSlider(QtWidgets.QSlider):
@@ -647,7 +653,7 @@ class MainWindow(object):
             # params table widget.
             self.fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update()
-            self.main_left_panel.plots_box.update_plots()
+            self.main_left_panel.plots_box.update_plots(redraw=fit_stopped)
 
         # If fit has not stopped then set another timeout 200 msec from now
         if not fit_stopped:
