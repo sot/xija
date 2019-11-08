@@ -309,7 +309,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.canvas.show()
         self.plots_box = plots_box
 
-    def update(self, redraw=False):
+    def update(self, redraw=False, first=False):
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         if redraw:
             self.fig.delaxes(self.ax)
@@ -325,7 +325,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 self.plots_box.sharex.setdefault(xaxis_type, self.ax)
 
         plot_func(fig=self.fig, ax=self.ax)
-        if redraw:
+        if redraw or first:
             times = self.plots_box.model.times
             if self.plot_method.endswith("time"):
                 ybot, ytop = self.ax.get_ylim()
@@ -351,7 +351,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         print('Adding plot ', plot_name)
         plot_box = PlotBox(plot_name, self)
         self.addLayout(plot_box)
-        plot_box.update()
+        plot_box.update(first=True)
         self.main_window.cbp.add_plot_button.setCurrentIndex(0)
 
 
