@@ -291,21 +291,6 @@ class Node(TelemData):
             ax.grid()
             ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
 
-    def plot_data__resid(self, fig, ax):
-        lines = ax.get_lines()
-        resids = self.resids
-        if self.mask:
-            resids[~self.mask.mask] = np.nan
-
-        if not lines:
-            ax.plot(resids, self.dvals + self.randx, 'o', color='b',
-                    alpha=1, markersize=2, markeredgecolor='b')
-            ax.grid()
-            ax.set_title('{}: data vs. residuals (data - model)'.format(self.name))
-            ax.set_ylabel('Temperature (degC)')
-        else:
-            lines[0].set_ydata(resids)
-
 
 class Coupling(ModelComponent):
     """\

@@ -39,6 +39,8 @@ import xija
 import sherpa.ui as ui
 from Ska.Matplotlib import cxctime2plotdate
 
+from xija.component.base import Node
+
 logging.basicConfig(level=logging.INFO)
 
 fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
@@ -51,6 +53,94 @@ sherpa_configs = dict(
                    maxfev=1000),
     )
 gui_config = {}
+
+
+def digitize_data(Ttelem, nbins=50):
+    """ Digitize telemetry.
+
+    :param Ttelem: telemetry values
+    :param nbins: number of bins
+    :returns: coordinates for error quantile line
+
+    """
+
+    # Bin boundaries
+    # Note that the min/max range is expanded to keep all telemetry within the outer boundaries.
+    # Also the number of boundaries is 1 more than the number of bins.
+    bins = np.linspace(min(Ttelem) - 1e-6, max(Ttelem) + 1e-6, nbins + 1)
+    inds = np.digitize(Ttelem, bins) - 1
+    means = bins[:-1] + np.diff(bins) / 2
+
+    return np.array([means[i] for i in inds])
+
+
+def calcquantiles(errors):
+    """ Calculate the error quantiles.
+
+    :param error: model errors (telemetry - model)
+    :returns: datastructure that includes errors (input) and quantile values
+
+    """
+
+    esort = np.sort(errors)
+    q99 = esort[int(0.99 * len(esort) - 1)]
+    q95 = esort[int(0.95 * len(esort) - 1)]
+    q84 = esort[int(0.84 * len(esort) - 1)]
+    q50 = np.median(esort)
+    q16 = esort[int(0.16 * len(esort) - 1)]
+    q05 = esort[int(0.05 * len(esort) - 1)]
+    q01 = esort[int(0.01 * len(esort) - 1)]
+    stats = {'error': errors, 'q01': q01, 'q05': q05, 'q16': q16, 'q50': q50,
+             'q84': q84, 'q95': q95, 'q99': q99}
+    return stats
+
+
+def calcquantstats(Ttelem, error):
+    """ Calculate error quantiles for individual telemetry temperatures (each count individually).
+
+    :param Ttelem: telemetry values
+    :param error: model error (telemetry - model)
+    :returns: coordinates for error quantile line
+
+    This is used for the telemetry vs. error plot (axis 3).
+
+    """
+
+    Tset = np.sort(list(set(Ttelem)))
+    Tquant = {'key': []}
+    k = -1
+    for T in Tset:
+        if len(Ttelem[Ttelem == T]) >= 200:
+            k = k + 1
+            Tquant['key'].append([k, T])
+            ind = Ttelem == T
+            errvals = error[ind]
+            Tquant[k] = calcquantiles(errvals)
+
+    return Tquant
+
+
+def getQuantPlotPoints(quantstats, quantile):
+    """ Calculate the error quantile line coordinates for the data in each telemetry count value.
+
+    :param quantstats: output from calcquantstats()
+    :param quantile: quantile (string - e.g. "q01"), used as a key into quantstats datastructure
+    :returns: coordinates for error quantile line
+
+    This is used to calculate the quantile lines plotted on the telemetry vs. error plot (axis 3)
+    enclosing the data (i.e. the 1 and 99 percentile lines).
+
+    """
+
+    Tset = [T for (n, T) in quantstats['key']]
+    diffTset = np.diff(Tset)
+    Tpoints = Tset[:-1] + diffTset / 2
+    Tpoints = list(np.array([Tpoints, Tpoints]).T.flatten())
+    Tpoints.insert(0, Tset[0] - diffTset[0] / 2)
+    Tpoints.append(Tset[-1] + diffTset[0] / 2)
+    Epoints = [quantstats[num][quantile] for (num, T) in quantstats['key']]
+    Epoints = np.array([Epoints, Epoints]).T.flatten()
+    return Epoints, Tpoints
 
 
 class FitTerminated(Exception):
@@ -354,7 +444,6 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         plot_box.update(first=True)
         self.main_window.cbp.add_plot_button.setCurrentIndex(0)
 
-
     def delete_plot_box(self, plot_name):
         for plot_box in self.findChildren(PlotBox):
             if plot_box.plot_name == plot_name:
@@ -523,6 +612,117 @@ class ParamsPanel(Panel):
                 slider.block_plotting(False)
 
 
+class HistogramWindow(QtWidgets.QMainWindow):
+    def __init__(self, model, msid):
+        super(HistogramWindow, self).__init__()
+        self.setGeometry(0, 0, 900, 500)
+        self.model = model
+        self.msid = msid
+        self.setWindowTitle("Histogram")
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+        self.box = QtWidgets.QVBoxLayout()
+        wid.setLayout(self.box)
+
+        canvas = MplCanvas(parent=None)
+        toolbar = NavigationToolbar(canvas, parent=None)
+
+        redraw_button = QtWidgets.QPushButton('Redraw')
+        redraw_button.clicked.connect(self.make_plots)
+
+        close_button = QtWidgets.QPushButton('Close')
+        close_button.clicked.connect(self.close_window)
+
+        toolbar_box = QtWidgets.QHBoxLayout()
+        toolbar_box.addWidget(toolbar)
+        toolbar_box.addStretch(1)
+        toolbar_box.addWidget(redraw_button)
+        toolbar_box.addWidget(close_button)
+
+        self.box.addWidget(canvas)
+        self.box.addLayout(toolbar_box)
+
+        self.fig = canvas.fig
+        self.canvas = canvas
+        self.make_plots()
+        self.canvas.show()
+
+    def close_window(self, *args):
+        self.close()
+
+    def make_plots(self):
+        comp = self.model.comp[self.msid]
+        self.fig.clf()
+
+        ax1 = self.fig.add_subplot(121)
+
+        resids = comp.resids
+        if comp.mask:
+            resids[~comp.mask.mask] = np.nan
+        stats = calcquantiles(resids)
+        # In this case the data is not discretized to a limited number of 
+        # count values, or has too many possible values to work with calcquantstats(), 
+        # such as with tlm_fep1_mong.
+        if len(np.sort(list(set(comp.dvals)))) > 1000:
+            quantized_tlm = digitize_data(comp.dvals)
+            quantstats = calcquantstats(quantized_tlm, resids)
+        else:
+            quantstats = calcquantstats(comp.dvals, resids)
+
+        ax1.plot(resids, comp.dvals + comp.randx, 'o', color='b',
+                 alpha=1, markersize=2, markeredgecolor='b')
+        ax1.grid()
+        ax1.set_title('{}: data vs. residuals (data - model)'.format(self.msid))
+        ax1.set_xlabel('Error')
+        ax1.set_ylabel('Temperature')
+        Epoints01, Tpoints01 = getQuantPlotPoints(quantstats, 'q01')
+        Epoints99, Tpoints99 = getQuantPlotPoints(quantstats, 'q99')
+        Epoints50, Tpoints50 = getQuantPlotPoints(quantstats, 'q50')
+        ax1.plot(Epoints01, Tpoints01, color='k', linewidth=4)
+        ax1.plot(Epoints99, Tpoints99, color='k', linewidth=4)
+        ax1.plot(Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)
+        ax1.plot(Epoints01, Tpoints01, 'k', linewidth=2)
+        ax1.plot(Epoints99, Tpoints99, 'k', linewidth=2)
+        ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
+
+        self.ax1 = ax1
+
+        ax2 = self.fig.add_subplot(122)
+
+        ax2.hist(resids, 40, facecolor='b')
+        ax2.set_title('{}: residual histogram'.format(self.msid), y=1.0)
+        ytick2 = ax2.get_yticks()
+        ylim2 = ax2.get_ylim()
+        ax2.set_yticklabels(['%2.0f%%' % (100 * n / comp.mvals.size) for n in ytick2])
+        ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)
+        ax2.axvline(stats['q99'], color='k', linestyle='--', linewidth=1.5, alpha=1)
+        ax2.axvline(np.nanmin(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
+        ax2.axvline(np.nanmax(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
+        ax2.set_xlabel('Error')
+
+        # Print labels for statistical boundaries.
+        ystart = (ylim2[1] + ylim2[0]) * 0.5
+        xoffset = -(.2 / 25) * np.abs(np.diff(ax2.get_xlim()))
+        ax2.text(stats['q01'] + xoffset * 1.1, ystart, '1% Quantile', ha="right",
+                 va="center", rotation=90)
+
+        if np.nanmin(resids) > ax2.get_xlim()[0]:
+            ax2.text(np.nanmin(resids) + xoffset * 1.1, ystart, 
+                     'Minimum Error', ha="right", va="center", 
+                     rotation=90)
+        ax2.text(stats['q99'] - xoffset * 0.9, ystart, '99% Quantile', ha="left",
+                 va="center", rotation=90)
+
+        if np.nanmax(resids) < ax2.get_xlim()[1]:
+            ax2.text(np.nanmax(resids) - xoffset * 0.9, ystart, 
+                     'Maximum Error', ha="left",
+                     va="center", rotation=90)
+
+        self.ax2 = ax2
+
+        self.canvas.draw()
+
+
 class ControlButtonsPanel(Panel):
     def __init__(self, model):
         Panel.__init__(self, orient='h')
@@ -534,6 +734,7 @@ class ControlButtonsPanel(Panel):
         if platform.system() == "Darwin":
             self.stop_button.setEnabled(False)
         self.save_button = QtWidgets.QPushButton("Save")
+        self.hist_button = QtWidgets.QPushButton("Histogram")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
         self.quit_button = QtWidgets.QPushButton('Quit')
@@ -548,6 +749,7 @@ class ControlButtonsPanel(Panel):
         self.pack_start(self.add_plot_button)
         self.pack_start(self.update_status)
         self.pack_start(self.command_panel)
+        self.pack_start(self.hist_button)
         self.add_stretch(1)
         self.pack_start(self.quit_button)
 
@@ -590,11 +792,17 @@ class MainWindow(object):
     # in this example. More on callbacks below.
     def __init__(self, model, fit_worker):
         self.model = model
+        # This assumes that the first node is the main
+        # msid to be modeled
+        for k, v in self.model.comp.items():
+            if isinstance(v, Node):
+                self.msid = k
+                break
         self.fit_worker = fit_worker
         # create a new window
         self.window = QtWidgets.QWidget()
         self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
-
+        self.window.setWindowTitle("xija_gui_fit")
         self.main_box = Panel(orient='h')
 
         # This is the Layout Box that holds the top-level stuff in the main window
@@ -612,6 +820,8 @@ class MainWindow(object):
         self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
         self.cbp.save_button.clicked.connect(self.save_model_file)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        self.cbp.hist_button.clicked.connect(self.make_histogram)
+
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
         self.cbp.command_entry.returnPressed.connect(self.command_activated)
 
@@ -628,6 +838,11 @@ class MainWindow(object):
         main_window_hbox.addLayout(self.main_right_panel.box)
 
         self.window.show()
+        self.hist_window = None
+
+    def make_histogram(self):
+        self.hist_window = HistogramWindow(self.model, self.msid)
+        self.hist_window.show()
 
     def add_plot(self, plotname):
         pp = self.main_left_panel.plots_box
