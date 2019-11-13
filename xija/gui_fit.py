@@ -618,11 +618,14 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.setGeometry(0, 0, 900, 500)
         self.model = model
         self.msid = msid
+        self.comp = self.model.comp[self.msid]
         self.setWindowTitle("Histogram")
         wid = QtWidgets.QWidget(self)
         self.setCentralWidget(wid)
         self.box = QtWidgets.QVBoxLayout()
         wid.setLayout(self.box)
+
+        self.rz_masked = False
 
         canvas = MplCanvas(parent=None)
         toolbar = NavigationToolbar(canvas, parent=None)
@@ -636,6 +639,12 @@ class HistogramWindow(QtWidgets.QMainWindow):
         toolbar_box = QtWidgets.QHBoxLayout()
         toolbar_box.addWidget(toolbar)
         toolbar_box.addStretch(1)
+        if self.msid == "fptemp":
+            mask_rz_check = QtWidgets.QCheckBox()
+            mask_rz_check.setChecked(False)
+            mask_rz_check.stateChanged.connect(self.mask_radzones)
+            toolbar_box.addWidget(QtWidgets.QLabel('Mask radzones (fptemp only)'))
+            toolbar_box.addWidget(mask_rz_check)
         toolbar_box.addWidget(redraw_button)
         toolbar_box.addWidget(close_button)
 
@@ -650,27 +659,50 @@ class HistogramWindow(QtWidgets.QMainWindow):
     def close_window(self, *args):
         self.close()
 
+    _rz_mask = None
+    @property
+    def rz_mask(self):
+        if self._rz_mask is None:
+            from kadi import events
+            self._rz_mask = np.ones_like(self.comp.dvals, dtype='bool')
+            rad_zones = events.rad_zones.filter(start=self.model.datestart,
+                                                stop=self.model.datestop)
+            for rz in rad_zones:
+                idxs = np.logical_and(self.model.times >= rz.tstart,
+                                      self.model.times <= rz.tstop)
+                self._rz_mask[idxs] = False
+        return self._rz_mask 
+
+    def mask_radzones(self, state):
+        self.rz_masked = state == QtCore.Qt.Checked
+        self.make_plots()
+
     def make_plots(self):
-        comp = self.model.comp[self.msid]
         self.fig.clf()
 
         ax1 = self.fig.add_subplot(121)
 
-        resids = comp.resids
-        if comp.mask:
-            resids[~comp.mask.mask] = np.nan
+        mask = np.ones_like(self.comp.resids, dtype='bool')
+        if self.comp.mask:
+            mask &= self.comp.mask.mask
+        if self.rz_masked:
+            mask &= self.rz_mask
+        resids = self.comp.resids[mask]
+        dvals = self.comp.dvals[mask]
+        randx = self.comp.randx[mask]
+
         stats = calcquantiles(resids)
-        # In this case the data is not discretized to a limited number of 
-        # count values, or has too many possible values to work with calcquantstats(), 
-        # such as with tlm_fep1_mong.
-        if len(np.sort(list(set(comp.dvals)))) > 1000:
-            quantized_tlm = digitize_data(comp.dvals)
+        # In this case the data is not discretized to a limited number of
+        # count values, or has too many possible values to work with 
+        # calcquantstats(), such as with tmp_fep1_mong.
+        if len(np.sort(list(set(dvals)))) > 1000:
+            quantized_tlm = digitize_data(dvals)
             quantstats = calcquantstats(quantized_tlm, resids)
         else:
-            quantstats = calcquantstats(comp.dvals, resids)
+            quantstats = calcquantstats(dvals, resids)
 
-        ax1.plot(resids, comp.dvals + comp.randx, 'o', color='b',
-                 alpha=1, markersize=2, markeredgecolor='b')
+        ax1.plot(resids, dvals + randx, 'o', color='b',
+                 alpha=1, markersize=1, markeredgecolor='b')
         ax1.grid()
         ax1.set_title('{}: data vs. residuals (data - model)'.format(self.msid))
         ax1.set_xlabel('Error')
@@ -693,7 +725,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         ax2.set_title('{}: residual histogram'.format(self.msid), y=1.0)
         ytick2 = ax2.get_yticks()
         ylim2 = ax2.get_ylim()
-        ax2.set_yticklabels(['%2.0f%%' % (100 * n / comp.mvals.size) for n in ytick2])
+        ax2.set_yticklabels(['%2.0f%%' % (100 * n / self.comp.mvals.size) for n in ytick2])
         ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)
         ax2.axvline(stats['q99'], color='k', linestyle='--', linewidth=1.5, alpha=1)
         ax2.axvline(np.nanmin(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
@@ -706,15 +738,15 @@ class HistogramWindow(QtWidgets.QMainWindow):
         ax2.text(stats['q01'] + xoffset * 1.1, ystart, '1% Quantile', ha="right",
                  va="center", rotation=90)
 
-        if np.nanmin(resids) > ax2.get_xlim()[0]:
-            ax2.text(np.nanmin(resids) + xoffset * 1.1, ystart, 
+        if np.min(resids) > ax2.get_xlim()[0]:
+            ax2.text(np.min(resids) + xoffset * 1.1, ystart, 
                      'Minimum Error', ha="right", va="center", 
                      rotation=90)
         ax2.text(stats['q99'] - xoffset * 0.9, ystart, '99% Quantile', ha="left",
                  va="center", rotation=90)
 
-        if np.nanmax(resids) < ax2.get_xlim()[1]:
-            ax2.text(np.nanmax(resids) - xoffset * 0.9, ystart, 
+        if np.max(resids) < ax2.get_xlim()[1]:
+            ax2.text(np.max(resids) - xoffset * 0.9, ystart, 
                      'Maximum Error', ha="left",
                      va="center", rotation=90)
 
