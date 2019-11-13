@@ -717,6 +717,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
         ax1.plot(Epoints99, Tpoints99, 'k', linewidth=2)
         ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
 
+        self.model.annotate_limits(ax1)
+
         self.ax1 = ax1
 
         ax2 = self.fig.add_subplot(122)
