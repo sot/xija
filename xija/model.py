@@ -87,11 +87,11 @@ class XijaModel(object):
     :param evolve_method: choose method to evolve ODE (None | 1 or 2, default 1)
     :param rk4: use 4th-order Runge-Kutta to evolve ODE, only works with
            evolve_method == 2 (None | 0 or 1, default 0)
+    :param limits: dict of limit values (None | dict)
     """
     def __init__(self, name=None, start=None, stop=None, dt=None,
                  model_spec=None, cmd_states=None, evolve_method=None,
-                 rk4=None):
-
+                 rk4=None, limits=None):
         # If model_spec supplied as a string then read model spec as a dict
         if isinstance(model_spec, six.string_types):
             model_spec = json.load(open(model_spec, 'r'))
@@ -103,6 +103,7 @@ class XijaModel(object):
             dt = dt or model_spec['dt']
             evolve_method = evolve_method or model_spec.get('evolve_method', None)
             rk4 = rk4 or model_spec.get('rk4', None)
+            limits = model_spec.get('limits', {})
 
         if stop is None:
             stop = DateTime() - 30
@@ -116,6 +117,8 @@ class XijaModel(object):
             evolve_method = 1
         if rk4 is None:
             rk4 = 0
+        if limits is None:
+            limits = {}
 
         self.name = name
         self.comp = OrderedDict()
@@ -130,6 +133,7 @@ class XijaModel(object):
         self.n_times = len(self.times)
         self.evolve_method = evolve_method
         self.rk4 = rk4
+        self.limits = limits
 
         if 'bad_times' in model_spec:
             self.bad_times = model_spec['bad_times']
