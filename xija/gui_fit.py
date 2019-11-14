@@ -639,12 +639,13 @@ class HistogramWindow(QtWidgets.QMainWindow):
         toolbar_box = QtWidgets.QHBoxLayout()
         toolbar_box.addWidget(toolbar)
         toolbar_box.addStretch(1)
-        if self.msid == "fptemp":
-            mask_rz_check = QtWidgets.QCheckBox()
-            mask_rz_check.setChecked(False)
-            mask_rz_check.stateChanged.connect(self.mask_radzones)
-            toolbar_box.addWidget(QtWidgets.QLabel('Mask radzones (fptemp only)'))
-            toolbar_box.addWidget(mask_rz_check)
+        mask_rz_check = QtWidgets.QCheckBox()
+        mask_rz_check.setChecked(False)
+        if self.msid != "fptemp":
+            mask_rz_check.setEnabled(False)
+        mask_rz_check.stateChanged.connect(self.mask_radzones)
+        toolbar_box.addWidget(QtWidgets.QLabel('Mask radzones (fptemp only)'))
+        toolbar_box.addWidget(mask_rz_check)
         toolbar_box.addWidget(redraw_button)
         toolbar_box.addWidget(close_button)
 
