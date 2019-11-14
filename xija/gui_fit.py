@@ -6,7 +6,7 @@ from __future__ import print_function
 import sys
 import os
 import ast
-import multiprocessing
+import multiprocessing as mp
 import time
 import functools
 import platform
@@ -213,12 +213,12 @@ class FitWorker(object):
     def __init__(self, model, method='simplex'):
         self.model = model
         self.method = method
-        self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
+        self.parent_pipe, self.child_pipe = mp.Pipe()
 
     def start(self, widget=None):
         """Start a Sherpa fit process as a spawned (non-blocking) process.
         """
-        self.fit_process = multiprocessing.Process(target=self.fit)
+        self.fit_process = mp.Process(target=self.fit)
         self.fit_process.start()
         logging.info('Fit started')
 
