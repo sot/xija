@@ -259,7 +259,6 @@ class Node(TelemData):
             ax.grid()
             ax.set_title('{}: model (blue) and data (red)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
-            self.model.annotate_limits(ax)
         else:
             lines[1].set_ydata(self.mvals)
 
@@ -291,7 +290,6 @@ class Node(TelemData):
             ax.plot(self.dvals + self.randx, resids, ',b', mew=0.0)
             ax.grid()
             ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
-            self.model.annotate_limits(ax, dir='v')
             
 
 class Coupling(ModelComponent):

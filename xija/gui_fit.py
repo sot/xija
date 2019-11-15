@@ -55,6 +55,27 @@ sherpa_configs = dict(
 gui_config = {}
 
 
+def annotate_limits(ax, limits, dir='h'):
+    if len(limits) == 0:
+        return
+    draw_line = getattr(ax, 'ax{}line'.format(dir))
+    if 'acisi' in limits:
+        draw_line(limits['acisi'], ls='-.', color='blue')
+    if 'aciss' in limits:
+        draw_line(limits['aciss'], ls='-.', color='purple')
+    if 'planning' in limits:
+        draw_line(limits['planning'], ls='-', color='green')
+    if 'caution' in limits:
+        draw_line(limits['caution'], ls='-', color='gold')
+
+
+def get_radzones(model):
+    from kadi import events
+    rad_zones = events.rad_zones.filter(start=model.datestart,
+                                        stop=model.datestop)
+    return rad_zones
+
+
 def digitize_data(Ttelem, nbins=50):
     """ Digitize telemetry.
 
@@ -363,7 +384,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
         self.comp = plots_box.model.comp[comp_name]
         self.plot_method = plot_method
-
+        self.comp_name = comp_name
         self.plot_name = plot_name
 
         canvas = MplCanvas(parent=None)
@@ -400,6 +421,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.plots_box = plots_box
 
     def update(self, redraw=False, first=False):
+        pb = self.plots_box
+        mw = pb.main_window
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         if redraw:
             self.fig.delaxes(self.ax)
@@ -408,22 +431,34 @@ class PlotBox(QtWidgets.QVBoxLayout):
             except IndexError:
                 self.ax = self.fig.add_subplot(111)
             else:
-                sharex = self.plots_box.sharex.get(xaxis_type)
+                sharex = pb.sharex.get(xaxis_type)
                 self.ax = self.fig.add_subplot(111, sharex=sharex)
                 if sharex is not None:
                     self.ax.autoscale(enable=False, axis='x')
-                self.plots_box.sharex.setdefault(xaxis_type, self.ax)
+                pb.sharex.setdefault(xaxis_type, self.ax)
 
         plot_func(fig=self.fig, ax=self.ax)
         if redraw or first:
-            times = self.plots_box.model.times
+            times = pb.model.times
             if self.plot_method.endswith("time"):
                 ybot, ytop = self.ax.get_ylim()
                 tplot = cxctime2plotdate(times)
-                for t0, t1 in self.plots_box.model.mask_time_secs:
+                for t0, t1 in pb.model.mask_time_secs:
                     where = (times >= t0) & (times <= t1)
                     self.ax.fill_between(tplot, ybot, ytop, where=where,
                                          color='r', alpha=0.5)
+                if mw.show_radzones:
+                    rad_zones = get_radzones(pb.model)
+                    for rz in rad_zones:
+                        t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
+                        self.ax.axvline(t0, color='g', ls='--')
+                        self.ax.axvline(t1, color='g', ls='--')
+            if mw.show_limits and self.comp_name == mw.msid:
+                if self.plot_method.endswith("resid__data"):
+                    annotate_limits(self.ax, mw.limits, dir='v')
+                elif self.plot_method.endswith("data__time"):
+                    annotate_limits(self.ax, mw.limits)
+
         self.canvas.draw()
 
 
@@ -613,11 +648,12 @@ class ParamsPanel(Panel):
 
 
 class HistogramWindow(QtWidgets.QMainWindow):
-    def __init__(self, model, msid):
+    def __init__(self, model, msid, limits):
         super(HistogramWindow, self).__init__()
         self.setGeometry(0, 0, 900, 500)
         self.model = model
         self.msid = msid
+        self.limits = limits
         self.comp = self.model.comp[self.msid]
         self.setWindowTitle("Histogram")
         wid = QtWidgets.QWidget(self)
@@ -626,6 +662,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
         wid.setLayout(self.box)
 
         self.rz_masked = False
+        self.fmt1_masked = False
+        self.show_limits = False
 
         canvas = MplCanvas(parent=None)
         toolbar = NavigationToolbar(canvas, parent=None)
@@ -639,18 +677,39 @@ class HistogramWindow(QtWidgets.QMainWindow):
         toolbar_box = QtWidgets.QHBoxLayout()
         toolbar_box.addWidget(toolbar)
         toolbar_box.addStretch(1)
+
         mask_rz_check = QtWidgets.QCheckBox()
         mask_rz_check.setChecked(False)
         if self.msid != "fptemp":
             mask_rz_check.setEnabled(False)
         mask_rz_check.stateChanged.connect(self.mask_radzones)
-        toolbar_box.addWidget(QtWidgets.QLabel('Mask radzones (fptemp only)'))
-        toolbar_box.addWidget(mask_rz_check)
+
+        mask_fmt1_check = QtWidgets.QCheckBox()
+        mask_fmt1_check.setChecked(False)
+        if self.msid != "fptemp" and not self.msid.startswith("tmp_fep") \
+            and not self.msid.startswith("tmp_bep"):
+            mask_fmt1_check.setEnabled(False)
+        mask_fmt1_check.stateChanged.connect(self.mask_fmt1)
+
+        limits_check = QtWidgets.QCheckBox()
+        limits_check.setChecked(False)
+        limits_check.stateChanged.connect(self.plot_limits)
+
         toolbar_box.addWidget(redraw_button)
         toolbar_box.addWidget(close_button)
 
+        check_boxes = QtWidgets.QHBoxLayout()
+        check_boxes.addWidget(QtWidgets.QLabel('Mask radzones (fptemp only)'))
+        check_boxes.addWidget(mask_rz_check)
+        check_boxes.addWidget(QtWidgets.QLabel('Mask FMT1 (DEA HKP only)'))
+        check_boxes.addWidget(mask_fmt1_check)
+        check_boxes.addWidget(QtWidgets.QLabel('Show limits'))
+        check_boxes.addWidget(limits_check)
+        check_boxes.addStretch(1)
+
         self.box.addWidget(canvas)
         self.box.addLayout(toolbar_box)
+        self.box.addLayout(check_boxes)
 
         self.fig = canvas.fig
         self.canvas = canvas
@@ -664,18 +723,32 @@ class HistogramWindow(QtWidgets.QMainWindow):
     @property
     def rz_mask(self):
         if self._rz_mask is None:
-            from kadi import events
             self._rz_mask = np.ones_like(self.comp.dvals, dtype='bool')
-            rad_zones = events.rad_zones.filter(start=self.model.datestart,
-                                                stop=self.model.datestop)
+            rad_zones = get_radzones(self.model)
             for rz in rad_zones:
                 idxs = np.logical_and(self.model.times >= rz.tstart,
                                       self.model.times <= rz.tstop)
                 self._rz_mask[idxs] = False
         return self._rz_mask 
 
+    _fmt1_mask = None
+    @property
+    def fmt1_mask(self):
+        if self._fmt1_mask is None:
+            fmt = self.model.fetch("ccsdstmf", 'vals', 'nearest')
+            self._fmt1_mask = fmt != "FMT1"
+        return self._fmt1_mask
+
+    def mask_fmt1(self, state):
+        self.fmt1_masked = state == QtCore.Qt.Checked
+        self.make_plots()
+
     def mask_radzones(self, state):
         self.rz_masked = state == QtCore.Qt.Checked
+        self.make_plots()
+
+    def plot_limits(self, state):
+        self.show_limits = state == QtCore.Qt.Checked
         self.make_plots()
 
     def make_plots(self):
@@ -688,6 +761,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
             mask &= self.comp.mask.mask
         if self.rz_masked:
             mask &= self.rz_mask
+        if self.fmt1_masked:
+            mask &= self.fmt1_mask
         resids = self.comp.resids[mask]
         dvals = self.comp.dvals[mask]
         randx = self.comp.randx[mask]
@@ -718,7 +793,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
         ax1.plot(Epoints99, Tpoints99, 'k', linewidth=2)
         ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
 
-        self.model.annotate_limits(ax1)
+        if self.show_limits:
+            annotate_limits(ax1, self.limits)
 
         self.ax1 = ax1
 
@@ -760,7 +836,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
 class ControlButtonsPanel(Panel):
     def __init__(self, model):
-        Panel.__init__(self, orient='h')
+        Panel.__init__(self, orient='v')
 
         self.model = model
 
@@ -778,15 +854,36 @@ class ControlButtonsPanel(Panel):
         self.command_panel.pack_start(QtWidgets.QLabel('Command:'))
         self.command_panel.pack_start(self.command_entry)
 
-        self.pack_start(self.fit_button)
-        self.pack_start(self.stop_button)
-        self.pack_start(self.save_button)
-        self.pack_start(self.add_plot_button)
-        self.pack_start(self.update_status)
-        self.pack_start(self.command_panel)
-        self.pack_start(self.hist_button)
-        self.add_stretch(1)
-        self.pack_start(self.quit_button)
+        self.radzone_chkbox = QtWidgets.QCheckBox()
+        self.limits_chkbox = QtWidgets.QCheckBox()
+
+        self.top_panel = Panel()
+        self.bottom_panel = Panel()
+
+        self.top_panel.pack_start(self.fit_button)
+        self.top_panel.pack_start(self.stop_button)
+        self.top_panel.pack_start(self.save_button)
+        self.top_panel.pack_start(self.add_plot_button)
+        self.top_panel.pack_start(self.update_status)
+        self.top_panel.pack_start(self.command_panel)
+        self.top_panel.pack_start(self.hist_button)
+        self.top_panel.add_stretch(1)
+        self.top_panel.pack_start(self.quit_button)
+
+        self.radzone_panel = Panel()
+        self.radzone_panel.pack_start(QtWidgets.QLabel('Show radzones'))
+        self.radzone_panel.pack_start(self.radzone_chkbox)
+
+        self.limits_panel = Panel()
+        self.limits_panel.pack_start(QtWidgets.QLabel('Show limits'))
+        self.limits_panel.pack_start(self.limits_chkbox)
+
+        self.bottom_panel.pack_start(self.radzone_panel)
+        self.bottom_panel.pack_start(self.limits_panel)
+        self.bottom_panel.add_stretch(1)
+
+        self.pack_start(self.top_panel)
+        self.pack_start(self.bottom_panel)
 
     def make_add_plot_button(self):
         apb = QtWidgets.QComboBox()
@@ -839,6 +936,7 @@ class MainWindow(object):
         self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
         self.window.setWindowTitle("xija_gui_fit")
         self.main_box = Panel(orient='h')
+        self.limits = gui_config.get("limits", {})
 
         # This is the Layout Box that holds the top-level stuff in the main window
         main_window_hbox = QtWidgets.QHBoxLayout()
@@ -849,6 +947,9 @@ class MainWindow(object):
 
         self.main_right_panel = MainRightPanel(model, mlp.plots_box)
 
+        self.show_radzones = False
+        self.show_limits = False
+
         self.cbp = mlp.control_buttons_panel
         self.cbp.fit_button.clicked.connect(self.fit_worker.start)
         self.cbp.fit_button.clicked.connect(self.fit_monitor)
@@ -856,7 +957,8 @@ class MainWindow(object):
         self.cbp.save_button.clicked.connect(self.save_model_file)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
-
+        self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
+        self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
         self.cbp.command_entry.returnPressed.connect(self.command_activated)
 
@@ -876,8 +978,16 @@ class MainWindow(object):
         self.hist_window = None
 
     def make_histogram(self):
-        self.hist_window = HistogramWindow(self.model, self.msid)
+        self.hist_window = HistogramWindow(self.model, self.msid, self.limits)
         self.hist_window.show()
+
+    def plot_limits(self, state):
+        self.show_limits = state == QtCore.Qt.Checked
+        self.main_left_panel.plots_box.update_plots(redraw=True)
+
+    def plot_radzones(self, state):
+        self.show_radzones = state == QtCore.Qt.Checked
+        self.main_left_panel.plots_box.update_plots(redraw=True)
 
     def add_plot(self, plotname):
         pp = self.main_left_panel.plots_box
