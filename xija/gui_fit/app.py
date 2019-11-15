@@ -40,6 +40,7 @@ import sherpa.ui as ui
 from Ska.Matplotlib import cxctime2plotdate
 
 from xija.component.base import Node
+from .utils import in_process_console
 
 logging.basicConfig(level=logging.INFO)
 
@@ -53,6 +54,8 @@ sherpa_configs = dict(
                    maxfev=1000),
     )
 gui_config = {}
+
+
 
 
 def annotate_limits(ax, limits, dir='h'):
@@ -849,6 +852,7 @@ class ControlButtonsPanel(Panel):
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
         self.quit_button = QtWidgets.QPushButton('Quit')
+        self.console_button = QtWidgets.QPushButton('Console')
         self.command_entry = QtWidgets.QLineEdit()
         self.command_panel = Panel()
         self.command_panel.pack_start(QtWidgets.QLabel('Command:'))
@@ -880,6 +884,7 @@ class ControlButtonsPanel(Panel):
 
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
+        self.bottom_panel.pack_start(self.console_button)
         self.bottom_panel.add_stretch(1)
 
         self.pack_start(self.top_panel)
@@ -955,6 +960,7 @@ class MainWindow(object):
         self.cbp.fit_button.clicked.connect(self.fit_monitor)
         self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
         self.cbp.save_button.clicked.connect(self.save_model_file)
+        self.cbp.console_button.clicked.connect(self.open_console)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
         self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
@@ -976,6 +982,10 @@ class MainWindow(object):
 
         self.window.show()
         self.hist_window = None
+
+    def open_console(self):
+        widget = in_process_console(model=self.model)
+        widget.show()
 
     def make_histogram(self):
         self.hist_window = HistogramWindow(self.model, self.msid, self.limits)
