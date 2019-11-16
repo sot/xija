@@ -24,6 +24,7 @@ import logging
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import matplotlib.dates as mdates
 
 import numpy as np
 
@@ -408,6 +409,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.addLayout(toolbar_box)
 
         self.fig = canvas.fig
+
         # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
         # First such plot has sharex=None, subsequent ones use the first axis.
         try:
@@ -458,6 +460,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 pb.sharex.setdefault(xaxis_type, self.ax)
 
         plot_func(fig=self.fig, ax=self.ax)
+        self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
+
         if redraw or first:
             times = pb.model.times
             if self.plot_method.endswith("time"):
