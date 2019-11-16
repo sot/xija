@@ -27,7 +27,7 @@ from matplotlib.figure import Figure
 
 import numpy as np
 
-from Chandra.Time import DateTime
+from Chandra.Time import DateTime, ChandraTimeError
 import pyyaks.context as pyc
 import pyyaks.logger
 
@@ -41,6 +41,8 @@ from Ska.Matplotlib import cxctime2plotdate
 
 from xija.component.base import Node
 from .utils import in_process_console
+
+from collections import OrderedDict
 
 logging.basicConfig(level=logging.INFO)
 
@@ -525,15 +527,17 @@ class PanelText(QtWidgets.QLineEdit):
         self.params_panel = params_panel
 
     def _bounds_check(self):
+        msg = None
         if self.par.val < self.par.min:
-            print("Attempted to set parameter value below minimum. Setting to min value.")
+            msg = "Attempted to set parameter value below minimum. Setting to min value."
             self.par.val = self.par.min
             self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(self.par.val))
         if self.par.val > self.par.max:
-            print("Attempted to set parameter value below maximum. Setting to max value.")
+            msg = "Attempted to set parameter value below maximum. Setting to max value."
             self.par.val = self.par.max
             self.setText(self.par.fmt.format(self.par.val))
             self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(self.par.val))
+        return msg
 
     def par_attr_changed(self):
         try:
@@ -541,10 +545,52 @@ class PanelText(QtWidgets.QLineEdit):
         except ValueError:
             pass
         else:
-            setattr(self.par, self.attr, val)
-            self._bounds_check()
-            self.slider.update_slider_val(val, self.attr)
-            self.params_panel.plots_panel.update_plots(redraw=True)
+            self.set_par_attr(val)
+
+    def set_par_attr(self, val):
+        setattr(self.par, self.attr, val)
+        msg = self._bounds_check()
+        if msg is not None:
+            print(msg)
+        self.slider.update_slider_val(val, self.attr)
+        self.params_panel.plots_panel.update_plots(redraw=True)
+
+    def __repr__(self):
+        return getattr(self.par, self.attr).__repr__()
+
+
+class PanelParam(object):
+    def __init__(self, val, min, max):
+        self._val = val
+        self._min = min
+        self._max = max
+
+    @property
+    def val(self):
+        return self._val
+
+    @val.setter
+    def val(self, val):
+        self._val.set_par_attr(val)
+
+    @property
+    def min(self):
+        return self._min
+
+    @min.setter
+    def min(self, val):
+        self._min.set_par_attr(val)
+
+    @property
+    def max(self):
+        return self._max
+
+    @max.setter
+    def max(self, val):
+        self._max.set_par_attr(val)
+
+    def __repr__(self):
+        return "val: {} min: {} max: {}".format(self._val, self._min, self._max)
 
 
 class PanelSlider(QtWidgets.QSlider):
@@ -605,7 +651,10 @@ class ParamsPanel(Panel):
                                    colwidths={0: 30, 1: 250},
                                    show_header=True)
 
+        self.params_dict = OrderedDict()
+
         for row, par in zip(count(), self.model.pars):
+
             # Thawed (i.e. fit the parameter)
             frozen = params_table[row, 0] = PanelCheckBox(par)
             frozen.setChecked(not par.frozen)
@@ -634,6 +683,10 @@ class ParamsPanel(Panel):
             entry.setText(par.fmt.format(par.max))
             entry.returnPressed.connect(entry.par_attr_changed)
 
+            self.params_dict[par.full_name] = PanelParam(params_table[row, 2],
+                                                         params_table[row, 3],
+                                                         params_table[row, 5])
+
         self.pack_start(params_table.table)
         self.params_table = params_table
 
@@ -649,7 +702,7 @@ class ParamsPanel(Panel):
                 slider.set_step_from_value(par.val)
                 slider.block_plotting(False)
 
-
+    
 class HistogramWindow(QtWidgets.QMainWindow):
     def __init__(self, model, msid, limits):
         super(HistogramWindow, self).__init__()
@@ -884,8 +937,8 @@ class ControlButtonsPanel(Panel):
 
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
-        self.bottom_panel.pack_start(self.console_button)
         self.bottom_panel.add_stretch(1)
+        self.bottom_panel.pack_start(self.console_button)
 
         self.pack_start(self.top_panel)
         self.pack_start(self.bottom_panel)
@@ -984,7 +1037,26 @@ class MainWindow(object):
         self.hist_window = None
 
     def open_console(self):
-        widget = in_process_console(model=self.model)
+        def fit():
+            self.fit_worker.start()
+            self.fit_monitor()
+
+        def freeze(params):
+            self.parse_command("freeze {}".format(params))
+
+        def thaw(params):
+            self.parse_command("thaw {}".format(params))
+
+        def notice():
+            self.parse_command("notice")
+
+        def ignore(range):
+            self.parse_command("ignore {}".format(range))
+
+        params = self.main_right_panel.params_panel.params_dict
+
+        widget = in_process_console(params=params, fit=fit, freeze=freeze,
+                                    thaw=thaw, ignore=ignore, notice=notice)
         widget.show()
 
     def make_histogram(self):
@@ -1040,9 +1112,14 @@ class MainWindow(object):
         command = widget.text().strip()
         if command == '':
             return
+        self.parse_command(command)
+        widget.setText('')
+
+    def parse_command(self, command):
         vals = command.split()
         cmd = vals[0]  # currently freeze, thaw, ignore, or notice
-        if cmd not in ('freeze', 'thaw', 'ignore', 'notice') or len(vals) <= 1:
+        if cmd not in ('freeze', 'thaw', 'ignore', 'notice') or \
+            (cmd != 'notice' and len(vals) < 2):
             # dialog box..
             print("ERROR: bad command: {}".format(command))
             return
@@ -1058,21 +1135,23 @@ class MainWindow(object):
                          par.frozen = cmd != 'thaw'
         elif cmd in ('ignore', 'notice'):
             if cmd == "ignore":
-                lim = vals[1].split("-")
-                if lim[0] == "*":
-                    lim[0] = self.model.datestart
-                if lim[1] == "*":
-                    lim[1] = self.model.datestop
-                lim = DateTime(lim).date
+                try:
+                    lim = vals[1].split("-")
+                    if lim[0] == "*":
+                        lim[0] = self.model.datestart
+                    if lim[1] == "*":
+                        lim[1] = self.model.datestop
+                    lim = DateTime(lim).date
+                except (IndexError, ChandraTimeError):
+                    print("Invalid input for ignore: {}".format(vals[1]))
+                    return
                 self.model.append_mask_times(lim)
             elif cmd == "notice":
-                if vals[1] in ["**-**", "*", "all"]:
-                    self.model.reset_mask_times()
-                else:
-                    print("ERROR: Invalid input for 'notice'!")
+                if len(vals) > 1:
+                    print("Invalid input for notice: {}".format(vals[1:]))
+                    return
+                self.model.reset_mask_times()
             self.main_left_panel.plots_box.update_plots(redraw=True)
-
-        widget.setText('')
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
