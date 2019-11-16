@@ -424,10 +424,25 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.canvas = canvas
         self.canvas.show()
         self.plots_box = plots_box
+        self.main_window = self.plots_box.main_window
+        self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+
+    def on_mouse_move(self, event):
+        if event.inaxes and self.main_window.show_line:
+            self.plots_box.xline = event.xdata
+            for pb in self.plots_box.plot_boxes:
+                pb.update_xline()
+        else:
+            pass
+
+    def update_xline(self):
+        if self.plot_name.endswith("time"):
+            self.ly.set_xdata(self.plots_box.xline)
+            self.canvas.draw()
 
     def update(self, redraw=False, first=False):
         pb = self.plots_box
-        mw = pb.main_window
+        mw = self.main_window
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         if redraw:
             self.fig.delaxes(self.ax)
@@ -458,6 +473,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
                         t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
                         self.ax.axvline(t0, color='g', ls='--')
                         self.ax.axvline(t1, color='g', ls='--')
+                if mw.show_line:
+                    self.ly = self.ax.axvline(pb.xline, color='maroon')
             if mw.show_limits and self.comp_name == mw.msid:
                 if self.plot_method.endswith("resid__data"):
                     annotate_limits(self.ax, mw.limits, dir='v')
@@ -473,6 +490,10 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.main_window = main_window
         self.sharex = {}        # Shared x-axes keyed by x-axis type
         self.model = model
+        self.xline = 0.5*np.sum(cxctime2plotdate([self.model.tstart,
+                                                  self.model.tstop]))
+        self.plot_boxes = []
+        self.plot_names = []
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
@@ -483,6 +504,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.addLayout(plot_box)
         plot_box.update(first=True)
         self.main_window.cbp.add_plot_button.setCurrentIndex(0)
+        self.update_plot_boxes()
 
     def delete_plot_box(self, plot_name):
         for plot_box in self.findChildren(PlotBox):
@@ -490,22 +512,22 @@ class PlotsBox(QtWidgets.QVBoxLayout):
                 self.removeItem(plot_box)
                 clearLayout(plot_box)
         self.update()
+        self.update_plot_boxes()
 
     def update_plots(self, redraw=False):
         cbp = self.main_window.cbp
         cbp.update_status.setText(' BUSY... ')
         self.model.calc()
-        for plot_box in self.findChildren(PlotBox):
+        for plot_box in self.plot_boxes:
             plot_box.update(redraw=redraw)
         cbp.update_status.setText('')
 
-    @property
-    def plot_boxes(self):
-        return [plot_box for plot_box in self.findChildren(PlotBox)]
-
-    @property
-    def plot_names(self):
-        return [plot_box.plot_name for plot_box in self.plot_boxes]
+    def update_plot_boxes(self):
+        self.plot_boxes = []
+        self.plot_names = []
+        for plot_box in self.findChildren(PlotBox):
+            self.plot_boxes.append(plot_box)
+            self.plot_names.append(plot_box.plot_name)
 
 
 class PanelCheckBox(QtWidgets.QCheckBox):
@@ -915,6 +937,7 @@ class ControlButtonsPanel(Panel):
 
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
+        self.line_chkbox = QtWidgets.QCheckBox()
         if "limits" not in gui_config:
             self.limits_chkbox.setEnabled(False)
 
@@ -939,8 +962,13 @@ class ControlButtonsPanel(Panel):
         self.limits_panel.pack_start(QtWidgets.QLabel('Show limits'))
         self.limits_panel.pack_start(self.limits_chkbox)
 
+        self.line_panel = Panel()
+        self.line_panel.pack_start(QtWidgets.QLabel('Annotate line'))
+        self.line_panel.pack_start(self.line_chkbox)
+
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
+        self.bottom_panel.pack_start(self.line_panel)
         self.bottom_panel.add_stretch(1)
         self.bottom_panel.pack_start(self.console_button)
 
@@ -1011,6 +1039,7 @@ class MainWindow(object):
 
         self.show_radzones = False
         self.show_limits = False
+        self.show_line = False
 
         self.cbp = mlp.control_buttons_panel
         self.cbp.fit_button.clicked.connect(self.fit_worker.start)
@@ -1022,6 +1051,7 @@ class MainWindow(object):
         self.cbp.hist_button.clicked.connect(self.make_histogram)
         self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
         self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
+        self.cbp.line_chkbox.stateChanged.connect(self.plot_line)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
         self.cbp.command_entry.returnPressed.connect(self.command_activated)
 
@@ -1073,6 +1103,10 @@ class MainWindow(object):
 
     def plot_limits(self, state):
         self.show_limits = state == QtCore.Qt.Checked
+        self.main_left_panel.plots_box.update_plots(redraw=True)
+
+    def plot_line(self, state):
+        self.show_line = state == QtCore.Qt.Checked
         self.main_left_panel.plots_box.update_plots(redraw=True)
 
     def plot_radzones(self, state):
