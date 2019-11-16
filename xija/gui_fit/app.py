@@ -39,7 +39,7 @@ import xija
 import sherpa.ui as ui
 from Ska.Matplotlib import cxctime2plotdate
 
-from xija.component.base import Node
+from xija.component.base import Node, TelemData
 from .utils import in_process_console
 
 from collections import OrderedDict
@@ -702,7 +702,7 @@ class ParamsPanel(Panel):
                 slider.set_step_from_value(par.val)
                 slider.block_plotting(False)
 
-    
+
 class HistogramWindow(QtWidgets.QMainWindow):
     def __init__(self, model, msid, limits):
         super(HistogramWindow, self).__init__()
@@ -1055,8 +1055,12 @@ class MainWindow(object):
 
         params = self.main_right_panel.params_panel.params_dict
 
-        widget = in_process_console(params=params, fit=fit, freeze=freeze,
-                                    thaw=thaw, ignore=ignore, notice=notice)
+        data = {k: v for k, v in self.model.comp.items() 
+                if isinstance(v, TelemData)}
+
+        widget = in_process_console(data=data, params=params, fit=fit, 
+                                    freeze=freeze, thaw=thaw, ignore=ignore, 
+                                    notice=notice)
         widget.show()
 
     def make_histogram(self):
