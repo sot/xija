@@ -750,6 +750,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
         limits_check = QtWidgets.QCheckBox()
         limits_check.setChecked(False)
         limits_check.stateChanged.connect(self.plot_limits)
+        if "limits" not in gui_config:
+            limits_check.setEnabled(False)
 
         toolbar_box.addWidget(redraw_button)
         toolbar_box.addWidget(close_button)
@@ -913,6 +915,8 @@ class ControlButtonsPanel(Panel):
 
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
+        if "limits" not in gui_config:
+            self.limits_chkbox.setEnabled(False)
 
         self.top_panel = Panel()
         self.bottom_panel = Panel()
@@ -1166,10 +1170,11 @@ class MainWindow(object):
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
         if filename != '':
+            plot_boxes = self.main_left_panel.plots_box.plot_boxes
             model_spec = self.model.model_spec
-            gui_config['plot_names'] = [x.plot_name
-                                        for x in self.main_left_panel.plots_box.plot_boxes]
-            gui_config['size'] = (self.window.size().width(), self.window.size().height())
+            gui_config['plot_names'] = [x.plot_name for x in plot_boxes]
+            gui_config['size'] = (self.window.size().width(), 
+                                  self.window.size().height())
             model_spec['gui_config'] = gui_config
             try:
                 self.model.write(filename, model_spec)

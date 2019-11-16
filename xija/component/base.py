@@ -287,7 +287,8 @@ class Node(TelemData):
             resids[~self.mask.mask] = np.nan
 
         if not lines:
-            ax.plot(self.dvals + self.randx, resids, ',b', mew=0.0)
+            ax.plot(self.dvals + self.randx, resids, 'o',
+                    markersize=0.25, color='b', markeredgecolor='b')
             ax.grid()
             ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
             
