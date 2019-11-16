@@ -11,7 +11,7 @@ import time
 import functools
 import platform
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from itertools import count
 import argparse
@@ -41,7 +41,7 @@ import sherpa.ui as ui
 from Ska.Matplotlib import cxctime2plotdate
 
 from xija.component.base import Node, TelemData
-from .utils import in_process_console
+from .utils import in_process_console, icon_path
 
 from collections import OrderedDict
 
@@ -1328,6 +1328,8 @@ def main():
     model.calc()
 
     app = QtWidgets.QApplication(sys.argv)
+    icon = QtGui.QIcon(icon_path('app_icon'))
+    app.setWindowIcon(icon)
     MainWindow(model, fit_worker)
     sys.exit(app.exec_())
 
