@@ -427,7 +427,14 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.canvas.show()
         self.plots_box = plots_box
         self.main_window = self.plots_box.main_window
-        self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+        self.selecter = self.canvas.mpl_connect("button_press_event", self.select)
+        self.releaser = self.canvas.mpl_connect("button_release_event", self.release)
+
+    def select(self, event):
+        if event.inaxes and self.main_window.show_line:
+            self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+        else:
+            pass
 
     def on_mouse_move(self, event):
         if event.inaxes and self.main_window.show_line:
@@ -437,10 +444,13 @@ class PlotBox(QtWidgets.QVBoxLayout):
         else:
             pass
 
+    def release(self, event):
+        self.canvas.mpl_disconnect(self.mover)
+
     def update_xline(self):
         if self.plot_name.endswith("time"):
             self.ly.set_xdata(self.plots_box.xline)
-            self.canvas.draw()
+            self.canvas.draw_idle()
 
     def update(self, redraw=False, first=False):
         pb = self.plots_box
