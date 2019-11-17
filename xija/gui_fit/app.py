@@ -1076,16 +1076,54 @@ class MainWindow(object):
 
     def open_console(self):
         def fit():
+            """
+            Perform a fit.
+            """
             self.fit_worker.start()
             self.fit_monitor()
 
         def freeze(params):
+            """
+            Freeze the parameter or parameters which
+            correspond to the given glob pattern.
+
+            Parameters
+            ----------
+            params : string
+                The name of the parameter to freeze. 
+                Multiple parameters can be specified using
+                a glob/regex pattern.
+
+            Examples
+            --------
+            >>> freeze("solarheat*_P*")
+            """
             self.parse_command("freeze {}".format(params))
 
         def thaw(params):
+            """
+            Thaw the parameter or parameters which
+            correspond to the given glob pattern.
+
+            Parameters
+            ----------
+            params : string
+                The name of the parameter to thaw. 
+                Multiple parameters can be specified using
+                a glob/regex pattern.
+
+            Examples
+            --------
+            >>> thaw("solarheat*_P*")
+            """
             self.parse_command("thaw {}".format(params))
 
         def notice():
+            """
+            Remove all time masks which were set by the
+            *ignore* command. Note: this does not remove
+            "bad times".
+            """
             self.parse_command("notice")
 
         def ignore(range):
@@ -1096,9 +1134,10 @@ class MainWindow(object):
         data = {k: v for k, v in self.model.comp.items() 
                 if isinstance(v, TelemData)}
 
-        widget = in_process_console(data=data, params=params, fit=fit, 
-                                    freeze=freeze, thaw=thaw, ignore=ignore, 
-                                    notice=notice)
+        namespace = {"data": data, "params": params, "fit": fit,
+                     "freeze": freeze, "thaw": thaw, "ignore": ignore,
+                     "notice": notice}
+        widget = in_process_console(**namespace)
         widget.show()
 
     def make_histogram(self):
