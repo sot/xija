@@ -105,10 +105,14 @@ def annotate_limits(ax, limits, dir='h'):
         draw_line(limits['acisi'], ls='-.', color='blue')
     if 'aciss' in limits:
         draw_line(limits['aciss'], ls='-.', color='purple')
-    if 'planning' in limits:
-        draw_line(limits['planning'], ls='-', color='green')
-    if 'caution' in limits:
-        draw_line(limits['caution'], ls='-', color='gold')
+    if 'planning_hi' in limits:
+        draw_line(limits['planning_hi'], ls='-', color='green')
+    if 'caution_hi' in limits:
+        draw_line(limits['caution_hi'], ls='-', color='gold')
+    if 'planning_lo' in limits:
+        draw_line(limits['planning_lo'], ls='-', color='green')
+    if 'caution_lo' in limits:
+        draw_line(limits['caution_lo'], ls='-', color='gold')
 
 
 def get_radzones(model):
@@ -177,15 +181,10 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
         mask_rz_check = QtWidgets.QCheckBox()
         mask_rz_check.setChecked(False)
-        if self.msid != "fptemp":
-            mask_rz_check.setEnabled(False)
         mask_rz_check.stateChanged.connect(self.mask_radzones)
 
         mask_fmt1_check = QtWidgets.QCheckBox()
         mask_fmt1_check.setChecked(False)
-        if self.msid != "fptemp" and not self.msid.startswith("tmp_fep") \
-                and not self.msid.startswith("tmp_bep"):
-            mask_fmt1_check.setEnabled(False)
         mask_fmt1_check.stateChanged.connect(self.mask_fmt1)
 
         limits_check = QtWidgets.QCheckBox()
@@ -198,9 +197,9 @@ class HistogramWindow(QtWidgets.QMainWindow):
         toolbar_box.addWidget(close_button)
 
         check_boxes = QtWidgets.QHBoxLayout()
-        check_boxes.addWidget(QtWidgets.QLabel('Mask radzones (fptemp only)'))
+        check_boxes.addWidget(QtWidgets.QLabel('Mask radzones'))
         check_boxes.addWidget(mask_rz_check)
-        check_boxes.addWidget(QtWidgets.QLabel('Mask FMT1 (DEA HKP only)'))
+        check_boxes.addWidget(QtWidgets.QLabel('Mask FMT1'))
         check_boxes.addWidget(mask_fmt1_check)
         check_boxes.addWidget(QtWidgets.QLabel('Show limits'))
         check_boxes.addWidget(limits_check)
