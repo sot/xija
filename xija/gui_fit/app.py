@@ -469,12 +469,19 @@ class MainWindow(object):
     # in this example. More on callbacks below.
     def __init__(self, model, fit_worker):
         self.model = model
-        # This assumes that the first node is the main
-        # msid to be modeled
-        for k, v in self.model.comp.items():
-            if isinstance(v, Node):
-                self.msid = k
-                break
+
+        # Figure out which node is the one we really care about.
+        # gui_config should say so. If not, assume that it
+        # is the first node in the model
+        if "msid" in gui_config:
+            self.msid = gui_config['msid']
+        else:
+            for k, v in self.model.comp.items():
+                if isinstance(v, Node):
+                    self.msid = k
+                    break
+            gui_config['msid'] = self.msid
+
         self.fit_worker = fit_worker
         # create a new window
         self.window = QtWidgets.QWidget()
