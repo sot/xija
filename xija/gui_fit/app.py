@@ -6,9 +6,7 @@ from __future__ import print_function
 import sys
 import os
 import ast
-import multiprocessing as mp
 import time
-import functools
 import platform
 
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -20,276 +18,89 @@ import fnmatch
 import re
 import json
 import logging
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
-import matplotlib.dates as mdates
-
 import numpy as np
 
-from Chandra.Time import DateTime, ChandraTimeError
+from Chandra.Time import DateTime, ChandraTimeError, \
+    secs2date
+
 import pyyaks.context as pyc
-import pyyaks.logger
 
 try:
     import acis_taco as taco
 except ImportError:
     import Chandra.taco as taco
 import xija
-import sherpa.ui as ui
-from Ska.Matplotlib import cxctime2plotdate
 
 from xija.component.base import Node, TelemData
+
+from .fitter import FitWorker, fit_logger
+from .plots import PlotsBox, HistogramWindow
 from .utils import in_process_console, icon_path
 
 from collections import OrderedDict
 
-logging.basicConfig(level=logging.INFO)
-
-fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
-                                      format='[%(levelname)s] (%(processName)-10s) %(message)s')
-
-# Default configurations for fit methods
-sherpa_configs = dict(
-    simplex = dict(ftol=1e-3,
-                   finalsimplex=0,   # converge based only on length of simplex
-                   maxfev=1000),
-    )
 gui_config = {}
 
 
-
-
-def annotate_limits(ax, limits, dir='h'):
-    if len(limits) == 0:
-        return
-    draw_line = getattr(ax, 'ax{}line'.format(dir))
-    if 'acisi' in limits:
-        draw_line(limits['acisi'], ls='-.', color='blue')
-    if 'aciss' in limits:
-        draw_line(limits['aciss'], ls='-.', color='purple')
-    if 'planning' in limits:
-        draw_line(limits['planning'], ls='-', color='green')
-    if 'caution' in limits:
-        draw_line(limits['caution'], ls='-', color='gold')
-
-
-def get_radzones(model):
-    from kadi import events
-    rad_zones = events.rad_zones.filter(start=model.datestart,
-                                        stop=model.datestop)
-    return rad_zones
-
-
-def digitize_data(Ttelem, nbins=50):
-    """ Digitize telemetry.
-
-    :param Ttelem: telemetry values
-    :param nbins: number of bins
-    :returns: coordinates for error quantile line
-
-    """
-
-    # Bin boundaries
-    # Note that the min/max range is expanded to keep all telemetry within the outer boundaries.
-    # Also the number of boundaries is 1 more than the number of bins.
-    bins = np.linspace(min(Ttelem) - 1e-6, max(Ttelem) + 1e-6, nbins + 1)
-    inds = np.digitize(Ttelem, bins) - 1
-    means = bins[:-1] + np.diff(bins) / 2
-
-    return np.array([means[i] for i in inds])
-
-
-def calcquantiles(errors):
-    """ Calculate the error quantiles.
-
-    :param error: model errors (telemetry - model)
-    :returns: datastructure that includes errors (input) and quantile values
-
-    """
-
-    esort = np.sort(errors)
-    q99 = esort[int(0.99 * len(esort) - 1)]
-    q95 = esort[int(0.95 * len(esort) - 1)]
-    q84 = esort[int(0.84 * len(esort) - 1)]
-    q50 = np.median(esort)
-    q16 = esort[int(0.16 * len(esort) - 1)]
-    q05 = esort[int(0.05 * len(esort) - 1)]
-    q01 = esort[int(0.01 * len(esort) - 1)]
-    stats = {'error': errors, 'q01': q01, 'q05': q05, 'q16': q16, 'q50': q50,
-             'q84': q84, 'q95': q95, 'q99': q99}
-    return stats
-
-
-def calcquantstats(Ttelem, error):
-    """ Calculate error quantiles for individual telemetry temperatures (each count individually).
-
-    :param Ttelem: telemetry values
-    :param error: model error (telemetry - model)
-    :returns: coordinates for error quantile line
-
-    This is used for the telemetry vs. error plot (axis 3).
-
-    """
-
-    Tset = np.sort(list(set(Ttelem)))
-    Tquant = {'key': []}
-    k = -1
-    for T in Tset:
-        if len(Ttelem[Ttelem == T]) >= 200:
-            k = k + 1
-            Tquant['key'].append([k, T])
-            ind = Ttelem == T
-            errvals = error[ind]
-            Tquant[k] = calcquantiles(errvals)
-
-    return Tquant
-
-
-def getQuantPlotPoints(quantstats, quantile):
-    """ Calculate the error quantile line coordinates for the data in each telemetry count value.
-
-    :param quantstats: output from calcquantstats()
-    :param quantile: quantile (string - e.g. "q01"), used as a key into quantstats datastructure
-    :returns: coordinates for error quantile line
-
-    This is used to calculate the quantile lines plotted on the telemetry vs. error plot (axis 3)
-    enclosing the data (i.e. the 1 and 99 percentile lines).
-
-    """
-
-    Tset = [T for (n, T) in quantstats['key']]
-    diffTset = np.diff(Tset)
-    Tpoints = Tset[:-1] + diffTset / 2
-    Tpoints = list(np.array([Tpoints, Tpoints]).T.flatten())
-    Tpoints.insert(0, Tset[0] - diffTset[0] / 2)
-    Tpoints.append(Tset[-1] + diffTset[0] / 2)
-    Epoints = [quantstats[num][quantile] for (num, T) in quantstats['key']]
-    Epoints = np.array([Epoints, Epoints]).T.flatten()
-    return Epoints, Tpoints
-
-
-class FitTerminated(Exception):
-    pass
-
-
-class CalcModel(object):
-    def __init__(self, model):
+class LineDataWindow(QtWidgets.QMainWindow):
+    def __init__(self, model, msid, main_window, plots_box):
+        super(LineDataWindow, self).__init__()
         self.model = model
+        self.msid = msid
+        self.setWindowTitle("Line Data")
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+        self.box = QtWidgets.QVBoxLayout()
+        wid.setLayout(self.box)
+        self.setGeometry(0, 0, 350, 600)
 
-    def __call__(self, parvals, x):
-        """This is the Sherpa calc_model function, but in this case calc_model does not
-        actually calculate anything but instead just stores the desired paramters.  This
-        allows for multiprocessing where only the fit statistic gets passed between nodes.
-        """
-        logging.info('Calculating params:')
-        for parname, parval, newparval in zip(self.model.parnames, self.model.parvals, parvals):
-            if parval != newparval:
-                fit_logger.info('  {0}: {1}'.format(parname, newparval))
-        self.model.parvals = parvals
+        self.plots_box = plots_box
+        self.main_window = main_window
+        self.telem_data = self.main_window.telem_data
+        self.data_names = list(self.telem_data.keys())
+        self.formats = []
+        for v in self.telem_data.values():
+            if v.dvals.dtype == np.float64:
+                self.formats.append("{0:.4f}")
+            else:
+                self.formats.append("{0}")
+        self.nrows = len(self.data_names)+1
 
-        return np.ones_like(x)
+        self.table = WidgetTable(n_rows=self.nrows,
+                                 colnames=['name', 'value'],
+                                 colwidths={1: 200},
+                                 show_header=True)
 
+        self.table[0, 0] = QtWidgets.QLabel("date")
+        self.table[0, 1] = QtWidgets.QLabel("")
 
-class CalcStat(object):
-    def __init__(self, model, pipe):
-        self.pipe = pipe
-        self.model = model
-        self.cache_fit_stat = {}
-        self.min_fit_stat = None
-        self.min_par_vals = self.model.parvals
+        for row in range(1, self.nrows):
+            name = self.data_names[row - 1]
+            self.table[row, 0] = QtWidgets.QLabel(name)
+            self.table[row, 1] = QtWidgets.QLabel("")
 
-    def __call__(self, _data, _model, staterror=None, syserror=None, weight=None):
-        """Calculate fit statistic for the xija model.  The args _data and _model
-        are sent by Sherpa but they are fictitious -- the real data and model are
-        stored in the xija model self.model.
-        """
-        try:
-            raise KeyError
-            # fit_stat = self.cache_fit_stat[parvals_key]
-            # fit_logger.info('nmass_model: Cache hit %s' % str(parvals_key))
-        except KeyError:
-            fit_stat = self.model.calc_stat()
+        self.update_data()
 
-        fit_logger.info('Fit statistic: %.4f' % fit_stat)
-        # self.cache_fit_stat[parvals_key] = fit_stat
+        self.box.addWidget(self.table.table)
 
-        if self.min_fit_stat is None or fit_stat < self.min_fit_stat:
-            self.min_fit_stat = fit_stat
-            self.min_parvals = self.model.parvals
+    def update_data(self):
+        pos = np.searchsorted(self.plots_box.pd_times, 
+                              self.plots_box.xline)
+        date = self.main_window.dates[pos]
+        self.table[0, 1].setText(date)
+        for row in range(1, self.nrows):
+            name = self.data_names[row - 1]
+            if name.endswith("_model"):
+                val = self.telem_data[name].mvals[pos]
+            elif name.endswith("_resid"):
+                val = self.telem_data[name].resid[pos]
+            else:
+                val = self.telem_data[name].dvals[pos]
+            val = self.formats[row - 1].format(val)
+            self.table[row, 1].setText(val)
 
-        self.message = {'status': 'fitting',
-                        'time': time.time(),
-                        'parvals': self.model.parvals,
-                        'fit_stat': fit_stat,
-                        'min_parvals': self.min_parvals,
-                        'min_fit_stat': self.min_fit_stat}
-        self.pipe.send(self.message)
-
-        while self.pipe.poll():
-            pipe_val = self.pipe.recv()
-            if pipe_val == 'terminate':
-                self.model.parvals = self.min_parvals
-                raise FitTerminated('terminated')
-
-        return fit_stat, np.ones(1)
-
-
-class FitWorker(object):
-    def __init__(self, model, method='simplex'):
-        self.model = model
-        self.method = method
-        self.parent_pipe, self.child_pipe = mp.Pipe()
-
-    def start(self, widget=None):
-        """Start a Sherpa fit process as a spawned (non-blocking) process.
-        """
-        self.fit_process = mp.Process(target=self.fit)
-        self.fit_process.start()
-        logging.info('Fit started')
-
-    def terminate(self, widget=None):
-        """Terminate a Sherpa fit process in a controlled way by sending a
-        message.  Get the final parameter values if possible.
-        """
-        if hasattr(self, "fit_process"):
-            # Only do this if we had started a fit to begin with
-            self.parent_pipe.send('terminate')
-            self.fit_process.join()
-            logging.info('Fit terminated')
-
-    def fit(self):
-        dummy_data = np.zeros(1)
-        dummy_times = np.arange(1)
-        ui.load_arrays(1, dummy_times, dummy_data)
-        ui.set_method(self.method)
-        ui.get_method().config.update(sherpa_configs.get(self.method, {}))
-        ui.load_user_model(CalcModel(self.model), 'xijamod')  # sets global xijamod
-        ui.add_user_pars('xijamod', self.model.parnames)
-        ui.set_model(1, 'xijamod')
-        calc_stat = CalcStat(self.model, self.child_pipe)
-        ui.load_user_stat('xijastat', calc_stat, lambda x: np.ones_like(x))
-        ui.set_stat(xijastat)
-
-        # Set frozen, min, and max attributes for each xijamod parameter
-        for par in self.model.pars:
-            xijamod_par = getattr(xijamod, par.full_name)
-            xijamod_par.val = par.val
-            xijamod_par.frozen = par.frozen
-            xijamod_par.min = par.min
-            xijamod_par.max = par.max
-
-        if any(not par.frozen for par in self.model.pars):
-            try:
-                ui.fit(1)
-                calc_stat.message['status'] = 'finished'
-                logging.info('Fit finished normally')
-            except FitTerminated as err:
-                calc_stat.message['status'] = 'terminated'
-                logging.warning('Got FitTerminated exception {}'.format(err))
-
-        self.child_pipe.send(calc_stat.message)
+    def close(self, *args):
+        self.close()
 
 
 class WidgetTable(dict):
@@ -355,193 +166,6 @@ class Panel(object):
 
     def pack_end(self, child):
         return self.pack_start(child)
-
-
-def clearLayout(layout):
-    """
-    From http://stackoverflow.com/questions/9374063/pyqt4-remove-widgets-and-layout-as-well
-    """
-    if layout is not None:
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
-            else:
-                clearLayout(item.layout())
-
-
-class MplCanvas(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
-    def __init__(self, parent=None):
-        self.fig = Figure()
-
-        super(MplCanvas, self).__init__(self.fig)
-        self.setParent(parent)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                           QtWidgets.QSizePolicy.Expanding)
-        self.updateGeometry()
-
-
-class PlotBox(QtWidgets.QVBoxLayout):
-    def __init__(self, plot_name, plots_box):
-        super(PlotBox, self).__init__()
-
-        comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
-        self.comp = plots_box.model.comp[comp_name]
-        self.plot_method = plot_method
-        self.comp_name = comp_name
-        self.plot_name = plot_name
-
-        canvas = MplCanvas(parent=None)
-        toolbar = NavigationToolbar(canvas, parent=None)
-
-        delete_plot_button = QtWidgets.QPushButton('Delete')
-        delete_plot_button.clicked.connect(
-            functools.partial(plots_box.delete_plot_box, plot_name))
-
-        toolbar_box = QtWidgets.QHBoxLayout()
-        toolbar_box.addWidget(toolbar)
-        toolbar_box.addStretch(1)
-        toolbar_box.addWidget(delete_plot_button)
-
-        self.addWidget(canvas)
-        self.addLayout(toolbar_box)
-
-        self.fig = canvas.fig
-
-        # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
-        # First such plot has sharex=None, subsequent ones use the first axis.
-        try:
-            xaxis_type = plot_method.split('__')[1]
-        except IndexError:
-            self.ax = self.fig.add_subplot(111)
-        else:
-            sharex = plots_box.sharex.get(xaxis_type)
-            self.ax = self.fig.add_subplot(111, sharex=sharex)
-            if sharex is not None:
-                self.ax.autoscale(enable=False, axis='x')
-            plots_box.sharex.setdefault(xaxis_type, self.ax)
-
-        self.canvas = canvas
-        self.canvas.show()
-        self.plots_box = plots_box
-        self.main_window = self.plots_box.main_window
-        self.selecter = self.canvas.mpl_connect("button_press_event", self.select)
-        self.releaser = self.canvas.mpl_connect("button_release_event", self.release)
-
-    def select(self, event):
-        if event.inaxes and self.main_window.show_line:
-            self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
-        else:
-            pass
-
-    def on_mouse_move(self, event):
-        if event.inaxes and self.main_window.show_line:
-            self.plots_box.xline = event.xdata
-            for pb in self.plots_box.plot_boxes:
-                pb.update_xline()
-        else:
-            pass
-
-    def release(self, event):
-        self.canvas.mpl_disconnect(self.mover)
-
-    def update_xline(self):
-        if self.plot_name.endswith("time"):
-            self.ly.set_xdata(self.plots_box.xline)
-            self.canvas.draw_idle()
-
-    def update(self, redraw=False, first=False):
-        pb = self.plots_box
-        mw = self.main_window
-        plot_func = getattr(self.comp, 'plot_' + self.plot_method)
-        if redraw:
-            self.fig.delaxes(self.ax)
-            try:
-                xaxis_type = self.plot_method.split('__')[1]
-            except IndexError:
-                self.ax = self.fig.add_subplot(111)
-            else:
-                sharex = pb.sharex.get(xaxis_type)
-                self.ax = self.fig.add_subplot(111, sharex=sharex)
-                if sharex is not None:
-                    self.ax.autoscale(enable=False, axis='x')
-                pb.sharex.setdefault(xaxis_type, self.ax)
-
-        plot_func(fig=self.fig, ax=self.ax)
-        self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
-
-        if redraw or first:
-            times = pb.model.times
-            if self.plot_method.endswith("time"):
-                ybot, ytop = self.ax.get_ylim()
-                tplot = cxctime2plotdate(times)
-                for t0, t1 in pb.model.mask_time_secs:
-                    where = (times >= t0) & (times <= t1)
-                    self.ax.fill_between(tplot, ybot, ytop, where=where,
-                                         color='r', alpha=0.5)
-                if mw.show_radzones:
-                    rad_zones = get_radzones(pb.model)
-                    for rz in rad_zones:
-                        t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
-                        self.ax.axvline(t0, color='g', ls='--')
-                        self.ax.axvline(t1, color='g', ls='--')
-                if mw.show_line:
-                    self.ly = self.ax.axvline(pb.xline, color='maroon')
-            if mw.show_limits and self.comp_name == mw.msid:
-                if self.plot_method.endswith("resid__data"):
-                    annotate_limits(self.ax, mw.limits, dir='v')
-                elif self.plot_method.endswith("data__time"):
-                    annotate_limits(self.ax, mw.limits)
-
-        self.canvas.draw()
-
-
-class PlotsBox(QtWidgets.QVBoxLayout):
-    def __init__(self, model, main_window):
-        super(QtWidgets.QVBoxLayout, self).__init__()
-        self.main_window = main_window
-        self.sharex = {}        # Shared x-axes keyed by x-axis type
-        self.model = model
-        self.xline = 0.5*np.sum(cxctime2plotdate([self.model.tstart,
-                                                  self.model.tstop]))
-        self.plot_boxes = []
-        self.plot_names = []
-
-    def add_plot_box(self, plot_name):
-        plot_name = str(plot_name)
-        if plot_name == "Add plot..." or plot_name in self.plot_names:
-            return
-        print('Adding plot ', plot_name)
-        plot_box = PlotBox(plot_name, self)
-        self.addLayout(plot_box)
-        plot_box.update(first=True)
-        self.main_window.cbp.add_plot_button.setCurrentIndex(0)
-        self.update_plot_boxes()
-
-    def delete_plot_box(self, plot_name):
-        for plot_box in self.findChildren(PlotBox):
-            if plot_box.plot_name == plot_name:
-                self.removeItem(plot_box)
-                clearLayout(plot_box)
-        self.update()
-        self.update_plot_boxes()
-
-    def update_plots(self, redraw=False):
-        cbp = self.main_window.cbp
-        cbp.update_status.setText(' BUSY... ')
-        self.model.calc()
-        for plot_box in self.plot_boxes:
-            plot_box.update(redraw=redraw)
-        cbp.update_status.setText('')
-
-    def update_plot_boxes(self):
-        self.plot_boxes = []
-        self.plot_names = []
-        for plot_box in self.findChildren(PlotBox):
-            self.plot_boxes.append(plot_box)
-            self.plot_names.append(plot_box.plot_name)
 
 
 class PanelCheckBox(QtWidgets.QCheckBox):
@@ -739,195 +363,6 @@ class ParamsPanel(Panel):
                 slider.block_plotting(False)
 
 
-class HistogramWindow(QtWidgets.QMainWindow):
-    def __init__(self, model, msid, limits):
-        super(HistogramWindow, self).__init__()
-        self.setGeometry(0, 0, 900, 500)
-        self.model = model
-        self.msid = msid
-        self.limits = limits
-        self.comp = self.model.comp[self.msid]
-        self.setWindowTitle("Histogram")
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
-        self.box = QtWidgets.QVBoxLayout()
-        wid.setLayout(self.box)
-
-        self.rz_masked = False
-        self.fmt1_masked = False
-        self.show_limits = False
-
-        canvas = MplCanvas(parent=None)
-        toolbar = NavigationToolbar(canvas, parent=None)
-
-        redraw_button = QtWidgets.QPushButton('Redraw')
-        redraw_button.clicked.connect(self.make_plots)
-
-        close_button = QtWidgets.QPushButton('Close')
-        close_button.clicked.connect(self.close_window)
-
-        toolbar_box = QtWidgets.QHBoxLayout()
-        toolbar_box.addWidget(toolbar)
-        toolbar_box.addStretch(1)
-
-        mask_rz_check = QtWidgets.QCheckBox()
-        mask_rz_check.setChecked(False)
-        if self.msid != "fptemp":
-            mask_rz_check.setEnabled(False)
-        mask_rz_check.stateChanged.connect(self.mask_radzones)
-
-        mask_fmt1_check = QtWidgets.QCheckBox()
-        mask_fmt1_check.setChecked(False)
-        if self.msid != "fptemp" and not self.msid.startswith("tmp_fep") \
-            and not self.msid.startswith("tmp_bep"):
-            mask_fmt1_check.setEnabled(False)
-        mask_fmt1_check.stateChanged.connect(self.mask_fmt1)
-
-        limits_check = QtWidgets.QCheckBox()
-        limits_check.setChecked(False)
-        limits_check.stateChanged.connect(self.plot_limits)
-        if "limits" not in gui_config:
-            limits_check.setEnabled(False)
-
-        toolbar_box.addWidget(redraw_button)
-        toolbar_box.addWidget(close_button)
-
-        check_boxes = QtWidgets.QHBoxLayout()
-        check_boxes.addWidget(QtWidgets.QLabel('Mask radzones (fptemp only)'))
-        check_boxes.addWidget(mask_rz_check)
-        check_boxes.addWidget(QtWidgets.QLabel('Mask FMT1 (DEA HKP only)'))
-        check_boxes.addWidget(mask_fmt1_check)
-        check_boxes.addWidget(QtWidgets.QLabel('Show limits'))
-        check_boxes.addWidget(limits_check)
-        check_boxes.addStretch(1)
-
-        self.box.addWidget(canvas)
-        self.box.addLayout(toolbar_box)
-        self.box.addLayout(check_boxes)
-
-        self.fig = canvas.fig
-        self.canvas = canvas
-        self.make_plots()
-        self.canvas.show()
-
-    def close_window(self, *args):
-        self.close()
-
-    _rz_mask = None
-    @property
-    def rz_mask(self):
-        if self._rz_mask is None:
-            self._rz_mask = np.ones_like(self.comp.dvals, dtype='bool')
-            rad_zones = get_radzones(self.model)
-            for rz in rad_zones:
-                idxs = np.logical_and(self.model.times >= rz.tstart,
-                                      self.model.times <= rz.tstop)
-                self._rz_mask[idxs] = False
-        return self._rz_mask 
-
-    _fmt1_mask = None
-    @property
-    def fmt1_mask(self):
-        if self._fmt1_mask is None:
-            fmt = self.model.fetch("ccsdstmf", 'vals', 'nearest')
-            self._fmt1_mask = fmt != "FMT1"
-        return self._fmt1_mask
-
-    def mask_fmt1(self, state):
-        self.fmt1_masked = state == QtCore.Qt.Checked
-        self.make_plots()
-
-    def mask_radzones(self, state):
-        self.rz_masked = state == QtCore.Qt.Checked
-        self.make_plots()
-
-    def plot_limits(self, state):
-        self.show_limits = state == QtCore.Qt.Checked
-        self.make_plots()
-
-    def make_plots(self):
-        self.fig.clf()
-
-        ax1 = self.fig.add_subplot(121)
-
-        mask = np.ones_like(self.comp.resids, dtype='bool')
-        if self.comp.mask:
-            mask &= self.comp.mask.mask
-        if self.rz_masked:
-            mask &= self.rz_mask
-        if self.fmt1_masked:
-            mask &= self.fmt1_mask
-        resids = self.comp.resids[mask]
-        dvals = self.comp.dvals[mask]
-        randx = self.comp.randx[mask]
-
-        stats = calcquantiles(resids)
-        # In this case the data is not discretized to a limited number of
-        # count values, or has too many possible values to work with 
-        # calcquantstats(), such as with tmp_fep1_mong.
-        if len(np.sort(list(set(dvals)))) > 1000:
-            quantized_tlm = digitize_data(dvals)
-            quantstats = calcquantstats(quantized_tlm, resids)
-        else:
-            quantstats = calcquantstats(dvals, resids)
-
-        ax1.plot(resids, dvals + randx, 'o', color='b',
-                 alpha=1, markersize=1, markeredgecolor='b')
-        ax1.grid()
-        ax1.set_title('{}: data vs. residuals (data - model)'.format(self.msid))
-        ax1.set_xlabel('Error')
-        ax1.set_ylabel('Temperature')
-        Epoints01, Tpoints01 = getQuantPlotPoints(quantstats, 'q01')
-        Epoints99, Tpoints99 = getQuantPlotPoints(quantstats, 'q99')
-        Epoints50, Tpoints50 = getQuantPlotPoints(quantstats, 'q50')
-        ax1.plot(Epoints01, Tpoints01, color='k', linewidth=4)
-        ax1.plot(Epoints99, Tpoints99, color='k', linewidth=4)
-        ax1.plot(Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)
-        ax1.plot(Epoints01, Tpoints01, 'k', linewidth=2)
-        ax1.plot(Epoints99, Tpoints99, 'k', linewidth=2)
-        ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
-
-        if self.show_limits:
-            annotate_limits(ax1, self.limits)
-
-        self.ax1 = ax1
-
-        ax2 = self.fig.add_subplot(122)
-
-        ax2.hist(resids, 40, facecolor='b')
-        ax2.set_title('{}: residual histogram'.format(self.msid), y=1.0)
-        ytick2 = ax2.get_yticks()
-        ylim2 = ax2.get_ylim()
-        ax2.set_yticklabels(['%2.0f%%' % (100 * n / self.comp.mvals.size) for n in ytick2])
-        ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(stats['q99'], color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(np.nanmin(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(np.nanmax(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.set_xlabel('Error')
-
-        # Print labels for statistical boundaries.
-        ystart = (ylim2[1] + ylim2[0]) * 0.5
-        xoffset = -(.2 / 25) * np.abs(np.diff(ax2.get_xlim()))
-        ax2.text(stats['q01'] + xoffset * 1.1, ystart, '1% Quantile', ha="right",
-                 va="center", rotation=90)
-
-        if np.min(resids) > ax2.get_xlim()[0]:
-            ax2.text(np.min(resids) + xoffset * 1.1, ystart, 
-                     'Minimum Error', ha="right", va="center", 
-                     rotation=90)
-        ax2.text(stats['q99'] - xoffset * 0.9, ystart, '99% Quantile', ha="left",
-                 va="center", rotation=90)
-
-        if np.max(resids) < ax2.get_xlim()[1]:
-            ax2.text(np.max(resids) - xoffset * 0.9, ystart, 
-                     'Maximum Error', ha="left",
-                     va="center", rotation=90)
-
-        self.ax2 = ax2
-
-        self.canvas.draw()
-
-
 class ControlButtonsPanel(Panel):
     def __init__(self, model):
         Panel.__init__(self, orient='v')
@@ -1069,6 +504,11 @@ class MainWindow(object):
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
         self.cbp.command_entry.returnPressed.connect(self.command_activated)
 
+        self.dates = secs2date(self.model.times)
+
+        self.telem_data = {k: v for k, v in self.model.comp.items()
+                           if isinstance(v, TelemData)}
+
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
             try:
@@ -1141,17 +581,15 @@ class MainWindow(object):
 
         params = self.main_right_panel.params_panel.params_dict
 
-        data = {k: v for k, v in self.model.comp.items() 
-                if isinstance(v, TelemData)}
-
-        namespace = {"data": data, "params": params, "fit": fit,
+        namespace = {"telem_data": self.telem_data, "params": params, "fit": fit,
                      "freeze": freeze, "thaw": thaw, "ignore": ignore,
                      "notice": notice}
         widget = in_process_console(**namespace)
         widget.show()
 
     def make_histogram(self):
-        self.hist_window = HistogramWindow(self.model, self.msid, self.limits)
+        self.hist_window = HistogramWindow(self.model, self.msid, 
+                                           self.limits, gui_config)
         self.hist_window.show()
 
     def plot_limits(self, state):
@@ -1161,6 +599,13 @@ class MainWindow(object):
     def plot_line(self, state):
         self.show_line = state == QtCore.Qt.Checked
         self.main_left_panel.plots_box.update_plots(redraw=True)
+        if self.show_line:
+            self.line_data_window = LineDataWindow(self.model, self.msid, self,
+                                                   self.main_left_panel.plots_box)
+
+            self.line_data_window.show()
+        else:
+            self.line_data_window.close()
 
     def plot_radzones(self, state):
         self.show_radzones = state == QtCore.Qt.Checked
