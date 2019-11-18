@@ -649,6 +649,8 @@ class MainWindow(object):
             self.fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update()
             self.main_left_panel.plots_box.update_plots(redraw=fit_stopped)
+            if self.show_line:
+                self.line_data_window.update_data()
 
         # If fit has not stopped then set another timeout 200 msec from now
         if not fit_stopped:
