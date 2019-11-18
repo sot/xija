@@ -44,7 +44,7 @@ gui_config = {}
 
 class LineDataWindow(QtWidgets.QMainWindow):
     def __init__(self, model, msid, main_window, plots_box):
-        super(LineDataWindow, self).__init__()
+        super(LineDataWindow, self).__init__(None, QtCore.Qt.WindowStaysOnTopHint)
         self.model = model
         self.msid = msid
         self.setWindowTitle("Line Data")
@@ -57,13 +57,22 @@ class LineDataWindow(QtWidgets.QMainWindow):
         self.plots_box = plots_box
         self.main_window = main_window
         self.telem_data = self.main_window.telem_data
-        self.data_names = list(self.telem_data.keys())
+        self.data_names = []
+        self.data_basenames = []
         self.formats = []
-        for v in self.telem_data.values():
-            if v.dvals.dtype == np.float64:
-                self.formats.append("{0:.4f}")
+        for name, data in self.telem_data.items():
+            if data.dvals.dtype == np.float64:
+                fmt = "{0:.4f}"
             else:
-                self.formats.append("{0}")
+                fmt = "{0}"
+            if hasattr(data, 'resids'):
+                self.data_names += [name, name+"_model", name+"_resid"]
+                self.data_basenames += [name]*3
+                self.formats += [fmt]*3
+            else:
+                self.data_names.append(name)
+                self.data_basenames.append(name)
+                self.formats.append(fmt)
         self.nrows = len(self.data_names)+1
 
         self.table = WidgetTable(n_rows=self.nrows,
@@ -89,18 +98,15 @@ class LineDataWindow(QtWidgets.QMainWindow):
         date = self.main_window.dates[pos]
         self.table[0, 1].setText(date)
         for row in range(1, self.nrows):
-            name = self.data_names[row - 1]
+            name = self.data_names[row-1]
+            basenm = self.data_basenames[row-1]
             if name.endswith("_model"):
-                val = self.telem_data[name].mvals[pos]
+                val = self.telem_data[basenm].mvals[pos]
             elif name.endswith("_resid"):
-                val = self.telem_data[name].resid[pos]
+                val = self.telem_data[basenm].resids[pos]
             else:
-                val = self.telem_data[name].dvals[pos]
-            val = self.formats[row - 1].format(val)
-            self.table[row, 1].setText(val)
-
-    def close(self, *args):
-        self.close()
+                val = self.telem_data[basenm].dvals[pos]
+            self.table[row, 1].setText(self.formats[row-1].format(val))
 
 
 class WidgetTable(dict):

@@ -9,9 +9,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 import matplotlib.dates as mdates
 
-from Chandra.Time import secs2date
-
-
 def digitize_data(Ttelem, nbins=50):
     """ Digitize telemetry.
 
@@ -167,7 +164,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
         canvas = MplCanvas(parent=None)
         toolbar = NavigationToolbar(canvas, parent=None)
-
+        
         redraw_button = QtWidgets.QPushButton('Redraw')
         redraw_button.clicked.connect(self.make_plots)
 
@@ -217,6 +214,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.canvas = canvas
         self.make_plots()
         self.canvas.show()
+
 
     def close_window(self, *args):
         self.close()
@@ -348,7 +346,6 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         canvas = MplCanvas(parent=None)
         toolbar = NavigationToolbar(canvas, parent=None)
-
         delete_plot_button = QtWidgets.QPushButton('Delete')
         delete_plot_button.clicked.connect(
             functools.partial(plots_box.delete_plot_box, plot_name))
@@ -384,7 +381,9 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.releaser = self.canvas.mpl_connect("button_release_event", self.release)
 
     def select(self, event):
-        if event.inaxes and self.main_window.show_line:
+        grab = event.inaxes and self.main_window.show_line and \
+               self.canvas.toolbar._active is None
+        if grab:
             self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
         else:
             pass
