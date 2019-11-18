@@ -20,6 +20,7 @@ twodof/
 dist/
 MANIFEST
 *.png
+!app_icon.png
 doc/_build
 doc/_static
 doc/_templates
