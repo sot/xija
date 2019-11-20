@@ -291,7 +291,10 @@ class Node(TelemData):
                     markersize=0.25, color='b', markeredgecolor='b')
             ax.grid()
             ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
-            
+            ax.set_ylabel('Temperature (degC)')
+        else:
+            lines[0].set_ydata(resids)
+
 
 class Coupling(ModelComponent):
     """\
