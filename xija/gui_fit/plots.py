@@ -384,6 +384,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
                self.canvas.toolbar._active is None
         if grab:
             self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+            self.plots_box.xline = event.xdata
+            self.plots_box.update_xline()
         else:
             pass
 
