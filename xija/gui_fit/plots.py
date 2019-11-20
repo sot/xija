@@ -405,11 +405,14 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ly.set_xdata(self.plots_box.xline)
             self.canvas.draw_idle()
 
-    def update(self, redraw=False, first=False):
+    def update(self, redraw=False, first=False, keep_lim=False):
         pb = self.plots_box
         mw = self.main_window
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         if redraw:
+            if keep_lim:
+                xmin, xmax = self.ax.get_xlim()
+                ymin, ymax = self.ax.get_ylim()
             self.fig.delaxes(self.ax)
             try:
                 xaxis_type = self.plot_method.split('__')[1]
@@ -421,6 +424,9 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 if sharex is not None:
                     self.ax.autoscale(enable=False, axis='x')
                 pb.sharex.setdefault(xaxis_type, self.ax)
+            if keep_lim:
+                self.ax.set_xlim(xmin, xmax)
+                self.ax.set_ylim(ymin, ymax)
 
         plot_func(fig=self.fig, ax=self.ax)
         self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
@@ -482,12 +488,12 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.update()
         self.update_plot_boxes()
 
-    def update_plots(self, redraw=False):
+    def update_plots(self, redraw=False, keep_lim=False):
         cbp = self.main_window.cbp
         cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.plot_boxes:
-            plot_box.update(redraw=redraw)
+            plot_box.update(redraw=redraw, keep_lim=keep_lim)
         cbp.update_status.setText('')
 
     def update_plot_boxes(self):
