@@ -467,7 +467,7 @@ class MainRightPanel(Panel):
 class MainWindow(object):
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
-    def __init__(self, model, fit_worker):
+    def __init__(self, model, fit_worker, model_file):
         self.model = model
 
         # Figure out which node is the one we really care about.
@@ -486,7 +486,7 @@ class MainWindow(object):
         # create a new window
         self.window = QtWidgets.QWidget()
         self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
-        self.window.setWindowTitle("xija_gui_fit")
+        self.window.setWindowTitle("xija_gui_fit ({})".format(model_file))
         self.main_box = Panel(orient='h')
         self.limits = gui_config.get("limits", {})
 
@@ -839,7 +839,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     icon = QtGui.QIcon(icon_path('app_icon'))
     app.setWindowIcon(icon)
-    MainWindow(model, fit_worker)
+    MainWindow(model, fit_worker, opt.filename)
     sys.exit(app.exec_())
 
 
