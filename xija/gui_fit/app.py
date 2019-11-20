@@ -44,7 +44,7 @@ gui_config = {}
 
 class LineDataWindow(QtWidgets.QMainWindow):
     def __init__(self, model, msid, main_window, plots_box):
-        super(LineDataWindow, self).__init__(None, QtCore.Qt.WindowStaysOnTopHint)
+        super(LineDataWindow, self).__init__()
         self.model = model
         self.msid = msid
         self.setWindowTitle("Line Data")
