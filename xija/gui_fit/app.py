@@ -726,6 +726,8 @@ class MainWindow(object):
             try:
                 self.model.write(filename, model_spec)
                 gui_config['filename'] = filename
+                shortfn = os.path.split(filename)[-1]
+                self.window.setWindowTitle("xija_gui_fit ({})".format(shortfn))
             except IOError as ioerr:
                 msg = QtWidgets.QMessageBox()
                 msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
