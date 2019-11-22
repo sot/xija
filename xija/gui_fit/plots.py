@@ -151,7 +151,7 @@ class MplCanvas(FigureCanvas):
 class HistogramWindow(QtWidgets.QMainWindow):
     def __init__(self, model, msid, limits, gui_config):
         super(HistogramWindow, self).__init__()
-        self.setGeometry(0, 0, 900, 500)
+        self.setGeometry(0, 0, 1000, 600)
         self.model = model
         self.msid = msid
         self.limits = limits
@@ -268,7 +268,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
         stats = calcquantiles(resids)
         # In this case the data is not discretized to a limited number of
-        # count values, or has too many possible values to work with 
+        # count values, or has too many possible values to work with
         # calcquantstats(), such as with tmp_fep1_mong.
         if len(np.sort(list(set(dvals)))) > 1000:
             quantized_tlm = digitize_data(dvals)
@@ -299,16 +299,21 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
         ax2 = self.fig.add_subplot(122)
 
-        ax2.hist(resids, 40, facecolor='b')
+        hist, bins = np.histogram(resids, 40)
+        hist = hist*100.0/self.comp.mvals.size
+        hist[hist == 0.0] = np.nan
+        bin_mid = 0.5*(bins[1:]+bins[:-1])
+        ax2.step(bin_mid, hist, 'blue', where='mid')
         ax2.set_title('{}: residual histogram'.format(self.msid), y=1.0)
-        ytick2 = ax2.get_yticks()
+        ax2.set_ylim(0.0, None)
         ylim2 = ax2.get_ylim()
-        ax2.set_yticklabels(['%2.0f%%' % (100 * n / self.comp.mvals.size) for n in ytick2])
         ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)
         ax2.axvline(stats['q99'], color='k', linestyle='--', linewidth=1.5, alpha=1)
         ax2.axvline(np.nanmin(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
         ax2.axvline(np.nanmax(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
         ax2.set_xlabel('Error')
+        ax2.set_ylabel('% of data')
+        ax2.fill_between(bin_mid, hist, step="mid", color='blue')
 
         # Print labels for statistical boundaries.
         ystart = (ylim2[1] + ylim2[0]) * 0.5
