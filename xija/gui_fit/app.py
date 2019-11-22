@@ -607,11 +607,11 @@ class MainWindow(object):
 
     def plot_limits(self, state):
         self.show_limits = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True, keep_lim=True)
+        self.main_left_panel.plots_box.update_plots(redraw=True)
 
     def plot_line(self, state):
         self.show_line = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True, keep_lim=True)
+        self.main_left_panel.plots_box.update_plots(redraw=True)
         if self.show_line:
             self.line_data_window = LineDataWindow(self.model, self.msid, self,
                                                    self.main_left_panel.plots_box)
@@ -622,7 +622,7 @@ class MainWindow(object):
 
     def plot_radzones(self, state):
         self.show_radzones = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True, keep_lim=True)
+        self.main_left_panel.plots_box.update_plots(redraw=True)
 
     def add_plot(self, plotname):
         pp = self.main_left_panel.plots_box
