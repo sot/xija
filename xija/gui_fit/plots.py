@@ -276,8 +276,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
         else:
             quantstats = calcquantstats(dvals, resids)
 
-        ax1.plot(resids, dvals + randx, 'o', color='b',
-                 alpha=1, markersize=1, markeredgecolor='b')
+        ax1.plot(resids, dvals + randx, 'o', color='#386cb0',
+                 alpha=1, markersize=1, markeredgecolor='#386cb0')
         ax1.grid()
         ax1.set_title('{}: data vs. residuals (data - model)'.format(self.msid))
         ax1.set_xlabel('Error')
@@ -303,7 +303,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         hist = hist*100.0/self.comp.mvals.size
         hist[hist == 0.0] = np.nan
         bin_mid = 0.5*(bins[1:]+bins[:-1])
-        ax2.step(bin_mid, hist, 'blue', where='mid')
+        ax2.step(bin_mid, hist, '#386cb0', where='mid')
         ax2.set_title('{}: residual histogram'.format(self.msid), y=1.0)
         ax2.set_ylim(0.0, None)
         ylim2 = ax2.get_ylim()
@@ -313,7 +313,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         ax2.axvline(np.nanmax(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
         ax2.set_xlabel('Error')
         ax2.set_ylabel('% of data')
-        ax2.fill_between(bin_mid, hist, step="mid", color='blue')
+        ax2.fill_between(bin_mid, hist, step="mid", color='#386cb0')
 
         # Print labels for statistical boundaries.
         ystart = (ylim2[1] + ylim2[0]) * 0.5

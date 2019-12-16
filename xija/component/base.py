@@ -166,7 +166,8 @@ class TelemData(ModelComponent):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, ls='-', color='#386cb0',
+                         fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data'.format(self.name))
             ax.margins(0.05)
@@ -250,14 +251,14 @@ class Node(TelemData):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, '-r', fig=fig, ax=ax)
-            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, ls='-', color='#386cb0', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, ls='-', color='#d92121', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
             for i0, i1 in self.model.bad_times_indices:
                 plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
                              fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
-            ax.set_title('{}: model (blue) and data (red)'.format(self.name))
+            ax.set_title('{}: model (red) and data (blue)'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
         else:
             lines[1].set_ydata(self.mvals)
@@ -269,7 +270,7 @@ class Node(TelemData):
             resids[~self.mask.mask] = np.nan
 
         if not lines:
-            plot_cxctime(self.model.times, resids, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, resids, ls='-', color='#386cb0', fig=fig, ax=ax)
             # Overplot bad time regions in cyan
             for i0, i1 in self.model.bad_times_indices:
                 plot_cxctime(self.model.times[i0:i1], resids[i0:i1], '-c',
@@ -288,7 +289,7 @@ class Node(TelemData):
 
         if not lines:
             ax.plot(self.dvals + self.randx, resids, 'o',
-                    markersize=0.25, color='b', markeredgecolor='b')
+                    markersize=0.25, color='#386cb0', markeredgecolor='#386cb0')
             ax.grid()
             ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
             ax.set_ylabel('Temperature (degC)')
