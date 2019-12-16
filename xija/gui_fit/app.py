@@ -538,6 +538,7 @@ class MainWindow(object):
         self.hist_window = None
 
     def open_console(self):
+                
         def fit():
             """
             Perform a fit.
@@ -581,6 +582,35 @@ class MainWindow(object):
             """
             self.parse_command("thaw {}".format(params))
 
+        def ignore(tstart, tstop):
+            """
+            Ignore specified time ranges when performing a fit.
+
+            Parameters
+            ----------
+            tstart : string
+                The earliest time in the range to be ignored.
+                If None, this will default to the beginning of
+                the imported data range.
+            tstop : string
+                The latest time in the range to be ignored.
+                If None, this will default to the end of the
+                imported data range.
+
+            Examples
+            --------
+            >>> # When only the year and DOY are included,
+            >>> # assumed time is 12:00:00
+            >>> ignore("2019:100:09:10:12", "2019:200")
+
+            >>> ignore(None, "2019:056:17:15:10")
+            """
+            if tstart is None:
+                tstart = "*"
+            if tstop is None:
+                tstop = "*"
+            self.parse_command("ignore {} {}".format(tstart, tstop))
+
         def notice():
             """
             Remove all time masks which were set by the
@@ -589,14 +619,50 @@ class MainWindow(object):
             """
             self.parse_command("notice")
 
-        def ignore(range):
-            self.parse_command("ignore {}".format(range))
+        def howto(query=None):
+            if query is None:
+                msg = "This is the xija_gui_fit console.\n" \
+                      "Functions defined here are:\n\n" \
+                      "fit()\n" \
+                      "freeze(params)\n" \
+                      "thaw(params)\n" \
+                      "ignore(tstart, tstop)\n" \
+                      "notice()\n\n" \
+                      "Other data objects are:\n\n" \
+                      "telem_data (dict)\n" \
+                      "params (OrderedDict) \n\n" \
+                      "To find out more information about any of these, " \
+                      "type e.g. 'howto(freeze)'"
+            elif query is params:
+                msg = "The params OrderedDict gives limited access to getting " \
+                      "and setting the model parameters.\n\n" \
+                      "Examples\n" \
+                      "--------\n" \
+                      ">>> # Print value, min, max and of a model parameter\n" \
+                      ">>> print(params['solarheat__1cbat__P_90'])\n" \
+                      ">>> # Set value of a model parameter\n" \
+                      ">>> params['dpa_power__pow_3xx0'].val = 40.0\n" \
+                      ">>> # Set minimum of a model parameter\n" \
+                      ">>> params['dpa_power__pow_3xx0'].min = 0.0\n" \
+                      ">>> # Set maximum of a model parameter\n" \
+                      ">>> params['dpa_power__pow_3xx0'].max = 100.0"
+            elif query is self.telem_data:
+                msg = "The telem_data dictionary gives access to the " \
+                      "various telemetry data and commanded states objects " \
+                      "for examination and side calculations.\n\n" \
+                      "Examples\n" \
+                      "--------\n" \
+                      ">>> print(telem_data.keys())\n" \
+                      ">>> print(telem_data['fep_count'].dvals)" 
+            else:
+                msg = query.__doc__
+            print(msg)
 
         params = self.main_right_panel.params_panel.params_dict
 
         namespace = {"telem_data": self.telem_data, "params": params, "fit": fit,
                      "freeze": freeze, "thaw": thaw, "ignore": ignore,
-                     "notice": notice}
+                     "notice": notice, "howto": howto}
         widget = in_process_console(**namespace)
         widget.show()
 
@@ -615,7 +681,6 @@ class MainWindow(object):
         if self.show_line:
             self.line_data_window = LineDataWindow(self.model, self.msid, self,
                                                    self.main_left_panel.plots_box)
-
             self.line_data_window.show()
         else:
             self.line_data_window.close()
