@@ -68,7 +68,7 @@ def in_process_console(console_class=RichJupyterWidget, **kwargs):
     control.exit_requested.connect(stop)
     control.shell = kernel_manager.kernel.shell
     control.shell.user_ns.update(**kwargs)
-    control.setWindowTitle('xija_gui_fit IPython Terminal')
+    control.setWindowTitle('xija_gui_fit IPython Terminal -- type howto() for instructions')
 
     return control
 
