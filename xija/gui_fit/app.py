@@ -407,7 +407,7 @@ class ControlButtonsPanel(Panel):
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
         self.line_chkbox = QtWidgets.QCheckBox()
-        if "limits" not in gui_config:
+        if len(self.model.limits) == 0:
             self.limits_chkbox.setEnabled(False)
 
         self.top_panel = Panel()
@@ -503,7 +503,6 @@ class MainWindow(object):
         self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
         self.window.setWindowTitle("xija_gui_fit ({})".format(model_file))
         self.main_box = Panel(orient='h')
-        self.limits = gui_config.get("limits", {})
 
         # This is the Layout Box that holds the top-level stuff in the main window
         main_window_hbox = QtWidgets.QHBoxLayout()
@@ -684,8 +683,7 @@ class MainWindow(object):
         widget.show()
 
     def make_histogram(self):
-        self.hist_window = HistogramWindow(self.model, self.msid, 
-                                           self.limits, gui_config)
+        self.hist_window = HistogramWindow(self.model, self.msid)
         self.hist_window.show()
 
     def plot_limits(self, state):

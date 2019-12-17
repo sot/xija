@@ -611,5 +611,12 @@ class XijaModel(object):
         self.mask_times_indices = self.bad_times_indices.copy()
         self.mask_time_secs = date2secs(self.mask_times)
 
+    def annotate_limits(self, ax, dir='h'):
+        if len(self.limits) == 0:
+            return
+        draw_line = getattr(ax, 'ax{}line'.format(dir))
+        for lim_data in self.limits.values():
+            draw_line(lim_data['value'], ls='-', color=lim_data['color'])
+
 
 ThermalModel = XijaModel

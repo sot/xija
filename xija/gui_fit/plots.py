@@ -97,24 +97,6 @@ def getQuantPlotPoints(quantstats, quantile):
     return Epoints, Tpoints
 
 
-def annotate_limits(ax, limits, dir='h'):
-    if len(limits) == 0:
-        return
-    draw_line = getattr(ax, 'ax{}line'.format(dir))
-    if 'acisi' in limits:
-        draw_line(limits['acisi'], ls='-.', color='blue')
-    if 'aciss' in limits:
-        draw_line(limits['aciss'], ls='-.', color='purple')
-    if 'planning_hi' in limits:
-        draw_line(limits['planning_hi'], ls='-', color='green')
-    if 'caution_hi' in limits:
-        draw_line(limits['caution_hi'], ls='-', color='gold')
-    if 'planning_lo' in limits:
-        draw_line(limits['planning_lo'], ls='-', color='green')
-    if 'caution_lo' in limits:
-        draw_line(limits['caution_lo'], ls='-', color='gold')
-
-
 def get_radzones(model):
     from kadi import events
     rad_zones = events.rad_zones.filter(start=model.datestart,
@@ -149,12 +131,11 @@ class MplCanvas(FigureCanvas):
 
 
 class HistogramWindow(QtWidgets.QMainWindow):
-    def __init__(self, model, msid, limits, gui_config):
+    def __init__(self, model, msid):
         super(HistogramWindow, self).__init__()
         self.setGeometry(0, 0, 1000, 600)
         self.model = model
         self.msid = msid
-        self.limits = limits
         self.comp = self.model.comp[self.msid]
         self.setWindowTitle("Histogram")
         wid = QtWidgets.QWidget(self)
@@ -190,7 +171,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         limits_check = QtWidgets.QCheckBox()
         limits_check.setChecked(False)
         limits_check.stateChanged.connect(self.plot_limits)
-        if "limits" not in gui_config:
+        if len(self.model.limits) == 0:
             limits_check.setEnabled(False)
 
         toolbar_box.addWidget(redraw_button)
@@ -213,7 +194,6 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.canvas = canvas
         self.make_plots()
         self.canvas.show()
-
 
     def close_window(self, *args):
         self.close()
@@ -293,7 +273,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
 
         if self.show_limits:
-            annotate_limits(ax1, self.limits)
+            self.model.annotate_limits(ax1)
 
         self.ax1 = ax1
 
@@ -453,9 +433,9 @@ class PlotBox(QtWidgets.QVBoxLayout):
                     self.ly = self.ax.axvline(pb.xline, color='maroon')
             if mw.show_limits and self.comp_name == mw.msid:
                 if self.plot_method.endswith("resid__data"):
-                    annotate_limits(self.ax, mw.limits, dir='v')
+                    pb.model.annotate_limits(self.ax, dir='v')
                 elif self.plot_method.endswith("data__time"):
-                    annotate_limits(self.ax, mw.limits)
+                    pb.model.annotate_limits(self.ax)
 
         self.canvas.draw()
 
