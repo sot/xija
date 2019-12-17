@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from setuptools import setup, Extension
 import os
-from xija import __version__
 
 long_description = """
 Xija (pronounced "kiy - yuh", rhymes with Maya) is the thermal modeling
@@ -32,7 +31,8 @@ core6_ext = Extension('xija.core', ['xija/core.c'],
 entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit:main'}
 
 setup(name='xija',
-      version=__version__,
+      use_scm_version=True,
+      setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
       description='Thermal modeling framework for Chandra',
       long_description=long_description,
       author='Tom Aldcroft',
