@@ -42,21 +42,9 @@ from collections import OrderedDict
 gui_config = {}
 
 
-class LineDataWindow(QtWidgets.QMainWindow):
-    def __init__(self, model, msid, main_window, plots_box):
-        super(LineDataWindow, self).__init__()
-        self.model = model
-        self.msid = msid
-        self.setWindowTitle("Line Data")
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
-        self.box = QtWidgets.QVBoxLayout()
-        wid.setLayout(self.box)
-        self.setGeometry(0, 0, 350, 600)
-
-        self.plots_box = plots_box
-        self.main_window = main_window
-        self.telem_data = self.main_window.telem_data
+class FormattedTelemData:
+    def __init__(self, telem_data):
+        self.telem_data = telem_data
         self.data_names = []
         self.data_basenames = []
         self.formats = []
@@ -73,7 +61,38 @@ class LineDataWindow(QtWidgets.QMainWindow):
                 self.data_names.append(name)
                 self.data_basenames.append(name)
                 self.formats.append(fmt)
-        self.nrows = len(self.data_names)+1
+
+    def __iter__(self):
+        return iter(self.data_names)
+
+    def __getitem__(self, item):
+        name = self.data_names[item]
+        basenm = self.data_basenames[item]
+        if name.endswith("_model"):
+            val = self.telem_data[basenm].mvals
+        elif name.endswith("_resid"):
+            val = self.telem_data[basenm].resids
+        else:
+            val = self.telem_data[basenm].dvals
+        return val
+
+
+class LineDataWindow(QtWidgets.QMainWindow):
+    def __init__(self, model, msid, main_window, plots_box):
+        super(LineDataWindow, self).__init__()
+        self.model = model
+        self.msid = msid
+        self.setWindowTitle("Line Data")
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+        self.box = QtWidgets.QVBoxLayout()
+        wid.setLayout(self.box)
+        self.setGeometry(0, 0, 350, 600)
+
+        self.plots_box = plots_box
+        self.main_window = main_window
+        self.ftd = self.main_window.fmt_telem_data
+        self.nrows = len(self.ftd.data_names)+1
 
         self.table = WidgetTable(n_rows=self.nrows,
                                  colnames=['name', 'value'],
@@ -84,7 +103,7 @@ class LineDataWindow(QtWidgets.QMainWindow):
         self.table[0, 1] = QtWidgets.QLabel("")
 
         for row in range(1, self.nrows):
-            name = self.data_names[row - 1]
+            name = self.ftd.data_names[row-1]
             self.table[row, 0] = QtWidgets.QLabel(name)
             self.table[row, 1] = QtWidgets.QLabel("")
 
@@ -98,15 +117,9 @@ class LineDataWindow(QtWidgets.QMainWindow):
         date = self.main_window.dates[pos]
         self.table[0, 1].setText(date)
         for row in range(1, self.nrows):
-            name = self.data_names[row-1]
-            basenm = self.data_basenames[row-1]
-            if name.endswith("_model"):
-                val = self.telem_data[basenm].mvals[pos]
-            elif name.endswith("_resid"):
-                val = self.telem_data[basenm].resids[pos]
-            else:
-                val = self.telem_data[basenm].dvals[pos]
-            self.table[row, 1].setText(self.formats[row-1].format(val))
+            val = self.ftd[row-1]
+            fmt = self.ftd.formats[row-1]
+            self.table[row, 1].setText(fmt.format(val[pos]))
 
 
 class WidgetTable(dict):
@@ -381,6 +394,7 @@ class ControlButtonsPanel(Panel):
             self.stop_button.setEnabled(False)
         self.save_button = QtWidgets.QPushButton("Save")
         self.hist_button = QtWidgets.QPushButton("Histogram")
+        self.write_table_button = QtWidgets.QPushButton("Write Table")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
         self.quit_button = QtWidgets.QPushButton('Quit')
@@ -425,6 +439,7 @@ class ControlButtonsPanel(Panel):
         self.bottom_panel.pack_start(self.limits_panel)
         self.bottom_panel.pack_start(self.line_panel)
         self.bottom_panel.add_stretch(1)
+        self.bottom_panel.pack_start(self.write_table_button)
         self.bottom_panel.pack_start(self.console_button)
 
         self.pack_start(self.top_panel)
@@ -508,6 +523,7 @@ class MainWindow(object):
         self.cbp.fit_button.clicked.connect(self.fit_monitor)
         self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
         self.cbp.save_button.clicked.connect(self.save_model_file)
+        self.cbp.write_table_button.clicked.connect(self.save_ascii_table)
         self.cbp.console_button.clicked.connect(self.open_console)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
@@ -521,6 +537,7 @@ class MainWindow(object):
 
         self.telem_data = {k: v for k, v in self.model.comp.items()
                            if isinstance(v, TelemData)}
+        self.fmt_telem_data = FormattedTelemData(self.telem_data)
 
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
@@ -771,6 +788,31 @@ class MainWindow(object):
                     return
                 self.model.reset_mask_times()
             self.main_left_panel.plots_box.update_plots(redraw=True)
+
+    def save_ascii_table(self):
+        from astropy.table import Table, Column
+        dlg = QtWidgets.QFileDialog()
+        dlg.setNameFilters(["DAT files (*.dat)", "TXT files (*.txt)", "All files (*)"])
+        dlg.selectNameFilter("DAT files (*.json)")
+        dlg.setAcceptMode(dlg.AcceptSave)
+        dlg.exec_()
+        filename = str(dlg.selectedFiles()[0])
+        if filename != '':
+            try:
+                ftd = self.fmt_telem_data
+                t = Table()
+                for i, key in enumerate(ftd):
+                    c = Column(self.fmt_telem_data[i], name=key, 
+                               format=ftd.formats[i])
+                    t.add_column(c)
+                t.write(filename, overwrite=True, format='ascii.commented_header', 
+                        delimiter='\t')
+            except IOError as ioerr:
+                msg = QtWidgets.QMessageBox()
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                msg.setText("There was a problem writing the file:")
+                msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
+                msg.exec_()
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
