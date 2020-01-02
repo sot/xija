@@ -77,13 +77,17 @@ void dTdt(int j, int n_preds, int n_tmals, int **tmal_ints, double **tmal_floats
 int calc_model(int n_times, int n_preds, int n_tmals, double dt, 
                double **mvals, int **tmal_ints, double **tmal_floats)
 {
-    double *y, *yh, *deriv;
-    double k1, k2;
+    double *y, *yh, *deriv, *k1, *k2, *k3, *k4;
     int i, j;    
-
+    double one_sixth = 1.0/6.0;
+    
     deriv = (double *)malloc(n_preds*sizeof(double));
     y = (double *)malloc(n_preds*sizeof(double));
     yh = (double *)malloc(n_preds*sizeof(double));
+    k1 = (double *)malloc(n_preds*sizeof(double));
+    k2 = (double *)malloc(n_preds*sizeof(double));
+    k3 = (double *)malloc(n_preds*sizeof(double));
+    k4 = (double *)malloc(n_preds*sizeof(double));
 
     for (j = 0; j < n_times-2; j += 2) {
         
@@ -94,22 +98,49 @@ int calc_model(int n_times, int n_preds, int n_tmals, double dt,
         dTdt(j, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, y);
         
         for (i = 0; i < n_preds; i++) {
-            k1 = dt * deriv[i];
-            yh[i] = y[i] + 0.5*k1;
+            k1[i] = dt * deriv[i];
+            yh[i] = y[i] + 0.5*k1[i];
         }
 
         dTdt(j+1, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, yh);
 
         for (i = 0; i < n_preds; i++) {
-            k2 = dt * deriv[i];
-            mvals[i][j + 1] = y[i] + 0.5*k2;
-            mvals[i][j + 2] = y[i] + k2;
+            k2[i] = dt * deriv[i];
+            yh[i] = y[i] + 0.5*k2[i];
         }
+        
+        for (i = 0; i < n_preds; i++) {
+            k2[i] = dt * deriv[i];
+            mvals[i][j+1] = y[i] + 0.5*k2[i];
+            mvals[i][j+2] = y[i] + k2[i];
+        }
+
+        /*
+        dTdt(j+1, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, yh);
+
+        for (i = 0; i < n_preds; i++) {
+            k3[i] = dt * deriv[i];
+            yh[i] = y[i] + k3[i];
+        }
+
+        dTdt(j+2, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, yh);
+
+        for (i = 0; i < n_preds; i++) {
+            k4[i] = dt * deriv[i];
+            mvals[i][j+1] = y[i] + 0.5*k3[i];
+            mvals[i][j+2] = y[i] + one_sixth*(k1[i]+2.0*(k2[i]+k3[i])+k4[i]);
+        }
+        */
+
     }
 
     free(y);
     free(yh);
     free(deriv);
-   
+    free(k1);
+    free(k2);
+    free(k3);
+    free(k4);
+    
     return 0;
 }
