@@ -111,8 +111,8 @@ int calc_model(int n_times, int n_preds, int n_tmals, double dt,
         
         for (i = 0; i < n_preds; i++) {
             k2[i] = dt * deriv[i];
-            mvals[i][j+1] = y[i] + 0.5*k2[i];
-            mvals[i][j+2] = y[i] + k2[i];
+            mvals[i][j+1] = yh[i] + 0.5*k2[i];
+            mvals[i][j+2] = yh[i] + k2[i];
         }
 
         /*
@@ -127,8 +127,8 @@ int calc_model(int n_times, int n_preds, int n_tmals, double dt,
 
         for (i = 0; i < n_preds; i++) {
             k4[i] = dt * deriv[i];
-            mvals[i][j+1] = y[i] + 0.5*k3[i];
-            mvals[i][j+2] = y[i] + one_sixth*(k1[i]+2.0*(k2[i]+k3[i])+k4[i]);
+            mvals[i][j+1] = yh[i] + 0.5*k2[i];
+            mvals[i][j+2] = yh[i] + one_sixth*(k1[i]+2.0*(k2[i]+k3[i])+k4[i]);
         }
         */
 
