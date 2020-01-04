@@ -16,7 +16,7 @@ framework used Chandra thermal modeling:
 """
 
 if os.name == "nt":
-    link_args = ['/EXPORT:calc_model']
+    link_args = ['/EXPORT:calc_model', '/EXPORT:calc_model_new']
 else:
     link_args = []
 
@@ -26,6 +26,8 @@ except ImportError:
     cmdclass = {}
 
 core6_ext = Extension('xija.core', ['xija/core.c'],
+                      extra_link_args=link_args)
+core7_ext = Extension('xija.core_new', ['xija/core_new.c'],
                       extra_link_args=link_args)
 
 entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit:main'}
@@ -41,7 +43,7 @@ setup(name='xija',
       license='BSD',
       zip_safe=False,
       platforms=['any'],
-      ext_modules=[core6_ext],
+      ext_modules=[core6_ext, core7_ext],
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Science/Research',

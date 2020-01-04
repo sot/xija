@@ -113,6 +113,7 @@ class XijaModel(object):
         self.datestart = DateTime(self.tstart).date
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
+        self.new_calc_model = True
 
         try:
             self.bad_times = model_spec['bad_times']
@@ -498,13 +499,20 @@ class XijaModel(object):
         # int calc_model(int n_times, int n_preds, int n_tmals, float dt,
         #                float **mvals, int **tmal_ints, float **tmal_floats)
 
-        dt = self.dt_ksec * 2
         mvals = convert_type_star_star(self.mvals, ctypes.c_double)
         tmal_ints = convert_type_star_star(self.tmal_ints, ctypes.c_int)
         tmal_floats = convert_type_star_star(self.tmal_floats, ctypes.c_double)
 
-        self.core.calc_model(self.n_times, self.n_preds, len(self.tmal_ints),
-                             dt, mvals, tmal_ints, tmal_floats)
+        if self.new_calc_model:
+            dt = self.dt_ksec
+            self.core_new.calc_model_new(self.n_times, self.n_preds,
+                                         len(self.tmal_ints), dt, mvals,
+                                         tmal_ints, tmal_floats)
+        else:
+            dt = self.dt_ksec * 2
+            self.core.calc_model(self.n_times, self.n_preds, 
+                                 len(self.tmal_ints), dt, mvals, 
+                                 tmal_ints, tmal_floats)
 
         # hackish fix to ensure last value is computed
         self.mvals[:, -1] = self.mvals[:, -2]
@@ -544,5 +552,25 @@ class XijaModel(object):
                 ]
             XijaModel._core = _core
         return XijaModel._core
+
+    @property
+    def core_new(self):
+        """Lazy-load the "core_new" ctypes shared object libary that does the
+        low-level model calculation via the C "calc_model_new" routine.  Only
+        load once by setting/returning a class attribute.
+        """
+        if not hasattr(XijaModel, '_core_new'):
+            loader_path = os.path.abspath(os.path.dirname(__file__))
+            _core_new = np.ctypeslib.load_library('core_new', loader_path)
+            _core_new.calc_model_new.restype = ctypes.c_int
+            _core_new.calc_model_new.argtypes = [
+                ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                ctypes.c_double,
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
+            ]
+            XijaModel._core_new = _core_new
+        return XijaModel._core_new
 
 ThermalModel = XijaModel
