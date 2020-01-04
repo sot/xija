@@ -114,6 +114,7 @@ class XijaModel(object):
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
         self.new_calc_model = True
+        self.rk4 = 1
 
         try:
             self.bad_times = model_spec['bad_times']
@@ -505,7 +506,7 @@ class XijaModel(object):
 
         if self.new_calc_model:
             dt = self.dt_ksec
-            self.core_new.calc_model_new(self.n_times, self.n_preds,
+            self.core_new.calc_model_new(self.rk4, self.n_times, self.n_preds,
                                          len(self.tmal_ints), dt, mvals,
                                          tmal_ints, tmal_floats)
         else:
@@ -564,8 +565,8 @@ class XijaModel(object):
             _core_new = np.ctypeslib.load_library('core_new', loader_path)
             _core_new.calc_model_new.restype = ctypes.c_int
             _core_new.calc_model_new.argtypes = [
-                ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                ctypes.c_double,
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, 
+                ctypes.c_int, ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double))

@@ -86,11 +86,11 @@ void dTdt(int j, int half, int n_preds, int n_tmals, int **tmal_ints,
 
 }
 
-int calc_model_new(int n_times, int n_preds, int n_tmals, double dt, 
+int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt, 
                    double **mvals, int **tmal_ints, double **tmal_floats)
 {
     double *y, *yh, *deriv, *k1, *k2, *k3, *k4;
-    int i, j, rk4 = 0;    
+    int i, j;    
     double one_sixth = 1.0/6.0;
     
     deriv = (double *)malloc(n_preds*sizeof(double));
