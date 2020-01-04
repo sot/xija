@@ -93,6 +93,8 @@ int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt,
     int i, j;    
     double one_sixth = 1.0/6.0;
     
+    /* Allocate arrays we need */
+    
     deriv = (double *)malloc(n_preds*sizeof(double));
     y = (double *)malloc(n_preds*sizeof(double));
     yh = (double *)malloc(n_preds*sizeof(double));
@@ -105,23 +107,34 @@ int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt,
 
     for (j = 0; j < n_times-1; j++) {
         
+        /* Initialize the y-array at the current step */
+        
         for (i = 0; i < n_preds; i++) {
             y[i] = mvals[i][j];
         }
 
+        /* Compute the derivative at the current step */
+        
         dTdt(j, 0, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, y);
+        
+        /* Advance a half-step */
         
         for (i = 0; i < n_preds; i++) {
             k1[i] = dt * deriv[i];
             yh[i] = y[i] + 0.5*k1[i];
         }
 
+        /* Compute the derivative in the middle of the step interval */
+        
         dTdt(j, 1, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, yh);
 
         for (i = 0; i < n_preds; i++) {
             k2[i] = dt * deriv[i];
         }
 
+        /* If we're doing RK2, evaluate the temperature at the full step and
+         * move on to the next step. Otherwise, continue on to RK4 */
+        
         if (rk4 == 0) {
             for (i = 0; i < n_preds; i++) {
                 mvals[i][j+1] = y[i] + k2[i];
@@ -129,19 +142,29 @@ int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt,
             continue;
         }
         
+        /* Second advancement to the half-step */
+        
         for (i = 0; i < n_preds; i++) {
             yh[i] = y[i] + 0.5*k2[i];
         }
 
+        /* Evaluate the derivative at the half-step again */
+
         dTdt(j, 1, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, yh);
+
+        /* Advance the full step */
 
         for (i = 0; i < n_preds; i++) {
             k3[i] = dt * deriv[i];
             yh[i] = y[i] + k3[i];
         }
 
+        /* Compute the derivative at the full step */
+
         dTdt(j+1, 0, n_preds, n_tmals, tmal_ints, tmal_floats, mvals, deriv, yh);
 
+        /* Compute the full solution at the full step using RK4 */
+        
         for (i = 0; i < n_preds; i++) {
             k4[i] = dt * deriv[i];
             mvals[i][j+1] = y[i] + one_sixth*(k1[i]+2.0*(k2[i]+k3[i])+k4[i]);
@@ -149,6 +172,8 @@ int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt,
 
     }
 
+    /* Free memory */
+    
     free(y);
     free(yh);
     free(deriv);
