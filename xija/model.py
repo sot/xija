@@ -71,7 +71,8 @@ class XijaModel(object):
     - If a model specification is provided then that sets the default values
       for keywords that are not supplied to the class init call.
     - Otherwise defaults are: ``name='xijamodel'``, ``start = stop - 45 days``,
-      ``stop = NOW - 30 days``
+      ``stop = NOW - 30 days``, ``dt = 328 secs``, ``evolve_method = 1``, 
+      ``rk4 = 0``
 
     :param name: model name
     :param start: model start time (any DateTime format)
@@ -79,9 +80,11 @@ class XijaModel(object):
     :param dt: delta time step (default=328 sec)
     :param model_spec: model specification (None | filename | dict)
     :param cmd_states: commanded states input (None | structured array)
+    :param evolve_method: choose method to evolve ODE (None | 1 or 2)
     """
     def __init__(self, name=None, start=None, stop=None, dt=None,
-                 model_spec=None, cmd_states=None):
+                 model_spec=None, cmd_states=None, evolve_method=None,
+                 rk4=None):
 
         # If model_spec supplied as a string then read model spec as a dict
         if isinstance(model_spec, six.string_types):
@@ -92,6 +95,8 @@ class XijaModel(object):
             start = start or model_spec['datestart']
             name = name or model_spec['name']
             dt = dt or model_spec['dt']
+            evolve_method = evolve_method or model_spec.get('evolve_method', None)
+            rk4 = rk4 or model_spec.get('rk4', None)
 
         if stop is None:
             stop = DateTime() - 30
@@ -101,6 +106,10 @@ class XijaModel(object):
             name = 'xijamodel'
         if dt is None:
             dt = DEFAULT_DT
+        if evolve_method is None:
+            evolve_method = 1
+        if rk4 is None:
+            rk4 = 0
 
         self.name = name
         self.comp = OrderedDict()
@@ -113,8 +122,8 @@ class XijaModel(object):
         self.datestart = DateTime(self.tstart).date
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
-        self.new_calc_model = True
-        self.rk4 = 1
+        self.evolve_method = evolve_method
+        self.rk4 = rk4
 
         try:
             self.bad_times = model_spec['bad_times']
@@ -323,7 +332,9 @@ class XijaModel(object):
                           datestart=self.datestart,
                           datestop=self.datestop,
                           tlm_code=None,
-                          mval_names=[])
+                          mval_names=[],
+                          evolve_method=self.evolve_method,
+                          rk4=self.rk4)
 
         if hasattr(self, 'bad_times'):
             model_spec['bad_times'] = self.bad_times
@@ -504,16 +515,16 @@ class XijaModel(object):
         tmal_ints = convert_type_star_star(self.tmal_ints, ctypes.c_int)
         tmal_floats = convert_type_star_star(self.tmal_floats, ctypes.c_double)
 
-        if self.new_calc_model:
+        if self.evolve_method == 1:
+            dt = self.dt_ksec * 2
+            self.core.calc_model(self.n_times, self.n_preds,
+                                 len(self.tmal_ints), dt, mvals,
+                                 tmal_ints, tmal_floats)
+        elif self.evolve_method == 2:
             dt = self.dt_ksec
             self.core_new.calc_model_new(self.rk4, self.n_times, self.n_preds,
                                          len(self.tmal_ints), dt, mvals,
                                          tmal_ints, tmal_floats)
-        else:
-            dt = self.dt_ksec * 2
-            self.core.calc_model(self.n_times, self.n_preds, 
-                                 len(self.tmal_ints), dt, mvals, 
-                                 tmal_ints, tmal_floats)
 
         # hackish fix to ensure last value is computed
         self.mvals[:, -1] = self.mvals[:, -2]
