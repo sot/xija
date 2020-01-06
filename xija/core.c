@@ -82,6 +82,13 @@ int calc_model(int n_times, int n_preds, int n_tmals, double dt,
 
         for (i = 0; i < n_preds; i++) {
             k2 = dt * deriv[i];
+            /* Note that the use of y[i] here is not 
+               strictly correct for RK2, as it was 
+               updated above in line 27 and thus 
+               represents the value at mvals[i][j0+1]
+               already--changing it now will break
+               all models, however. 
+            */
             mvals[i][j0 + 1] = y[i] + k2 / 2.0;
             mvals[i][j0 + 2] = y[i] + k2;
         }
