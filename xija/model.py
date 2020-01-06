@@ -168,6 +168,12 @@ class XijaModel(object):
         """
         time0 = 410270764.0
         i0 = int((DateTime(start).secs - time0) / dt) + 1
+        # Make sure i0 is always even to prevent an off-by-one
+        # issue that may result in model evolution being different
+        # by ~0.1s of degrees C if one begins the evolution at 
+        # different times
+        if i0 % 2 != 0:
+            i0 -= 1
         i1 = int((DateTime(stop).secs - time0) / dt)
         return time0 + np.arange(i0, i1) * dt
 
