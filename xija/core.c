@@ -87,7 +87,8 @@ int calc_model(int n_times, int n_preds, int n_tmals, double dt,
                updated above in line 27 and thus 
                represents the value at mvals[i][j0+1]
                already--changing it now will break
-               all models, however. 
+               all models, however. See discussion at
+               https://github.com/sot/xija/issues/72.
             */
             mvals[i][j0 + 1] = y[i] + k2 / 2.0;
             mvals[i][j0 + 2] = y[i] + k2;
