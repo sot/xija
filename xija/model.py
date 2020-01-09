@@ -104,7 +104,7 @@ class XijaModel(object):
 
         self.name = name
         self.comp = OrderedDict()
-        self.dt = self._check_timestep(dt)
+        self.dt = self._get_allowed_timestep(dt)
         self.dt_ksec = self.dt / 1000.
         self.times = self._eng_match_times(start, stop)
         self.tstart = self.times[0]
@@ -131,7 +131,7 @@ class XijaModel(object):
             self._set_from_model_spec(model_spec)
         self.cmd_states = cmd_states
 
-    def _check_timestep(self, dt):
+    def _get_allowed_timestep(self, dt):
         """
         This method ensures that only certain timesteps are chosen,
         which are integer multiples of 8.2 and where 328.0/dt is an
