@@ -106,7 +106,7 @@ class XijaModel(object):
         self.comp = OrderedDict()
         self.dt = self._check_timestep(dt)
         self.dt_ksec = self.dt / 1000.
-        self.times = self._eng_match_times(start, stop, dt)
+        self.times = self._eng_match_times(start, stop)
         self.tstart = self.times[0]
         self.tstop = self.times[-1]
         self.ksecs = (self.times - self.tstart) / 1000.
@@ -183,16 +183,15 @@ class XijaModel(object):
                 par.frozen = inherit_pars[par.full_name]['frozen']
                 par.fmt = inherit_pars[par.full_name]['fmt']
 
-    @staticmethod
-    def _eng_match_times(start, stop, dt):
+    def _eng_match_times(self, start, stop):
         """Return an array of times between ``start`` and ``stop`` at ``dt``
         sec intervals.  The times are roughly aligned (within 1 sec) to the
         timestamps in the '5min' (328 sec) Ska eng archive data.
         """
         time0 = 410270764.0
-        i0 = int((DateTime(start).secs - time0) / dt) + 1
-        i1 = int((DateTime(stop).secs - time0) / dt)
-        return time0 + np.arange(i0, i1) * dt
+        i0 = int((DateTime(start).secs - time0) / self.dt) + 1
+        i1 = int((DateTime(stop).secs - time0) / self.dt)
+        return time0 + np.arange(i0, i1) * self.dt
 
     def _get_cmd_states(self):
         if not hasattr(self, '_cmd_states'):
