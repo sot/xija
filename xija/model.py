@@ -46,6 +46,9 @@ if 'debug' in globals():
 
 logger = clogging.config_logger('xija', level=clogging.INFO)
 
+DEFAULT_DT = 328.0
+dt_factors = np.array([1.0, 0.5, 0.25, 0.2, 0.125, 0.1, 0.05, 0.025])
+
 #int calc_model(int n_times, int n_preds, int n_tmals, double dt,
 #               double **mvals, int **tmal_ints, double **tmal_floats)
 
@@ -73,11 +76,11 @@ class XijaModel(object):
     :param name: model name
     :param start: model start time (any DateTime format)
     :param stop: model stop time (any DateTime format)
-    :param dt: delta time step (default=328 sec, do not change)
+    :param dt: delta time step (default=328 sec)
     :param model_spec: model specification (None | filename | dict)
     :param cmd_states: commanded states input (None | structured array)
     """
-    def __init__(self, name=None, start=None, stop=None, dt=328.0,
+    def __init__(self, name=None, start=None, stop=None, dt=None,
                  model_spec=None, cmd_states=None):
 
         # If model_spec supplied as a string then read model spec as a dict
@@ -88,6 +91,7 @@ class XijaModel(object):
             stop = stop or model_spec['datestop']
             start = start or model_spec['datestart']
             name = name or model_spec['name']
+            dt = dt or model_spec['dt']
 
         if stop is None:
             stop = DateTime() - 30
@@ -95,12 +99,14 @@ class XijaModel(object):
             start = DateTime(stop) - 45
         if name is None:
             name = 'xijamodel'
+        if dt is None:
+            dt = DEFAULT_DT
 
         self.name = name
         self.comp = OrderedDict()
-        self.dt = dt
+        self.dt = self._get_allowed_timestep(dt)
         self.dt_ksec = self.dt / 1000.
-        self.times = self._eng_match_times(start, stop, dt)
+        self.times = self._eng_match_times(start, stop)
         self.tstart = self.times[0]
         self.tstop = self.times[-1]
         self.ksecs = (self.times - self.tstart) / 1000.
@@ -124,6 +130,23 @@ class XijaModel(object):
         if model_spec:
             self._set_from_model_spec(model_spec)
         self.cmd_states = cmd_states
+
+    def _get_allowed_timestep(self, dt):
+        """
+        This method ensures that only certain timesteps are chosen,
+        which are integer multiples of 8.2 and where 328.0/dt is an
+        integer. 
+        """
+        if dt > DEFAULT_DT:
+            logger.warning("dt = %g s greater than upper "
+                           "limit of %g s! " % (dt, DEFAULT_DT) +
+                           "Setting dt = %g s." % DEFAULT_DT)
+            return DEFAULT_DT
+        dt_factor = dt / DEFAULT_DT
+        idx = np.argmin(np.abs(dt_factor-dt_factors))
+        dt = DEFAULT_DT*dt_factors[idx]
+        logger.info("Using dt = %g s." % dt)
+        return dt
 
     def _set_from_model_spec(self, model_spec):
         for comp in model_spec['comps']:
@@ -160,16 +183,15 @@ class XijaModel(object):
                 par.frozen = inherit_pars[par.full_name]['frozen']
                 par.fmt = inherit_pars[par.full_name]['fmt']
 
-    @staticmethod
-    def _eng_match_times(start, stop, dt):
+    def _eng_match_times(self, start, stop):
         """Return an array of times between ``start`` and ``stop`` at ``dt``
         sec intervals.  The times are roughly aligned (within 1 sec) to the
         timestamps in the '5min' (328 sec) Ska eng archive data.
         """
         time0 = 410270764.0
-        i0 = int((DateTime(start).secs - time0) / dt) + 1
-        i1 = int((DateTime(stop).secs - time0) / dt)
-        return time0 + np.arange(i0, i1) * dt
+        i0 = int((DateTime(start).secs - time0) / self.dt) + 1
+        i1 = int((DateTime(stop).secs - time0) / self.dt)
+        return time0 + np.arange(i0, i1) * self.dt
 
     def _get_cmd_states(self):
         if not hasattr(self, '_cmd_states'):
@@ -214,7 +236,7 @@ class XijaModel(object):
 
     def fetch(self, msid, attr='vals', method='linear'):
         """Get data from the Chandra engineering archive."""
-        tpad = self.dt * 5
+        tpad = DEFAULT_DT*5.0
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
         logger.info('Fetching msid: %s over %s to %s' %
