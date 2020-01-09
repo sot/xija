@@ -47,6 +47,7 @@ if 'debug' in globals():
 logger = clogging.config_logger('xija', level=clogging.INFO)
 
 DEFAULT_DT = 328.0
+dt_factors = np.array([1.0, 0.5, 0.25, 0.2, 0.125, 0.1, 0.05, 0.025])
 
 #int calc_model(int n_times, int n_preds, int n_tmals, double dt,
 #               double **mvals, int **tmal_ints, double **tmal_floats)
@@ -101,13 +102,9 @@ class XijaModel(object):
         if dt is None:
             dt = DEFAULT_DT
 
-        if dt > DEFAULT_DT:
-            raise RuntimeError("dt = %g s greater than upper "
-                               "limit of %g s!" % (dt, DEFAULT_DT))
-
         self.name = name
         self.comp = OrderedDict()
-        self.dt = dt
+        self.dt = self._check_timestep(dt)
         self.dt_ksec = self.dt / 1000.
         self.times = self._eng_match_times(start, stop, dt)
         self.tstart = self.times[0]
@@ -133,6 +130,23 @@ class XijaModel(object):
         if model_spec:
             self._set_from_model_spec(model_spec)
         self.cmd_states = cmd_states
+
+    def _check_timestep(self, dt):
+        """
+        This method ensures that only certain timesteps are chosen,
+        which are integer multiples of 8.2 and where 328.0/dt is an
+        integer. 
+        """
+        if dt > DEFAULT_DT:
+            logger.warning("dt = %g s greater than upper "
+                           "limit of %g s! " % (dt, DEFAULT_DT) +
+                           "Setting dt = %g s." % DEFAULT_DT)
+            return DEFAULT_DT
+        dt_factor = dt / DEFAULT_DT
+        idx = np.argmin(np.abs(dt_factor-dt_factors))
+        dt = DEFAULT_DT*dt_factors[idx]
+        logger.info("Using dt = %g s." % dt)
+        return dt
 
     def _set_from_model_spec(self, model_spec):
         for comp in model_spec['comps']:
