@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 from __future__ import print_function
 
 import sys
@@ -61,9 +58,18 @@ class FormattedTelemData:
                 self.data_names.append(name)
                 self.data_basenames.append(name)
                 self.formats.append(fmt)
+        self.times = self.telem_data[self.data_basenames[0]].times
 
     def __iter__(self):
         return iter(self.data_names)
+
+    _dates = None
+
+    @property
+    def dates(self):
+        if self._dates is None:
+            self._dates = secs2date(self.times)
+        return self._dates
 
     def __getitem__(self, item):
         name = self.data_names[item]
@@ -75,6 +81,117 @@ class FormattedTelemData:
         else:
             val = self.telem_data[basenm].dvals
         return val
+
+
+class WriteTableWindow(QtWidgets.QMainWindow):
+    def __init__(self, model, main_window):
+        super(WriteTableWindow, self).__init__()
+        self.model = model
+        self.mw = main_window
+        self.setWindowTitle("Write Table")
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+        self.box = QtWidgets.QVBoxLayout()
+        wid.setLayout(self.box)
+        #self.setGeometry(0, 0, 400, 400)
+
+        self.last_filename = ""
+
+        self.ftd = self.mw.fmt_telem_data
+        self.write_list = self.ftd.data_names
+
+        self.start_date = self.ftd.dates[0]
+        self.stop_date = self.ftd.dates[-1]
+
+        main_box = QtWidgets.QVBoxLayout()
+
+        self.start_label = QtWidgets.QLabel("Start time: {}".format(self.start_date))
+        self.stop_label = QtWidgets.QLabel("Stop time: {}".format(self.stop_date))
+        self.list_label = QtWidgets.QLabel("Data to write:")
+
+        self.start_text = QtWidgets.QLineEdit()
+        self.start_text.returnPressed.connect(self.change_start)
+
+        self.stop_text = QtWidgets.QLineEdit()
+        self.stop_text.returnPressed.connect(self.change_stop)
+
+        main_box.addWidget(self.start_label)
+        main_box.addWidget(self.start_text)
+        main_box.addWidget(self.stop_label)
+        main_box.addWidget(self.stop_text)
+
+        self.check_boxes = []
+        for name in self.ftd.data_names:
+            pair = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel(name)
+            chkbox = QtWidgets.QCheckBox()
+            chkbox.setChecked(True)
+            pair.addWidget(chkbox)
+            pair.addWidget(label)
+            pair.addStretch(1)
+            main_box.addLayout(pair)
+            self.check_boxes.append(chkbox)
+
+        buttons = QtWidgets.QHBoxLayout()
+
+        write_button = QtWidgets.QPushButton('Write Table')
+        write_button.clicked.connect(self.save_ascii_table)
+
+        close_button = QtWidgets.QPushButton('Close')
+        close_button.clicked.connect(self.close_window)
+
+        buttons.addWidget(write_button)
+        buttons.addWidget(close_button)
+
+        main_box.addLayout(buttons)
+        self.box.addLayout(main_box)
+
+    def change_start(self):
+        self.start_date = self.start_text.text()
+        self.start_label.setText("Start time: {}".format(self.start_date))
+        self.start_text.setText("")
+
+    def change_stop(self):
+        self.stop_date = self.stop_text.text()
+        self.stop_label.setText("Stop time: {}".format(self.stop_date))
+        self.stop_text.setText("")
+
+    def close_window(self, *args):
+        self.close()
+
+    def save_ascii_table(self):
+        from astropy.table import Table, Column
+        dlg = QtWidgets.QFileDialog()
+        dlg.setNameFilters(["DAT files (*.dat)", "TXT files (*.txt)", "All files (*)"])
+        dlg.selectNameFilter("DAT files (*.dat)")
+        dlg.setAcceptMode(dlg.AcceptSave)
+        dlg.exec_()
+        filename = str(dlg.selectedFiles()[0])
+        if filename != '':
+            try:
+                checked = []
+                for i, box in enumerate(self.check_boxes):
+                    if box.isChecked():
+                        checked.append(i)
+                t = Table()
+                ts = DateTime([self.start_date, self.stop_date]).secs
+                ts[-1] += 1.0 # a buffer to make sure we grab the last point
+                istart, istop = np.searchsorted(self.ftd.times, ts)
+                c = Column(self.ftd.dates[istart:istop], name="date", format="{0}")
+                t.add_column(c)
+                for i, key in enumerate(self.ftd):
+                    if i in checked:
+                        c = Column(self.ftd[i][istart:istop], name=key, format=self.ftd.formats[i])
+                        t.add_column(c)
+                t.write(filename, overwrite=True, format='ascii.commented_header',
+                        delimiter='\t')
+                self.last_filename = filename
+            except IOError as ioerr:
+                msg = QtWidgets.QMessageBox()
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                msg.setText("There was a problem writing the file:")
+                msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
+                msg.exec_()
 
 
 class LineDataWindow(QtWidgets.QMainWindow):
@@ -524,7 +641,7 @@ class MainWindow(object):
         self.cbp.fit_button.clicked.connect(self.fit_monitor)
         self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
         self.cbp.save_button.clicked.connect(self.save_model_file)
-        self.cbp.write_table_button.clicked.connect(self.save_ascii_table)
+        self.cbp.write_table_button.clicked.connect(self.write_table)
         self.cbp.console_button.clicked.connect(self.open_console)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
@@ -556,7 +673,7 @@ class MainWindow(object):
         self.hist_window = None
 
     def open_console(self):
-                
+
         def fit():
             """
             Perform a fit.
@@ -684,6 +801,10 @@ class MainWindow(object):
         widget = in_process_console(**namespace)
         widget.show()
 
+    def write_table(self):
+        self.write_table_window = WriteTableWindow(self.model, self)
+        self.write_table_window.show()
+
     def make_histogram(self):
         self.hist_window = HistogramWindow(self.model, self.hist_msids)
         self.hist_window.show()
@@ -788,31 +909,6 @@ class MainWindow(object):
                     return
                 self.model.reset_mask_times()
             self.main_left_panel.plots_box.update_plots(redraw=True)
-
-    def save_ascii_table(self):
-        from astropy.table import Table, Column
-        dlg = QtWidgets.QFileDialog()
-        dlg.setNameFilters(["DAT files (*.dat)", "TXT files (*.txt)", "All files (*)"])
-        dlg.selectNameFilter("DAT files (*.json)")
-        dlg.setAcceptMode(dlg.AcceptSave)
-        dlg.exec_()
-        filename = str(dlg.selectedFiles()[0])
-        if filename != '':
-            try:
-                ftd = self.fmt_telem_data
-                t = Table()
-                for i, key in enumerate(ftd):
-                    c = Column(self.fmt_telem_data[i], name=key, 
-                               format=ftd.formats[i])
-                    t.add_column(c)
-                t.write(filename, overwrite=True, format='ascii.commented_header', 
-                        delimiter='\t')
-            except IOError as ioerr:
-                msg = QtWidgets.QMessageBox()
-                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                msg.setText("There was a problem writing the file:")
-                msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
-                msg.exec_()
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
