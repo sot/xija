@@ -131,12 +131,13 @@ class MplCanvas(FigureCanvas):
 
 
 class HistogramWindow(QtWidgets.QMainWindow):
-    def __init__(self, model, msid):
+    def __init__(self, model, hist_msids):
         super(HistogramWindow, self).__init__()
         self.setGeometry(0, 0, 1000, 600)
         self.model = model
-        self.msid = msid
-        self.comp = self.model.comp[self.msid]
+        self.hist_msids = hist_msids
+        self.which_msid = 0
+        self.comp = self.model.comp[self.hist_msids[self.which_msid]]
         self.setWindowTitle("Histogram")
         wid = QtWidgets.QWidget(self)
         self.setCentralWidget(wid)
@@ -149,7 +150,14 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
         canvas = MplCanvas(parent=None)
         toolbar = NavigationToolbar(canvas, parent=None)
-        
+
+        msid_select = QtWidgets.QComboBox()
+
+        for msid in self.hist_msids:
+            msid_select.addItem(msid)
+
+        msid_select.activated[str].connect(self.change_msid)
+
         redraw_button = QtWidgets.QPushButton('Redraw')
         redraw_button.clicked.connect(self.make_plots)
 
@@ -174,6 +182,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         if len(self.model.limits) == 0:
             limits_check.setEnabled(False)
 
+        toolbar_box.addWidget(msid_select)
         toolbar_box.addWidget(redraw_button)
         toolbar_box.addWidget(close_button)
 
@@ -230,8 +239,15 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.show_limits = state == QtCore.Qt.Checked
         self.make_plots()
 
+    def change_msid(self, msid):
+        self.which_msid = self.hist_msids.index(msid)
+        self.comp = self.model.comp[self.hist_msids[self.which_msid]]
+        self.make_plots()
+
     def make_plots(self):
         self.fig.clf()
+
+        msid_name = self.hist_msids[self.which_msid]
 
         ax1 = self.fig.add_subplot(121)
 
@@ -259,7 +275,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         ax1.plot(resids, dvals + randx, 'o', color='#386cb0',
                  alpha=1, markersize=1, markeredgecolor='#386cb0')
         ax1.grid()
-        ax1.set_title('{}: data vs. residuals (data - model)'.format(self.msid))
+        ax1.set_title('{}: data vs. residuals (data - model)'.format(msid_name))
         ax1.set_xlabel('Error')
         ax1.set_ylabel('Temperature')
         Epoints01, Tpoints01 = getQuantPlotPoints(quantstats, 'q01')
@@ -284,7 +300,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         hist[hist == 0.0] = np.nan
         bin_mid = 0.5*(bins[1:]+bins[:-1])
         ax2.step(bin_mid, hist, '#386cb0', where='mid')
-        ax2.set_title('{}: residual histogram'.format(self.msid), y=1.0)
+        ax2.set_title('{}: residual histogram'.format(msid_name), y=1.0)
         ax2.set_ylim(0.0, None)
         ylim2 = ax2.get_ylim()
         ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)

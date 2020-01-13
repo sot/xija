@@ -78,10 +78,9 @@ class FormattedTelemData:
 
 
 class LineDataWindow(QtWidgets.QMainWindow):
-    def __init__(self, model, msid, main_window, plots_box):
+    def __init__(self, model, main_window, plots_box):
         super(LineDataWindow, self).__init__()
         self.model = model
-        self.msid = msid
         self.setWindowTitle("Line Data")
         wid = QtWidgets.QWidget(self)
         self.setCentralWidget(wid)
@@ -483,19 +482,22 @@ class MainWindow(object):
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
     def __init__(self, model, fit_worker, model_file):
+        import Ska.tdb
         self.model = model
 
-        # Figure out which node is the one we really care about.
-        # gui_config should say so. If not, assume that it
-        # is the first node in the model
-        if "msid" in gui_config:
-            self.msid = gui_config['msid']
-        else:
-            for k, v in self.model.comp.items():
-                if isinstance(v, Node):
-                    self.msid = k
-                    break
-            gui_config['msid'] = self.msid
+        self.hist_msids = []
+        for k, v in self.model.comp.items():
+            if isinstance(v, Node):
+                if k.startswith("fptemp") or \
+                   k.startswith("tmp_fep") or \
+                   k.startswith("tmp_bep"):
+                    self.hist_msids.append(k)
+                try:
+                    Ska.tdb.msids[v.msid]
+                except KeyError:
+                    pass
+                else:
+                    self.hist_msids.append(k)
 
         self.fit_worker = fit_worker
         # create a new window
@@ -683,7 +685,7 @@ class MainWindow(object):
         widget.show()
 
     def make_histogram(self):
-        self.hist_window = HistogramWindow(self.model, self.msid)
+        self.hist_window = HistogramWindow(self.model, self.hist_msids)
         self.hist_window.show()
 
     def plot_limits(self, state):
@@ -694,7 +696,7 @@ class MainWindow(object):
         self.show_line = state == QtCore.Qt.Checked
         self.main_left_panel.plots_box.update_plots(redraw=True)
         if self.show_line:
-            self.line_data_window = LineDataWindow(self.model, self.msid, self,
+            self.line_data_window = LineDataWindow(self.model, self,
                                                    self.main_left_panel.plots_box)
             self.line_data_window.show()
         else:
