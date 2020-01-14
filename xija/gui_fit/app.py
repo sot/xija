@@ -120,6 +120,17 @@ class WriteTableWindow(QtWidgets.QMainWindow):
         main_box.addWidget(self.stop_label)
         main_box.addWidget(self.stop_text)
 
+        pair = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel("Write All Data")
+        all_chkbox = QtWidgets.QCheckBox()
+        all_chkbox.setChecked(True)
+        pair.addWidget(all_chkbox)
+        pair.addWidget(label)
+        pair.addStretch(1)
+        main_box.addLayout(pair)
+
+        all_chkbox.stateChanged.connect(self.toggle_all_data)
+
         self.check_boxes = []
         for name in self.ftd.data_names:
             pair = QtWidgets.QHBoxLayout()
@@ -145,6 +156,11 @@ class WriteTableWindow(QtWidgets.QMainWindow):
 
         main_box.addLayout(buttons)
         self.box.addLayout(main_box)
+
+    def toggle_all_data(self, state):
+        checked = state == QtCore.Qt.Checked
+        for i, box in enumerate(self.check_boxes):
+            box.setChecked(checked)
 
     def change_start(self):
         self.start_date = self.start_text.text()
