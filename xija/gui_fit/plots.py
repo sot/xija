@@ -9,6 +9,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 import matplotlib.dates as mdates
 
+
 def digitize_data(Ttelem, nbins=50):
     """ Digitize telemetry.
 

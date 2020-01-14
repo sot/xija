@@ -1,5 +1,13 @@
-# must import these first, to set up Qt properly
-from PyQt5 import QtWidgets
+"""
+The code here has been borrowed from glue:
+
+http://glueviz.org
+https://github.com/glue-viz/glue
+
+See the Glue BSD license here:
+https://github.com/glue-viz/glue/blob/master/LICENSE
+
+"""
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.completer import IPCompleter
@@ -10,18 +18,8 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 import os
 import pkg_resources
 
-# We need to do the following to make sure that the outputs in the IPython
-# terminal don't get cached. This is because if a user does e.g.
-#
-# In  [1]: viewer
-# Out [1]: <HistogramViewer...>
-#
-# then there will be a remaining reference to the viewer in the IPython
-# namespace.
 InteractiveShell.cache_size.default_value = 0
 
-# Make sure that tab competion only shows items returned by
-# _ipython_key_completions_
 if hasattr(IPCompleter, 'dict_keys_only'):
     IPCompleter.dict_keys_only.default_value = True
 
