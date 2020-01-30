@@ -70,6 +70,10 @@ class XijaModel(object):
 
     - If a model specification is provided then that sets the default values
       for keywords that are not supplied to the class init call.
+    - ``evolve_method = 1`` uses the original ODE solver which treats every
+      two steps as a full RK2 step.
+    - ``evolve_method = 2`` uses the new ODE solver which treats every step
+      as a full RK2 step, and optionally allows for RK4 if ``rk4 = 1``.  
     - Otherwise defaults are: ``name='xijamodel'``, ``start = stop - 45 days``,
       ``stop = NOW - 30 days``, ``dt = 328 secs``, ``evolve_method = 1``, 
       ``rk4 = 0``
@@ -80,7 +84,9 @@ class XijaModel(object):
     :param dt: delta time step (default=328 sec)
     :param model_spec: model specification (None | filename | dict)
     :param cmd_states: commanded states input (None | structured array)
-    :param evolve_method: choose method to evolve ODE (None | 1 or 2)
+    :param evolve_method: choose method to evolve ODE (None | 1 or 2, default 1)
+    :param rk4: use 4th-order Runge-Kutta to evolve ODE, only works with
+           evolve_method == 2 (None | 0 or 1, default 0)
     """
     def __init__(self, name=None, start=None, stop=None, dt=None,
                  model_spec=None, cmd_states=None, evolve_method=None,
