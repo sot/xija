@@ -405,11 +405,14 @@ class XijaModel(object):
         out = StringIO()
         ms = self.model_spec
 
+        model_call = "model = xija.XijaModel({}, start={}, stop={}, dt={},\n"
+        model_call += "evolve_method={} rk4={}\n"
+
         print("import sys", file=out)
         print("import xija\n", file=out)
-        print("model = xija.XijaModel({}, start={}, stop={}, dt={})\n" \
-            .format(repr(ms['name']), repr(ms['datestart']),
-                    repr(ms['datestop']), repr(ms['dt'])), file=out)
+        print(model_call.format(repr(ms['name']), repr(ms['datestart']),
+                                repr(ms['datestop']), repr(ms['dt']),
+                                repr(ms['evolve_method']), repr(ms['rk4'])), file=out)
 
         for comp in ms['comps']:
             args = [repr(x) for x in comp['init_args']]
