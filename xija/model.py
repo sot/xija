@@ -162,7 +162,7 @@ class XijaModel(object):
         dt_factor = dt / DEFAULT_DT
         idx = np.argmin(np.abs(dt_factor-dt_factors))
         dt = DEFAULT_DT*dt_factors[idx]
-        logger.info("Using dt = %g s." % dt)
+        logger.debug("Using dt = %g s." % dt)
         return dt
 
     def _set_from_model_spec(self, model_spec):
