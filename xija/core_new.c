@@ -28,42 +28,40 @@ void dTdt(int j, int half, int n_preds, int n_tmals, int **tmal_ints,
     
         /* Check to see if we are at the half-step, if so, interpolate */
         
-        if (opcode != 1) {
-            if (half == 0) {
-                mvals_i2 = mvals[i2][j];
-            } else {
-                mvals_i2 = 0.5*(mvals[i2][j]+mvals[i2][j+1]);
-            }
+        if (half == 0) {
+            mvals_i2 = mvals[i2][j];
+        } else {
+            mvals_i2 = 0.5*(mvals[i2][j]+mvals[i2][j+1]);
         }
  
         switch (opcode) {
             case 0:  /* Node to node coupling */
                 if (i2 < n_preds && i1 < n_preds) {
-                    deriv[i1] = deriv[i1] + (y[i2] - y[i1]) / tmal_floats[i][0];
+                    deriv[i1] += (y[i2] - y[i1]) / tmal_floats[i][0];
                 }
                 else {
-                    deriv[i1] = deriv[i1] + (mvals_i2 - y[i1]) / tmal_floats[i][0];
+                    deriv[i1] += (mvals_i2 - y[i1]) / tmal_floats[i][0];
                 }
                 break;
             case 1:  /* heat sink (coupling to fixed temperature) */
                 if (i1 < n_preds) {
-                    deriv[i1] = deriv[i1] + (tmal_floats[i][0] - y[i1]) / tmal_floats[i][1];
+                    deriv[i1] += (tmal_floats[i][0] - y[i1]) / tmal_floats[i][1];
                 }
                 break;
             case 2:  /* precomputed heat */
                 if (i1 < n_preds) {
-                    deriv[i1] = deriv[i1] + mvals_i2;
+                    deriv[i1] += mvals_i2;
                 }
                 break;
             case 3: /* active proportional heater */
-                dt2 =  tmal_floats[i][0] - ((i2 < n_preds) ? y[i2] : mvals_i2);
+                dt2 = tmal_floats[i][0] - ((i2 < n_preds) ? y[i2] : mvals_i2);
                 i3 = tmal_ints[i][3];
                 if (dt2 > 0) {
                     mvals_i3 = tmal_floats[i][1] * dt2;
                     if (i1 < n_preds) {
-                        deriv[i1] = deriv[i1] + mvals_i3;
+                        deriv[i1] += mvals_i3;
                     }
-                } else if (half == 0) {
+                } else {
                     mvals_i3 = 0.0;
                 }
                 if (half == 0) mvals[i3][j] = mvals_i3;
@@ -74,7 +72,7 @@ void dTdt(int j, int half, int n_preds, int n_tmals, int **tmal_ints,
                 if (dt2 > 0) {
                     mvals_i3 = tmal_floats[i][1];
                     if (i1 < n_preds) {
-                        deriv[i1] = deriv[i1] + mvals_i3;
+                        deriv[i1] += mvals_i3;
                     }
                 } else {
                     mvals_i3 = 0.0;
