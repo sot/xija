@@ -493,7 +493,7 @@ class XijaModel(object):
 
         # Stack the input dvals.  This *copies* the data values.
         self.n_preds = len(preds)
-        self.mvals = np.hstack(comp.dvals for comp in preds + unpreds)
+        self.mvals = np.hstack([comp.dvals for comp in preds + unpreds])
         self.mvals.shape = (len(comps), -1)  # why doesn't this use vstack?
         self.cvals = self.mvals[:, 0::2]
 
