@@ -496,9 +496,9 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         for plot_box in self.plot_boxes:
             plot_box.update(redraw=redraw)
         cbp.update_status.setText('')
-        self.main_window.set_checksum()
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
+        mw.set_title()
 
     def update_plot_boxes(self):
         self.plot_boxes = []
