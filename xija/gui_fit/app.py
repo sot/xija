@@ -742,8 +742,6 @@ class MainWindow(object):
 
         self.set_checksum(newfile=True)
 
-        self.set_checksum()
-
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
             try:
