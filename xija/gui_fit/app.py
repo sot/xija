@@ -390,6 +390,7 @@ class PanelCheckBox(QtWidgets.QCheckBox):
         if self.main_window.model_info_window is not None:
             self.main_window.model_info_window.update_checksum()
 
+
 class PanelText(QtWidgets.QLineEdit):
     def __init__(self, params_panel, row, par, attr, slider):
         super(PanelText, self).__init__()
@@ -1071,10 +1072,10 @@ def get_options():
     parser.add_argument("--stop",
                         default=DateTime() - 10,  # remove this
                         help="Stop time of fit interval (default=model values)")
-    parser.add_argument("--nproc",
-                        default=0,
+    parser.add_argument("--maxiter",
+                        default=1000,
                         type=int,
-                        help="Number of processors (default=1)")
+                        help="Maximum number of fit iterations (default=1000)")
     parser.add_argument("--fit-method",
                         default="simplex",
                         help="Sherpa fit method (simplex|moncar|levmar)")
@@ -1157,7 +1158,7 @@ def main():
     gui_config['filename'] = os.path.abspath(opt.filename)
     gui_config['set_data_vals'] = set_data_vals
 
-    fit_worker = FitWorker(model)
+    fit_worker = FitWorker(model, opt.maxiter)
 
     model.calc()
 
