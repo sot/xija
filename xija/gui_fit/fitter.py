@@ -1,6 +1,5 @@
 import sherpa.ui as ui
 
-import pyyaks.logger
 import logging
 import multiprocessing as mp
 import time
@@ -8,8 +7,7 @@ import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 
-fit_logger = pyyaks.logger.get_logger(name='fit', level=logging.INFO,
-                                      format='[%(levelname)s] (%(processName)-10s) %(message)s')
+fit_logger = logging.getLogger("fit")
 
 # Default configurations for fit methods
 sherpa_configs = dict(
@@ -32,7 +30,7 @@ class CalcModel(object):
         actually calculate anything but instead just stores the desired paramters.  This
         allows for multiprocessing where only the fit statistic gets passed between nodes.
         """
-        logging.info('Calculating params:')
+        fit_logger.info('Calculating params:')
         for parname, parval, newparval in zip(self.model.parnames, self.model.parvals, parvals):
             if parval != newparval:
                 fit_logger.info('  {0}: {1}'.format(parname, newparval))
@@ -57,9 +55,7 @@ class CalcStat(object):
         stored in the xija model self.model.
         """
         fit_stat = self.model.calc_stat()
-
         fit_logger.info('Fit statistic: %.4f' % fit_stat)
-        # self.cache_fit_stat[parvals_key] = fit_stat
 
         if self.min_fit_stat is None or fit_stat < self.min_fit_stat:
             self.min_fit_stat = fit_stat
@@ -80,7 +76,7 @@ class CalcStat(object):
                 raise FitTerminated('terminated')
 
         self.niter += 1
-        if self.niter > self.maxiter:
+        if self.niter >= self.maxiter:
             fit_logger.warning('Reached maximum number of iterations: %d' % self.maxiter)
             self.model.parvals = self.min_parvals
             raise FitTerminated('terminated')
@@ -100,7 +96,7 @@ class FitWorker(object):
         """
         self.fit_process = mp.Process(target=self.fit)
         self.fit_process.start()
-        logging.info('Fit started')
+        fit_logger.info('Fit started')
 
     def terminate(self, widget=None):
         """Terminate a Sherpa fit process in a controlled way by sending a
@@ -110,7 +106,7 @@ class FitWorker(object):
             # Only do this if we had started a fit to begin with
             self.parent_pipe.send('terminate')
             self.fit_process.join()
-            logging.info('Fit terminated')
+            fit_logger.info('Fit terminated')
 
     def fit(self):
         dummy_data = np.zeros(1)
@@ -137,9 +133,9 @@ class FitWorker(object):
             try:
                 ui.fit(1)
                 calc_stat.message['status'] = 'finished'
-                logging.info('Fit finished normally')
+                fit_logger.info('Fit finished normally')
             except FitTerminated as err:
                 calc_stat.message['status'] = 'terminated'
-                logging.warning('Got FitTerminated exception {}'.format(err))
+                fit_logger.warning('Got FitTerminated exception {}'.format(err))
 
         self.child_pipe.send(calc_stat.message)
