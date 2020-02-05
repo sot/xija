@@ -210,6 +210,52 @@ class WriteTableWindow(QtWidgets.QMainWindow):
                 msg.exec_()
 
 
+class ModelInfoWindow(QtWidgets.QMainWindow):
+    def __init__(self, model, main_window):
+        super(ModelInfoWindow, self).__init__()
+        self.model = model
+        self.setWindowTitle("Model Info")
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+        self.box = QtWidgets.QVBoxLayout()
+        wid.setLayout(self.box)
+        self.setGeometry(0, 0, 300, 200)
+
+        self.main_window = main_window
+        self.checksum_label = QtWidgets.QLabel()
+        self.update_checksum()
+        self.filename_label = QtWidgets.QLabel()
+        self.update_filename()
+
+        main_box = QtWidgets.QVBoxLayout()
+        main_box.addWidget(self.filename_label)
+        main_box.addWidget(self.checksum_label)
+        main_box.addWidget(QtWidgets.QLabel("Start time: {}".format(model.datestart)))
+        main_box.addWidget(QtWidgets.QLabel("Stop time: {}".format(model.datestop)))
+        main_box.addWidget(QtWidgets.QLabel("Timestep: {} s".format(model.dt)))
+        main_box.addStretch(1)
+
+        close_button = QtWidgets.QPushButton('Close')
+        close_button.clicked.connect(self.close_window)
+
+        close_box = QtWidgets.QHBoxLayout()
+        close_box.addStretch(1)
+        close_box.addWidget(close_button)
+
+        main_box.addLayout(close_box)
+        self.box.addLayout(main_box)
+
+    def update_checksum(self):
+        self.checksum_label.setText("SHA-256 sum: {}".format(self.main_window.shasum))
+
+    def update_filename(self):
+        self.filename_label.setText("Filename: {}".format(gui_config["filename"]))
+
+    def close_window(self, *args):
+        self.close()
+        self.main_window.model_info_window = None
+
+
 class LineDataWindow(QtWidgets.QMainWindow):
     def __init__(self, model, main_window, plots_box):
         super(LineDataWindow, self).__init__()
@@ -527,6 +573,7 @@ class ControlButtonsPanel(Panel):
         self.save_button = QtWidgets.QPushButton("Save")
         self.hist_button = QtWidgets.QPushButton("Histogram")
         self.write_table_button = QtWidgets.QPushButton("Write Table")
+        self.model_info_button = QtWidgets.QPushButton("Model Info")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
         self.quit_button = QtWidgets.QPushButton('Quit')
@@ -571,6 +618,7 @@ class ControlButtonsPanel(Panel):
         self.bottom_panel.pack_start(self.limits_panel)
         self.bottom_panel.pack_start(self.line_panel)
         self.bottom_panel.add_stretch(1)
+        self.bottom_panel.pack_start(self.model_info_button)
         self.bottom_panel.pack_start(self.write_table_button)
         self.bottom_panel.pack_start(self.console_button)
 
@@ -636,7 +684,7 @@ class MainWindow(object):
         # create a new window
         self.window = QtWidgets.QWidget()
         self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
-        self.window.setWindowTitle("xija_gui_fit ({})".format(model_file))
+        self.set_title()
         self.main_box = Panel(orient='h')
 
         # This is the Layout Box that holds the top-level stuff in the main window
@@ -658,6 +706,7 @@ class MainWindow(object):
         self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
         self.cbp.save_button.clicked.connect(self.save_model_file)
         self.cbp.write_table_button.clicked.connect(self.write_table)
+        self.cbp.model_info_button.clicked.connect(self.model_info)
         self.cbp.console_button.clicked.connect(self.open_console)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
@@ -673,6 +722,8 @@ class MainWindow(object):
                            if isinstance(v, TelemData)}
         self.fmt_telem_data = FormattedTelemData(self.telem_data)
 
+        self.set_checksum(newfile=True)
+
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
             try:
@@ -687,6 +738,18 @@ class MainWindow(object):
 
         self.window.show()
         self.hist_window = None
+        self.model_info_window = None
+
+    def set_checksum(self, newfile=False):
+        import hashlib
+        if newfile:
+            model_json = open(gui_config['filename'], 'rb').read()
+        else:
+            model_json = json.dumps(self.model.model_spec, 
+                                    sort_keys=True, indent=4).encode("utf-8")
+        self.shasum = hashlib.sha256(model_json).hexdigest()
+        if newfile:
+            self.file_shasum = self.shasum
 
     def open_console(self):
 
@@ -821,6 +884,10 @@ class MainWindow(object):
         self.write_table_window = WriteTableWindow(self.model, self)
         self.write_table_window.show()
 
+    def model_info(self):
+        self.model_info_window = ModelInfoWindow(self.model, self)
+        self.model_info_window.show()
+
     def make_histogram(self):
         self.hist_window = HistogramWindow(self.model, self.hist_msids)
         self.hist_window.show()
@@ -926,6 +993,9 @@ class MainWindow(object):
                 self.model.reset_mask_times()
             self.main_left_panel.plots_box.update_plots(redraw=True)
 
+    def set_title(self):
+        self.window.setWindowTitle("xija_gui_fit ({})".format(gui_config['filename']))
+
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
         dlg.setNameFilters(["JSON files (*.json)", "Python files (*.py)", "All files (*)"])
@@ -944,8 +1014,12 @@ class MainWindow(object):
             try:
                 self.model.write(filename, model_spec)
                 gui_config['filename'] = filename
+                self.set_checksum(newfile=True)
+                if self.model_info_window is not None:
+                    self.model_info_window.update_checksum()
+                    self.model_info_window.update_filename()
                 shortfn = os.path.split(filename)[-1]
-                self.window.setWindowTitle("xija_gui_fit ({})".format(shortfn))
+                self.set_title()
             except IOError as ioerr:
                 msg = QtWidgets.QMessageBox()
                 msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
