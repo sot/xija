@@ -227,9 +227,14 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
         self.filename_label = QtWidgets.QLabel()
         self.update_filename()
 
+        checksum_layout = QtWidgets.QHBoxLayout()
+        checksum_layout.addWidget(QtWidgets.QLabel("SHA-256 sum: "))
+        checksum_layout.addWidget(self.checksum_label)
+        checksum_layout.addStretch(1)
+
         main_box = QtWidgets.QVBoxLayout()
         main_box.addWidget(self.filename_label)
-        main_box.addWidget(self.checksum_label)
+        main_box.addLayout(checksum_layout)
         main_box.addWidget(QtWidgets.QLabel("Start time: {}".format(model.datestart)))
         main_box.addWidget(QtWidgets.QLabel("Stop time: {}".format(model.datestop)))
         main_box.addWidget(QtWidgets.QLabel("Timestep: {} s".format(model.dt)))
@@ -246,7 +251,14 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
         self.box.addLayout(main_box)
 
     def update_checksum(self):
-        self.checksum_label.setText("SHA-256 sum: {}".format(self.main_window.shasum))
+        self.main_window.set_checksum()
+        if self.main_window.checksum_match:
+            color = 'black'
+        else:
+            color = 'red'
+        checksum_str = self.main_window.shasum
+        self.checksum_label.setText(checksum_str)
+        self.checksum_label.setStyleSheet('color: {}'.format(color))
 
     def update_filename(self):
         self.filename_label.setText("Filename: {}".format(gui_config["filename"]))
@@ -366,13 +378,17 @@ class Panel(object):
 
 
 class PanelCheckBox(QtWidgets.QCheckBox):
-    def __init__(self, par):
+    def __init__(self, par, main_window):
         super(PanelCheckBox, self).__init__() 
         self.par = par
+        self.main_window = main_window
 
     def frozen_toggled(self, state):
         self.par.frozen = state != QtCore.Qt.Checked
-
+        self.main_window.set_checksum()
+        self.main_window.set_title()
+        if self.main_window.model_info_window is not None:
+            self.main_window.model_info_window.update_checksum()
 
 class PanelText(QtWidgets.QLineEdit):
     def __init__(self, params_panel, row, par, attr, slider):
@@ -513,7 +529,7 @@ class ParamsPanel(Panel):
         for row, par in zip(count(), self.model.pars):
 
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = PanelCheckBox(par)
+            frozen = params_table[row, 0] = PanelCheckBox(par, self.plots_panel.main_window)
             frozen.setChecked(not par.frozen)
             frozen.stateChanged.connect(frozen.frozen_toggled)
 
@@ -680,6 +696,8 @@ class MainWindow(object):
                 else:
                     self.hist_msids.append(k)
 
+        self.checksum_match = True
+
         self.fit_worker = fit_worker
         # create a new window
         self.window = QtWidgets.QWidget()
@@ -724,6 +742,8 @@ class MainWindow(object):
 
         self.set_checksum(newfile=True)
 
+        self.set_checksum()
+
         # Add plots from previous Save
         for plot_name in gui_config.get('plot_names', []):
             try:
@@ -740,16 +760,23 @@ class MainWindow(object):
         self.hist_window = None
         self.model_info_window = None
 
+    @property
+    def model_spec(self):
+        ms = self.model.model_spec
+        ms["gui_config"] = gui_config
+        return ms
+
     def set_checksum(self, newfile=False):
         import hashlib
         if newfile:
             model_json = open(gui_config['filename'], 'rb').read()
         else:
-            model_json = json.dumps(self.model.model_spec, 
+            model_json = json.dumps(self.model_spec, 
                                     sort_keys=True, indent=4).encode("utf-8")
         self.shasum = hashlib.sha256(model_json).hexdigest()
         if newfile:
             self.file_shasum = self.shasum
+        self.checksum_match = self.file_shasum == self.shasum
 
     def open_console(self):
 
@@ -974,6 +1001,10 @@ class MainWindow(object):
                          checkbutton = params_table[row, 0]
                          checkbutton.setChecked(cmd == 'thaw')
                          par.frozen = cmd != 'thaw'
+                         self.set_checksum()
+                         self.set_title()
+                         if self.model_info_window is not None:
+                            self.model_info_window.update_checksum()
         elif cmd in ('ignore', 'notice'):
             if cmd == "ignore":
                 try:
@@ -994,11 +1025,14 @@ class MainWindow(object):
             self.main_left_panel.plots_box.update_plots(redraw=True)
 
     def set_title(self):
-        self.window.setWindowTitle("xija_gui_fit ({})".format(gui_config['filename']))
+        title_str = gui_config['filename']
+        if not self.checksum_match:
+            title_str += "*"
+        self.window.setWindowTitle("xija_gui_fit ({})".format(title_str))
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
-        dlg.setNameFilters(["JSON files (*.json)", "Python files (*.py)", "All files (*)"])
+        dlg.setNameFilters(["JSON files (*.json)", "All files (*)"])
         dlg.selectNameFilter("JSON files (*.json)")
         dlg.selectFile(os.path.abspath(gui_config["filename"]))
         dlg.setAcceptMode(dlg.AcceptSave)
@@ -1012,13 +1046,12 @@ class MainWindow(object):
                                   self.window.size().height())
             model_spec['gui_config'] = gui_config
             try:
-                self.model.write(filename, model_spec)
                 gui_config['filename'] = filename
+                self.model.write(filename, model_spec)
                 self.set_checksum(newfile=True)
                 if self.model_info_window is not None:
                     self.model_info_window.update_checksum()
                     self.model_info_window.update_filename()
-                shortfn = os.path.split(filename)[-1]
                 self.set_title()
             except IOError as ioerr:
                 msg = QtWidgets.QMessageBox()
