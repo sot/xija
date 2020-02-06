@@ -1,0 +1,68 @@
+name: Conda build
+on:
+  push:
+    branches:
+    - master
+  release:
+    types:
+    - created
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    name: Build on Linux
+    steps:
+    - name: Login to GitHub Package Registry
+      run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
+    - name: Pull Docker image
+      run: docker pull docker.pkg.github.com/sot/skare3/centos5-builder:latest
+    - name: Build
+      id: build
+      run: >
+        docker run --rm  --name builder -v $GITHUB_WORKSPACE:/github/workspace -w /github/workspace
+        -e CONDA_PASSWORD -e GIT_USERNAME -e GIT_PASSWORD
+        docker.pkg.github.com/sot/skare3/centos5-builder:latest
+        ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+      env:
+        CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
+        GIT_USERNAME: chandra-xray
+        GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
+        GIT_ASKPASS: /home/aca/git_pass.py
+    - uses: sot/skare3_tools/actions/gdrive_upload@master
+      name: Upload to Google Drive
+      with:
+        files: |
+          builds/linux-64
+          builds/noarch
+        directory: /ska3/conda-test
+        options: --drive=cxc_ops
+      env:
+        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+
+
+  build-macos:
+    runs-on: macos-latest
+    name: Build on Mac OS
+    steps:
+    - name: Fetch Skare3 Tools
+      uses: actions/checkout@v2
+      with:
+        repository: sot/skare3_tools
+        ref: master
+        path: skare3_tools
+    - name: Build
+      run: |
+        source ./skare3_tools/actions/build/files/setup_conda.sh
+        ./skare3_tools/actions/build/files/build.py ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+      env:
+        CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
+        GIT_USER: chandra-xray
+        GIT_ASKPASS: skare3_tools/actions/build/files/git_pass.py
+        GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
+    - name: Upload to Google Drive
+      run: |
+        sudo pip3 install -r ./skare3_tools/requirements.txt
+        sudo pip3 install ./skare3_tools
+        gdrive --batch upload ./builds/osx-64 ./builds/noarch /ska3/conda-test --drive cxc_ops
+      env:
+        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
