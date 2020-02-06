@@ -352,6 +352,8 @@ class XijaModel(object):
 
         model_spec['pars'] = [dict(par) for par in self.pars]
 
+        model_spec['limits'] = self.limits
+
         stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent)
                               else x)
         for comp in self.comps:
