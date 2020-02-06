@@ -13,7 +13,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: sot/skare3_tools
-        ref: scripts
+        ref: master
         path: skare3_tools
     - name: Patch
       run: |
