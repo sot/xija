@@ -151,7 +151,7 @@ class TelemData(ModelComponent):
     times = property(lambda self: self.model.times)
 
     def __init__(self, model, msid, mval=True, data=None,
-                 fetch_attr='vals'):
+                 fetch_attr='vals', units=None):
         super(TelemData, self).__init__(model)
         self.msid = msid
         self.n_mvals = 1 if mval else 0
@@ -159,6 +159,7 @@ class TelemData(ModelComponent):
         self.data = data
         self.data_times = None
         self.fetch_attr = fetch_attr
+        self.units = units
 
     def get_dvals_tlm(self):
         return self.model.fetch(self.msid, attr=self.fetch_attr)
@@ -170,6 +171,10 @@ class TelemData(ModelComponent):
                          fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data'.format(self.name))
+            ylabel = '%s' % self.name
+            if self.units is not None:
+                ylabel += ' (%s)' % self.units
+            ax.set_ylabel(ylabel)
             ax.margins(0.05)
         else:
             lines[0].set_data(self.model_plotdate, self.dvals)
@@ -203,9 +208,9 @@ class Node(TelemData):
     """
     def __init__(self, model, msid, sigma=-10, quant=None,
                  predict=True, mask=None, name=None, data=None,
-                 fetch_attr='vals'):
+                 fetch_attr='vals', units='degC'):
         TelemData.__init__(self, model, msid, data=data,
-                           fetch_attr=fetch_attr)
+                           fetch_attr=fetch_attr, units=units)
         self._sigma = sigma
         self.quant = quant
         self.predict = predict
@@ -259,7 +264,7 @@ class Node(TelemData):
                              fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
             ax.set_title('{}: model (red) and data (blue)'.format(self.name))
-            ax.set_ylabel('Temperature (degC)')
+            ax.set_ylabel('Temperature (%s)' % self.units)
         else:
             lines[1].set_ydata(self.mvals)
 
@@ -277,7 +282,7 @@ class Node(TelemData):
                              fig=fig, ax=ax, linewidth=5, alpha=0.5)
             ax.grid()
             ax.set_title('{}: residuals (data - model)'.format(self.name))
-            ax.set_ylabel('Temperature (degC)')
+            ax.set_ylabel('Temperature (%s)' % self.units)
         else:
             lines[0].set_ydata(resids)
 
@@ -292,7 +297,8 @@ class Node(TelemData):
                     markersize=0.25, color='#386cb0', markeredgecolor='#386cb0')
             ax.grid()
             ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
-            ax.set_ylabel('Temperature (degC)')
+            ax.set_ylabel('Residuals (%s)' % self.units)
+            ax.set_ylabel('Temperature (%s)' % self.units)
         else:
             lines[0].set_ydata(resids)
 
@@ -372,7 +378,7 @@ class HeatSinkRef(ModelComponent):
 
 class Pitch(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, 'pitch')
+        TelemData.__init__(self, model, 'pitch', units='deg')
 
     def get_dvals_tlm(self):
         vals = self.model.fetch(self.msid, attr=self.fetch_attr)
@@ -434,4 +440,4 @@ class SimZ(TelemData):
 
 class Roll(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, 'roll')
+        TelemData.__init__(self, model, 'roll', units='deg')

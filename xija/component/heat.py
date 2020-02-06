@@ -574,10 +574,11 @@ class EarthHeat(PrecomputedHeatPower):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, ls='-',
+                         color='#386cb0', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Illumination')
+            ax.set_ylabel('Illumination (sr)')
         else:
             lines[0].set_data(self.model_plotdate, self.dvals)
 
@@ -782,7 +783,7 @@ class AcisDpaPower(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)
         else:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, '#386cb0', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
@@ -820,7 +821,7 @@ class AcisDeaPower(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)
         else:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, '#386cb0', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
@@ -924,10 +925,12 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             lines[0].set_data(self.model_plotdate, self.dvals)
             lines[1].set_data(self.model_plotdate, powers)
         else:
-            plot_cxctime(self.model.times, self.dvals, '-r', fig=fig, ax=ax)
-            plot_cxctime(self.model.times, powers, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, powers, ls='-',
+                         color='#d92121', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, 
+                         color='#386cb0', ls='-', fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
+            ax.set_title('{}: model (red) and data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
 
 
@@ -963,7 +966,7 @@ class PropHeater(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.mvals)
         else:
-            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, '#386cb0', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power')
@@ -1002,10 +1005,11 @@ class ThermostatHeater(ActiveHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.mvals)
         else:
-            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, '#386cb0', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power')
+
 
 class StepFunctionPower(PrecomputedHeatPower):
     """
@@ -1044,7 +1048,7 @@ class StepFunctionPower(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.mvals)
         else:
-            plot_cxctime(self.model.times, self.mvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, '#386cb0', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power')
