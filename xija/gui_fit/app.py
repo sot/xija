@@ -585,8 +585,6 @@ class ControlButtonsPanel(Panel):
 
         self.fit_button = QtWidgets.QPushButton("Fit")
         self.stop_button = QtWidgets.QPushButton("Stop")
-        if platform.system() == "Darwin":
-            self.stop_button.setEnabled(False)
         self.save_button = QtWidgets.QPushButton("Save")
         self.hist_button = QtWidgets.QPushButton("Histogram")
         self.write_table_button = QtWidgets.QPushButton("Write Table")
