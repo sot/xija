@@ -90,10 +90,11 @@ class WriteTableWindow(QtWidgets.QMainWindow):
         self.mw = main_window
         self.setWindowTitle("Write Table")
         wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
         self.box = QtWidgets.QVBoxLayout()
         wid.setLayout(self.box)
-        #self.setGeometry(0, 0, 400, 400)
+        self.setGeometry(0, 0, 200, 600)
+        self.scroll = QtWidgets.QScrollArea()
+        self.setCentralWidget(wid)
 
         self.last_filename = ""
 
@@ -120,6 +121,8 @@ class WriteTableWindow(QtWidgets.QMainWindow):
         main_box.addWidget(self.stop_label)
         main_box.addWidget(self.stop_text)
 
+        item_box = QtWidgets.QVBoxLayout()
+
         pair = QtWidgets.QHBoxLayout()
         label = QtWidgets.QLabel("Write All Data")
         all_chkbox = QtWidgets.QCheckBox()
@@ -127,7 +130,7 @@ class WriteTableWindow(QtWidgets.QMainWindow):
         pair.addWidget(all_chkbox)
         pair.addWidget(label)
         pair.addStretch(1)
-        main_box.addLayout(pair)
+        item_box.addLayout(pair)
 
         all_chkbox.stateChanged.connect(self.toggle_all_data)
 
@@ -140,9 +143,16 @@ class WriteTableWindow(QtWidgets.QMainWindow):
             pair.addWidget(chkbox)
             pair.addWidget(label)
             pair.addStretch(1)
-            main_box.addLayout(pair)
+            item_box.addLayout(pair)
             self.check_boxes.append(chkbox)
 
+        item_wid = QtWidgets.QWidget(self)
+        item_wid.setLayout(item_box)
+
+        self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setWidget(item_wid)
+        main_box.addWidget(self.scroll)
         buttons = QtWidgets.QHBoxLayout()
 
         write_button = QtWidgets.QPushButton('Write Table')
