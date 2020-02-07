@@ -15,12 +15,12 @@ jobs:
         repository: sot/skare3_tools
         ref: master
         path: skare3_tools
-    - name: Patch
+    - name: Release Description and Skare3 Issue
       run: |
         sudo pip3 install setuptools
         sudo pip3 install -r ./skare3_tools/requirements.txt
         sudo pip3 install ./skare3_tools
         skare3-release-merge-info --user $GITHUB_ACTOR --repository $GITHUB_REPOSITORY --sha $GITHUB_SHA
-        skare3-create-issue --user $GITHUB_ACTOR --repository sot/skare3 --title Title --body body
+        skare3-create-issue --user $GITHUB_ACTOR --repository sot/skare3 --latest-release $GITHUB_REPOSITORY --label 'Package update'
       env:
         GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
