@@ -1171,7 +1171,8 @@ def main():
     model.calc()
 
     app = QtWidgets.QApplication(sys.argv)
-    icon = QtGui.QIcon(icon_path('app_icon'))
+    icon_path = os.path.join(os.path.dirname(__file__), "app_icon.png")
+    icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
     MainWindow(model, fit_worker, opt.filename)
     sys.exit(app.exec_())

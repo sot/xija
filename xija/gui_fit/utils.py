@@ -15,9 +15,6 @@ from IPython.core.completer import IPCompleter
 from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-import os
-import pkg_resources
-
 InteractiveShell.cache_size.default_value = 0
 
 if hasattr(IPCompleter, 'dict_keys_only'):
@@ -70,32 +67,3 @@ def in_process_console(console_class=RichJupyterWidget, **kwargs):
 
     return control
 
-
-def icon_path(icon_name, icon_format='png'):
-    """
-    Return the absolute path to an icon
-
-    Parameters
-    ----------
-    icon_name : str
-       Name of icon, without extension or directory prefix
-    icon_format : str, optional
-        Can be either 'png' or 'svg'
-
-    Returns
-    -------
-    path : str
-      Full path to icon
-    """
-
-    icon_name += '.{0}'.format(icon_format)
-
-    try:
-        if pkg_resources.resource_exists('xija.gui_fit', icon_name):
-            return pkg_resources.resource_filename('xija.gui_fit', icon_name)
-        else:
-            raise RuntimeError("Icon does not exist: %s" % icon_name)
-    except NotImplementedError:  # workaround for mac app
-        result = os.path.dirname(__file__)
-        return os.path.join(result.replace('site-packages.zip', 'xija'),
-                            icon_name)
