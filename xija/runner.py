@@ -87,6 +87,8 @@ class AcaModelRunner(ModelRunner):
     directly (from ORviewer) with something like
     ``AcaModelRunner.aacccdpt.limit = -7.9``.
     """
+    name = 'aca'
+
     # These class attributes represent the initial state and required data
     # values to run the model.
 
@@ -111,8 +113,7 @@ class ObsReqRunner:
             model_runner_name = model_name.capitalize() + 'ModelRunner'
             self.models[model_name] = globals()[model_runner_name]()
 
-    def add_obs_req(self, obsid, att_targ, offset_targ_y, offset_targ_z,
-                    off_nom_roll,  # ??
+    def add_obs_req(self, obsid, att_targ, att_roll=None, offset_targ_y, offset_targ_z,
                     detector, n_fep, sim_z, duration):
         """
         Add an OR observation to the set of available observations.
@@ -120,6 +121,7 @@ class ObsReqRunner:
         This is a one-time operation before the first call to ``run()``.  This
         also does the conversion of ``att
         """
+        # Doesn't quite work (schedule placement impacts roll)
         att_aca = calc_aca_from_targ(att_targ, offset_targ_y, offset_targ_z)
 
         self.obs_reqs[obsid] = {'att_aca': att_aca,
@@ -151,7 +153,7 @@ class ObsReqRunner:
         """
         pass
 
-    def run(self, obsids, start):
+    def run(self, obsids, continuity_time):
         """
         Run the available models for the list of ``obsids``.
 
@@ -171,9 +173,8 @@ class ObsReqRunner:
           ModelRunner object, which is accessible via the self.models dict.
 
         - Call the ``check_against_limits`` method for each model for the obsid.
-          The logical-or of this is returned.  This could in theory be a tri-state
-          value: OK, not OK, and almost OK (meaning that the worst case violation
-          was within e.g. 20% of the model error).
+          This populates the allowed duration (which is made available in the returned
+          object).
 
         - self.obs_reqs[obsid][model_name]['states'] will be a dict of the input
           states supplied to ``set_data`` for each model component for each
@@ -183,6 +184,8 @@ class ObsReqRunner:
           final model values for each model component for deeper inspection if
           necessary.  In particular the node and pseudo-node ending temperatures
           would be accessible.
+
+        - Return the allowed duration.
 
         :param obsids: list of obsids
         :param start: start time (any DateTime-compatible format)
