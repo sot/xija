@@ -321,7 +321,12 @@
     ], 
     "datestart": "2011:106:12:02:01.816", 
     "datestop": "2012:141:11:51:53.816", 
-    "dt": 328.0, 
+    "dt": 328.0,
+    "limits": {
+        "name": "fptemp",
+        "acisi_data_quality": -112.0,
+        "aciss_data_quality": -111.0
+    },
     "gui_config": {
         "filename": "/data/baffin/tom/git/xija/models/acisfp/acisfp_spec.json", 
         "plot_names": [

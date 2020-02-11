@@ -448,7 +448,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
                         self.ax.axvline(t1, color='g', ls='--')
                 if mw.show_line:
                     self.ly = self.ax.axvline(pb.xline, color='maroon')
-            if mw.show_limits and self.comp_name == mw.msid:
+            if mw.show_limits and self.comp_name == pb.model.limits['name']:
                 if self.plot_method.endswith("resid__data"):
                     pb.model.annotate_limits(self.ax, dir='v')
                 elif self.plot_method.endswith("data__time"):

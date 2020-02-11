@@ -617,8 +617,23 @@ class XijaModel(object):
         if len(self.limits) == 0:
             return
         draw_line = getattr(ax, 'ax{}line'.format(dir))
-        for lim_data in self.limits.values():
-            draw_line(lim_data['value'], ls='-', color=lim_data['color'])
-
+        if 'acisi_data_quality' in self.limits:
+            draw_line(self.limits['acisi_data_quality'], ls='-.', color='blue')
+        if 'aciss_data_quality' in self.limits:
+            draw_line(self.limits['aciss_data_quality'], ls='-.', color='purple')
+        if 'planning_caution_high' in self.limits:
+            draw_line(self.limits['planning_caution_high'], ls='-.', color='gray')
+        if 'planning_warning_low' in self.limits:
+            draw_line(self.limits['planning_warning_low'], ls='-', color='green')
+        if 'planning_warning_high' in self.limits:
+            draw_line(self.limits['planning_warning_high'], ls='-', color='green')
+        if 'odb_caution_low' in self.limits:
+            draw_line(self.limits['odb_caution_low'], ls='-', color='gold')
+        if 'odb_caution_high' in self.limits:
+            draw_line(self.limits['odb_caution_high'], ls='-', color='gold')
+        if 'odb_warning_low' in self.limits:
+            draw_line(self.limits['odb_warning_low'], ls='-', color='red')
+        if 'odb_warning_high' in self.limits:
+            draw_line(self.limits['odb_warning_high'], ls='-', color='red')
 
 ThermalModel = XijaModel
