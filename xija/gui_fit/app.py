@@ -4,7 +4,6 @@ import sys
 import os
 import ast
 import time
-import platform
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
@@ -32,7 +31,7 @@ from xija.component.base import Node, TelemData
 
 from .fitter import FitWorker, fit_logger
 from .plots import PlotsBox, HistogramWindow
-from .utils import in_process_console, icon_path
+from .utils import in_process_console
 
 from collections import OrderedDict
 
@@ -209,8 +208,7 @@ class WriteTableWindow(QtWidgets.QMainWindow):
                     if i in checked:
                         c = Column(self.ftd[i][istart:istop], name=key, format=self.ftd.formats[i])
                         t.add_column(c)
-                t.write(filename, overwrite=True, format='ascii.commented_header',
-                        delimiter='\t')
+                t.write(filename, overwrite=True, format='ascii.ecsv')
                 self.last_filename = filename
             except IOError as ioerr:
                 msg = QtWidgets.QMessageBox()
@@ -233,12 +231,13 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
 
         self.main_window = main_window
         self.checksum_label = QtWidgets.QLabel()
+        self.checksum_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         self.update_checksum()
         self.filename_label = QtWidgets.QLabel()
         self.update_filename()
 
         checksum_layout = QtWidgets.QHBoxLayout()
-        checksum_layout.addWidget(QtWidgets.QLabel("SHA-256 sum: "))
+        checksum_layout.addWidget(QtWidgets.QLabel("MD5 sum: "))
         checksum_layout.addWidget(self.checksum_label)
         checksum_layout.addStretch(1)
 
@@ -266,7 +265,7 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
             color = 'black'
         else:
             color = 'red'
-        checksum_str = self.main_window.shasum
+        checksum_str = self.main_window.md5sum
         self.checksum_label.setText(checksum_str)
         self.checksum_label.setStyleSheet('color: {}'.format(color))
 
@@ -780,10 +779,10 @@ class MainWindow(object):
         else:
             model_json = json.dumps(self.model_spec, 
                                     sort_keys=True, indent=4).encode("utf-8")
-        self.shasum = hashlib.sha256(model_json).hexdigest()
+        self.md5sum = hashlib.md5(model_json).hexdigest()
         if newfile:
-            self.file_shasum = self.shasum
-        self.checksum_match = self.file_shasum == self.shasum
+            self.file_md5sum = self.md5sum
+        self.checksum_match = self.file_md5sum == self.md5sum
 
     def open_console(self):
 
