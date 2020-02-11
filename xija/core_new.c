@@ -98,10 +98,8 @@ int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt,
     yh = (double *)malloc(n_preds*sizeof(double));
     k1 = (double *)malloc(n_preds*sizeof(double));
     k2 = (double *)malloc(n_preds*sizeof(double));
-    if (rk4 == 1) {
-        k3 = (double *)malloc(n_preds*sizeof(double));
-        k4 = (double *)malloc(n_preds*sizeof(double));
-    }
+    k3 = (double *)malloc(n_preds*sizeof(double));
+    k4 = (double *)malloc(n_preds*sizeof(double));
 
     for (j = 0; j < n_times-1; j++) {
         
@@ -177,10 +175,8 @@ int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt,
     free(deriv);
     free(k1);
     free(k2);
-    if (rk4 == 1) {
-        free(k3);
-        free(k4);
-    }
+    free(k3);
+    free(k4);
 
     return 0;
 }
