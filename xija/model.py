@@ -526,14 +526,14 @@ class XijaModel(object):
 
         if self.evolve_method == 1:
             dt = self.dt_ksec * 2
-            self.core.calc_model(self.n_times, self.n_preds,
-                                 len(self.tmal_ints), dt, mvals,
-                                 tmal_ints, tmal_floats)
+            self.core_1.calc_model_1(self.n_times, self.n_preds,
+                                     len(self.tmal_ints), dt, mvals,
+                                     tmal_ints, tmal_floats)
         elif self.evolve_method == 2:
             dt = self.dt_ksec
-            self.core_new.calc_model_new(self.rk4, self.n_times, self.n_preds,
-                                         len(self.tmal_ints), dt, mvals,
-                                         tmal_ints, tmal_floats)
+            self.core_2.calc_model_2(self.rk4, self.n_times, self.n_preds,
+                                     len(self.tmal_ints), dt, mvals,
+                                     tmal_ints, tmal_floats)
 
         # hackish fix to ensure last value is computed
         self.mvals[:, -1] = self.mvals[:, -2]
@@ -555,43 +555,43 @@ class XijaModel(object):
                           DateTime(self.tstop).greta[:7])
 
     @property
-    def core(self):
-        """Lazy-load the "core" ctypes shared object libary that does the
-        low-level model calculation via the C "calc_model" routine.  Only
+    def core_1(self):
+        """Lazy-load the "core_1" ctypes shared object libary that does the
+        low-level model calculation via the C "calc_model_1" routine.  Only
         load once by setting/returning a class attribute.
         """
-        if not hasattr(XijaModel, '_core'):
+        if not hasattr(XijaModel, '_core_1'):
             loader_path = os.path.abspath(os.path.dirname(__file__))
-            _core = np.ctypeslib.load_library('core', loader_path)
-            _core.calc_model.restype = ctypes.c_int
-            _core.calc_model.argtypes = [
+            _core_1 = np.ctypeslib.load_library('core_1', loader_path)
+            _core_1.calc_model_1.restype = ctypes.c_int
+            _core_1.calc_model_1.argtypes = [
                 ctypes.c_int, ctypes.c_int, ctypes.c_int,
                 ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
                 ]
-            XijaModel._core = _core
-        return XijaModel._core
+            XijaModel._core_1 = _core_1
+        return XijaModel._core_1
 
     @property
-    def core_new(self):
-        """Lazy-load the "core_new" ctypes shared object libary that does the
-        low-level model calculation via the C "calc_model_new" routine.  Only
+    def core_2(self):
+        """Lazy-load the "core_2" ctypes shared object libary that does the
+        low-level model calculation via the C "calc_model_2" routine.  Only
         load once by setting/returning a class attribute.
         """
-        if not hasattr(XijaModel, '_core_new'):
+        if not hasattr(XijaModel, '_core_2'):
             loader_path = os.path.abspath(os.path.dirname(__file__))
-            _core_new = np.ctypeslib.load_library('core_new', loader_path)
-            _core_new.calc_model_new.restype = ctypes.c_int
-            _core_new.calc_model_new.argtypes = [
+            _core_2 = np.ctypeslib.load_library('core_2', loader_path)
+            _core_2.calc_model_2.restype = ctypes.c_int
+            _core_2.calc_model_2.argtypes = [
                 ctypes.c_int, ctypes.c_int, ctypes.c_int, 
                 ctypes.c_int, ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
             ]
-            XijaModel._core_new = _core_new
-        return XijaModel._core_new
+            XijaModel._core_2 = _core_2
+        return XijaModel._core_2
 
 ThermalModel = XijaModel

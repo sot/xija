@@ -2,8 +2,7 @@ dpa_dea
 nmass_ref
 nmass
 xija/*.c
-!xija/core.c
-!xija/core_new.c
+!xija/core_*.c
 xija/*.so
 NOTES.paper
 test_write.json

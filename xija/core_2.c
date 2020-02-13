@@ -84,8 +84,8 @@ void dTdt(int j, int half, int n_preds, int n_tmals, int **tmal_ints,
 
 }
 
-int calc_model_new(int rk4, int n_times, int n_preds, int n_tmals, double dt, 
-                   double **mvals, int **tmal_ints, double **tmal_floats)
+int calc_model_2(int rk4, int n_times, int n_preds, int n_tmals, double dt, 
+                 double **mvals, int **tmal_ints, double **tmal_floats)
 {
     double *y, *yh, *deriv, *k1, *k2, *k3, *k4;
     int i, j;    
