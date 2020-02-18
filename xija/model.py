@@ -70,8 +70,13 @@ class XijaModel(object):
 
     - If a model specification is provided then that sets the default values
       for keywords that are not supplied to the class init call.
+    - ``evolve_method = 1`` uses the original ODE solver which treats every
+      two steps as a full RK2 step.
+    - ``evolve_method = 2`` uses the new ODE solver which treats every step
+      as a full RK2 step, and optionally allows for RK4 if ``rk4 = 1``.  
     - Otherwise defaults are: ``name='xijamodel'``, ``start = stop - 45 days``,
-      ``stop = NOW - 30 days``
+      ``stop = NOW - 30 days``, ``dt = 328 secs``, ``evolve_method = 1``, 
+      ``rk4 = 0``
 
     :param name: model name
     :param start: model start time (any DateTime format)
@@ -79,9 +84,13 @@ class XijaModel(object):
     :param dt: delta time step (default=328 sec)
     :param model_spec: model specification (None | filename | dict)
     :param cmd_states: commanded states input (None | structured array)
+    :param evolve_method: choose method to evolve ODE (None | 1 or 2, default 1)
+    :param rk4: use 4th-order Runge-Kutta to evolve ODE, only works with
+           evolve_method == 2 (None | 0 or 1, default 0)
     """
     def __init__(self, name=None, start=None, stop=None, dt=None,
-                 model_spec=None, cmd_states=None):
+                 model_spec=None, cmd_states=None, evolve_method=None,
+                 rk4=None):
 
         # If model_spec supplied as a string then read model spec as a dict
         if isinstance(model_spec, six.string_types):
@@ -92,6 +101,8 @@ class XijaModel(object):
             start = start or model_spec['datestart']
             name = name or model_spec['name']
             dt = dt or model_spec['dt']
+            evolve_method = evolve_method or model_spec.get('evolve_method', None)
+            rk4 = rk4 or model_spec.get('rk4', None)
 
         if stop is None:
             stop = DateTime() - 30
@@ -101,6 +112,10 @@ class XijaModel(object):
             name = 'xijamodel'
         if dt is None:
             dt = DEFAULT_DT
+        if evolve_method is None:
+            evolve_method = 1
+        if rk4 is None:
+            rk4 = 0
 
         self.name = name
         self.comp = OrderedDict()
@@ -113,6 +128,8 @@ class XijaModel(object):
         self.datestart = DateTime(self.tstart).date
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
+        self.evolve_method = evolve_method
+        self.rk4 = rk4
 
         try:
             self.bad_times = model_spec['bad_times']
@@ -145,7 +162,7 @@ class XijaModel(object):
         dt_factor = dt / DEFAULT_DT
         idx = np.argmin(np.abs(dt_factor-dt_factors))
         dt = DEFAULT_DT*dt_factors[idx]
-        logger.info("Using dt = %g s." % dt)
+        logger.debug("Using dt = %g s." % dt)
         return dt
 
     def _set_from_model_spec(self, model_spec):
@@ -321,7 +338,9 @@ class XijaModel(object):
                           datestart=self.datestart,
                           datestop=self.datestop,
                           tlm_code=None,
-                          mval_names=[])
+                          mval_names=[],
+                          evolve_method=self.evolve_method,
+                          rk4=self.rk4)
 
         if hasattr(self, 'bad_times'):
             model_spec['bad_times'] = self.bad_times
@@ -386,11 +405,14 @@ class XijaModel(object):
         out = StringIO()
         ms = self.model_spec
 
+        model_call = "model = xija.XijaModel({}, start={}, stop={}, dt={},\n"
+        model_call += "evolve_method={} rk4={}\n"
+
         print("import sys", file=out)
         print("import xija\n", file=out)
-        print("model = xija.XijaModel({}, start={}, stop={}, dt={})\n" \
-            .format(repr(ms['name']), repr(ms['datestart']),
-                    repr(ms['datestop']), repr(ms['dt'])), file=out)
+        print(model_call.format(repr(ms['name']), repr(ms['datestart']),
+                                repr(ms['datestop']), repr(ms['dt']),
+                                repr(ms['evolve_method']), repr(ms['rk4'])), file=out)
 
         for comp in ms['comps']:
             args = [repr(x) for x in comp['init_args']]
@@ -474,7 +496,7 @@ class XijaModel(object):
 
         # Stack the input dvals.  This *copies* the data values.
         self.n_preds = len(preds)
-        self.mvals = np.hstack(comp.dvals for comp in preds + unpreds)
+        self.mvals = np.hstack([comp.dvals for comp in preds + unpreds])
         self.mvals.shape = (len(comps), -1)  # why doesn't this use vstack?
         self.cvals = self.mvals[:, 0::2]
 
@@ -498,13 +520,20 @@ class XijaModel(object):
         # int calc_model(int n_times, int n_preds, int n_tmals, float dt,
         #                float **mvals, int **tmal_ints, float **tmal_floats)
 
-        dt = self.dt_ksec * 2
         mvals = convert_type_star_star(self.mvals, ctypes.c_double)
         tmal_ints = convert_type_star_star(self.tmal_ints, ctypes.c_int)
         tmal_floats = convert_type_star_star(self.tmal_floats, ctypes.c_double)
 
-        self.core.calc_model(self.n_times, self.n_preds, len(self.tmal_ints),
-                             dt, mvals, tmal_ints, tmal_floats)
+        if self.evolve_method == 1:
+            dt = self.dt_ksec * 2
+            self.core_1.calc_model_1(self.n_times, self.n_preds,
+                                     len(self.tmal_ints), dt, mvals,
+                                     tmal_ints, tmal_floats)
+        elif self.evolve_method == 2:
+            dt = self.dt_ksec
+            self.core_2.calc_model_2(self.rk4, self.n_times, self.n_preds,
+                                     len(self.tmal_ints), dt, mvals,
+                                     tmal_ints, tmal_floats)
 
         # hackish fix to ensure last value is computed
         self.mvals[:, -1] = self.mvals[:, -2]
@@ -526,23 +555,43 @@ class XijaModel(object):
                           DateTime(self.tstop).greta[:7])
 
     @property
-    def core(self):
-        """Lazy-load the "core" ctypes shared object libary that does the
-        low-level model calculation via the C "calc_model" routine.  Only
+    def core_1(self):
+        """Lazy-load the "core_1" ctypes shared object libary that does the
+        low-level model calculation via the C "calc_model_1" routine.  Only
         load once by setting/returning a class attribute.
         """
-        if not hasattr(XijaModel, '_core'):
+        if not hasattr(XijaModel, '_core_1'):
             loader_path = os.path.abspath(os.path.dirname(__file__))
-            _core = np.ctypeslib.load_library('core', loader_path)
-            _core.calc_model.restype = ctypes.c_int
-            _core.calc_model.argtypes = [
+            _core_1 = np.ctypeslib.load_library('core_1', loader_path)
+            _core_1.calc_model_1.restype = ctypes.c_int
+            _core_1.calc_model_1.argtypes = [
                 ctypes.c_int, ctypes.c_int, ctypes.c_int,
                 ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
                 ]
-            XijaModel._core = _core
-        return XijaModel._core
+            XijaModel._core_1 = _core_1
+        return XijaModel._core_1
+
+    @property
+    def core_2(self):
+        """Lazy-load the "core_2" ctypes shared object libary that does the
+        low-level model calculation via the C "calc_model_2" routine.  Only
+        load once by setting/returning a class attribute.
+        """
+        if not hasattr(XijaModel, '_core_2'):
+            loader_path = os.path.abspath(os.path.dirname(__file__))
+            _core_2 = np.ctypeslib.load_library('core_2', loader_path)
+            _core_2.calc_model_2.restype = ctypes.c_int
+            _core_2.calc_model_2.argtypes = [
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, 
+                ctypes.c_int, ctypes.c_double,
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
+            ]
+            XijaModel._core_2 = _core_2
+        return XijaModel._core_2
 
 ThermalModel = XijaModel
