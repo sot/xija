@@ -1016,13 +1016,16 @@ class MainWindow(object):
         elif cmd in ('ignore', 'notice'):
             if cmd == "ignore":
                 try:
-                    if vals[0] == "*":
-                        vals[0] = self.model.datestart
                     if vals[1] == "*":
-                        vals[1] = self.model.datestop
-                    lim = DateTime(vals).date
+                        vals[1] = self.model.datestart
+                    if vals[2] == "*":
+                        vals[2] = self.model.datestop
+                    lim = DateTime(vals[1:]).date
                 except (IndexError, ChandraTimeError):
-                    print("Invalid input for ignore: {} {}".format(vals[1], vals[2]))
+                    if len(vals) == 3:
+                        print("Invalid input for ignore: {} {}".format(vals[1], vals[2]))
+                    else:
+                        print("Ignore requires two arguments, the start time and the stop time.")
                     return
                 self.model.append_mask_times(lim)
             elif cmd == "notice":
