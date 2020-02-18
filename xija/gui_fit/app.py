@@ -247,6 +247,8 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
         main_box.addWidget(QtWidgets.QLabel("Start time: {}".format(model.datestart)))
         main_box.addWidget(QtWidgets.QLabel("Stop time: {}".format(model.datestop)))
         main_box.addWidget(QtWidgets.QLabel("Timestep: {} s".format(model.dt)))
+        main_box.addWidget(QtWidgets.QLabel("Evolve Method: Core {}".format(model.evolve_method)))
+        main_box.addWidget(QtWidgets.QLabel("Runge-Kutta Order: {}".format(4 if model.rk4 else 2)))
         main_box.addStretch(1)
 
         close_button = QtWidgets.QPushButton('Close')
