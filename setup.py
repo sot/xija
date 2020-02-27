@@ -16,19 +16,18 @@ framework used Chandra thermal modeling:
 """
 
 if os.name == "nt":
-    link_args = ['/EXPORT:calc_model_1', '/EXPORT:calc_model_2']
+    core1_ext = Extension('xija.core_1', ['xija/core_1.c'],
+                      extra_link_args=['/EXPORT:calc_model_1'])
+    core2_ext = Extension('xija.core_2', ['xija/core_2.c'],
+                      extra_link_args=['/EXPORT:calc_model_2'])
 else:
-    link_args = []
+    core1_ext = Extension('xija.core_1', ['xija/core_1.c'])
+    core2_ext = Extension('xija.core_2', ['xija/core_2.c'])
 
 try:
     from testr.setup_helper import cmdclass
 except ImportError:
     cmdclass = {}
-
-core1_ext = Extension('xija.core_1', ['xija/core_1.c'],
-                      extra_link_args=link_args)
-core2_ext = Extension('xija.core_2', ['xija/core_2.c'],
-                      extra_link_args=link_args)
 
 entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit:main'}
 

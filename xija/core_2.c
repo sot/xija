@@ -5,7 +5,7 @@
 #if PY_MAJOR_VERSION < 3
 void initcore(void)
 #else
-void PyInit_core(void)
+void PyInit_core_2(void)
 #endif
 {
     /* stub initialization function needed by distutils on Windows */
