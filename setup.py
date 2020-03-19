@@ -29,7 +29,7 @@ try:
 except ImportError:
     cmdclass = {}
 
-entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit:main'}
+entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit.app:main'}
 
 setup(name='xija',
       use_scm_version=True,
