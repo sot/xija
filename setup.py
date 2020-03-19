@@ -29,7 +29,7 @@ try:
 except ImportError:
     cmdclass = {}
 
-entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit:main'}
+entry_points = {'console_scripts': 'xija_gui_fit = xija.gui_fit.app:main'}
 
 setup(name='xija',
       use_scm_version=True,
@@ -53,10 +53,11 @@ setup(name='xija',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
           ],
-      packages=['xija', 'xija.component', 'xija.tests'],
+      packages=['xija', 'xija.component', 'xija.tests', 'xija.gui_fit'],
       package_data={'xija': ['libcore.so',
                              'component/earth_vis_grid_nside32.fits.gz'],
-                    'xija.tests': ['*.npz', '*.json']},
+                    'xija.tests': ['*.npz', '*.json'],
+                    'xija.gui_fit': ['app_icon.png']},
       tests_require=['pytest'],
       cmdclass=cmdclass,
       entry_points=entry_points,

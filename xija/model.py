@@ -20,7 +20,7 @@ from . import tmal
 
 try:
     # Optional packages for model fitting or use on HEAD LAN
-    from Chandra.Time import DateTime
+    from Chandra.Time import DateTime, date2secs
     from astropy.io import ascii
     import Ska.Numpy
     import Chandra.cmd_states
@@ -87,11 +87,11 @@ class XijaModel(object):
     :param evolve_method: choose method to evolve ODE (None | 1 or 2, default 1)
     :param rk4: use 4th-order Runge-Kutta to evolve ODE, only works with
            evolve_method == 2 (None | 0 or 1, default 0)
+    :param limits: dict of limit values (None | dict)
     """
     def __init__(self, name=None, start=None, stop=None, dt=None,
                  model_spec=None, cmd_states=None, evolve_method=None,
-                 rk4=None):
-
+                 rk4=None, limits=None):
         # If model_spec supplied as a string then read model spec as a dict
         if isinstance(model_spec, six.string_types):
             model_spec = json.load(open(model_spec, 'r'))
@@ -103,6 +103,7 @@ class XijaModel(object):
             dt = dt or model_spec['dt']
             evolve_method = evolve_method or model_spec.get('evolve_method', None)
             rk4 = rk4 or model_spec.get('rk4', None)
+            limits = model_spec.get('limits', {})
 
         if stop is None:
             stop = DateTime() - 30
@@ -116,6 +117,8 @@ class XijaModel(object):
             evolve_method = 1
         if rk4 is None:
             rk4 = 0
+        if limits is None:
+            limits = {}
 
         self.name = name
         self.comp = OrderedDict()
@@ -130,18 +133,21 @@ class XijaModel(object):
         self.n_times = len(self.times)
         self.evolve_method = evolve_method
         self.rk4 = rk4
+        self.limits = limits
 
-        try:
+        if 'bad_times' in model_spec:
             self.bad_times = model_spec['bad_times']
-        except:
-            pass
         else:
-            self.bad_times_indices = []
-            for t0, t1 in self.bad_times:
-                t0, t1 = DateTime([t0, t1]).secs
-                i0, i1 = np.searchsorted(self.times, [t0, t1])
-                if i1 > i0:
-                    self.bad_times_indices.append((i0, i1))
+            self.bad_times = []
+        self.bad_times_indices = []
+        for t0, t1 in self.bad_times:
+            t0, t1 = DateTime([t0, t1]).secs
+            i0, i1 = np.searchsorted(self.times, [t0, t1])
+            if i1 > i0:
+                self.bad_times_indices.append((i0, i1))
+        self.mask_times = self.bad_times.copy()
+        self.mask_times_indices = self.bad_times_indices.copy()
+        self.mask_time_secs = date2secs(self.mask_times)
 
         self.pars = []
         if model_spec:
@@ -342,10 +348,11 @@ class XijaModel(object):
                           evolve_method=self.evolve_method,
                           rk4=self.rk4)
 
-        if hasattr(self, 'bad_times'):
-            model_spec['bad_times'] = self.bad_times
+        model_spec['bad_times'] = self.bad_times
 
         model_spec['pars'] = [dict(par) for par in self.pars]
+
+        model_spec['limits'] = self.limits
 
         stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent)
                               else x)
@@ -439,8 +446,7 @@ class XijaModel(object):
             print('par.update(dict({}))\n'.format(', '.join(par_upds)), file=out)
             last_comp_name = comp_name
 
-        if hasattr(self, 'bad_times'):
-            print("model.bad_times = {}".format(repr(self.bad_times)), file=out)
+        print("model.bad_times = {}".format(repr(self.bad_times)), file=out)
 
         print("if len(sys.argv) > 1:", file=out)
         print("    model.write(sys.argv[1])", file=out)
@@ -593,5 +599,41 @@ class XijaModel(object):
             ]
             XijaModel._core_2 = _core_2
         return XijaModel._core_2
+
+    def append_mask_times(self, new_times):
+        t0, t1 = DateTime(new_times).secs
+        i0, i1 = np.searchsorted(self.times, [t0, t1])
+        if i1 > i0:
+            self.mask_times_indices.append((i0, i1))
+            self.mask_times.append(new_times)
+        self.mask_time_secs = date2secs(self.mask_times)
+
+    def reset_mask_times(self):
+        self.mask_times = self.bad_times.copy()
+        self.mask_times_indices = self.bad_times_indices.copy()
+        self.mask_time_secs = date2secs(self.mask_times)
+
+    def annotate_limits(self, ax, dir='h'):
+        if len(self.limits) == 0:
+            return
+        draw_line = getattr(ax, 'ax{}line'.format(dir))
+        if 'acisi_data_quality' in self.limits:
+            draw_line(self.limits['acisi_data_quality'], ls='-.', color='blue')
+        if 'aciss_data_quality' in self.limits:
+            draw_line(self.limits['aciss_data_quality'], ls='-.', color='purple')
+        if 'planning_caution_high' in self.limits:
+            draw_line(self.limits['planning_caution_high'], ls='-.', color='gray')
+        if 'planning_warning_low' in self.limits:
+            draw_line(self.limits['planning_warning_low'], ls='-', color='green')
+        if 'planning_warning_high' in self.limits:
+            draw_line(self.limits['planning_warning_high'], ls='-', color='green')
+        if 'odb_caution_low' in self.limits:
+            draw_line(self.limits['odb_caution_low'], ls='-', color='gold')
+        if 'odb_caution_high' in self.limits:
+            draw_line(self.limits['odb_caution_high'], ls='-', color='gold')
+        if 'odb_warning_low' in self.limits:
+            draw_line(self.limits['odb_warning_low'], ls='-', color='red')
+        if 'odb_warning_high' in self.limits:
+            draw_line(self.limits['odb_warning_high'], ls='-', color='red')
 
 ThermalModel = XijaModel

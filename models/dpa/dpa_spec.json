@@ -134,6 +134,12 @@
     "datestart": "2009:350:12:10:17.816", 
     "datestop": "2011:340:11:50:57.816", 
     "dt": 328.0, 
+    "limits": {
+        "name": "1dpamzt",
+        "planning_warning_high": 37.5, 
+        "odb_caution_high": 39.5,
+        "odb_warning_high": 41.5
+    },
     "gui_config": {
         "filename": "/data/baffin/tom/git/xija/dpa_model_spec.json", 
         "plot_names": [
