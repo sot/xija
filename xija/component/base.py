@@ -266,7 +266,7 @@ class Node(TelemData):
             ax.set_title('{}: model (red) and data (blue)'.format(self.name))
             ax.set_ylabel('Temperature (%s)' % self.units)
         else:
-            lines[1].set_ydata(self.mvals)
+            lines[0].set_ydata(self.mvals)
 
     def plot_resid__time(self, fig, ax):
         lines = ax.get_lines()
