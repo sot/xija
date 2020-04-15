@@ -135,10 +135,10 @@ class XijaModel(object):
         self.rk4 = rk4
         self.limits = limits
 
-        if 'bad_times' in model_spec:
-            self.bad_times = model_spec['bad_times']
-        else:
+        if model_spec is None or 'bad_times' not in model_spec:
             self.bad_times = []
+        else:
+            self.bad_times = model_spec['bad_times']
         self.bad_times_indices = []
         for t0, t1 in self.bad_times:
             t0, t1 = DateTime([t0, t1]).secs
