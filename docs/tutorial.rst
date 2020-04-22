@@ -88,7 +88,7 @@ To make and run the model do::
 
   % cd $XIJA/examples/doc
   % python example1.py
-  % ../../gui_fit.py example1.json --autoscale
+  % xija_gui_fit example1.json
 
 Points for discussion:
 
@@ -110,17 +110,17 @@ To make and run the model do::
 
   % cd $XIJA/examples/doc
   % python example2.py
-  % ../../gui_fit.py example2.json --autoscale
+  % xija_gui_fit example2.json
 
 Points for discussion:
 
 * Twiddle each fittable parameter and observe the response.
-* Use a longer interval `./gui_fit.py example2.json --autoscale --stop=2015:240 --days=400`
+* Use a longer interval ``xija_gui_fit example2.json --stop=2015:240 --days=400``
   for dP and solar amplitude.
-* Discuss epoch: `./gui_fit.py example2.json --autoscale --stop=2015:240 --days=400 --keep-epoch`.
+* Discuss epoch: ``xija_gui_fit example2.json --stop=2015:240 --days=400 --keep-epoch``.
   It is important to verify that SolarHeat epoch is explicitly in JSON file in order
   to have auto-epoch updating.  This should be an ``"epoch"`` field in the ``"init_kwargs"``
-  element of ``SolarHeat`` components.  (Note: ``SolarHeatOffNomRoll`` is a bit different
+  element of ``SolarHeat`` components. (Note: ``SolarHeatOffNomRoll`` is a bit different
   and does not have an epoch).
 
 Example 3: add pitch bins
@@ -141,12 +141,11 @@ Same as example 2, but now the ``SolarHeat`` component has 6 pitch bins::
 To make and run the model do::
 
   % cd $XIJA/examples/doc
-  % python example2.py
-  % ../../gui_fit.py example3.json --stop=2015:240 --days=400
+  % python example3.py
+  % xija_gui_fit example3.json --stop=2015:240 --days=400
 
 Points for discussion:
 
-* Why no ``--autoscale``?
 * Fit the model
 
   * Naive try.
@@ -273,9 +272,9 @@ Convert model spec back to Python
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A very good way to modify an existing model spec is to write it back out as
-Python code.  This can be done in three ways:
+Python code. This can be done in three ways:
 
-* Within ``gui_fit.py`` save the model with a name ending in ``.py``
+* Within ``xija_gui_fit`` save the model with a name ending in ``.py``
 * Within a Python session or script use the ``write()`` method of a Xija model::
 
     model = xija.XijaModel('mdl', model_spec='mdl.json')
@@ -286,18 +285,19 @@ Python code.  This can be done in three ways:
     % python -m xija.convert --help
     % python -m xija.convert mdl.json
 
-Fitting a model
-----------------
+Fitting a model using ``xija_gui_fit``
+--------------------------------------
 
 So far we have been manually working with a Xija model to understand a bit of
 what is going on underneath and know how to make performance predictions.
 However, the key task of actually calibrating the model parameters is done with
-the ``gui_fit.py`` application.
+the ``xija_gui_fit`` application.
 
-GUI fit overview
+``xija_gui_fit`` Overview
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The image below shows an example of fitting the ACIS DPA model with
-``gui_fit.py``.
+``xija_gui_fit``.
 
 .. image:: gui_fit_guide.png
    :width: 100 %
@@ -306,43 +306,39 @@ The image below shows an example of fitting the ACIS DPA model with
 Live demo using a Ska window::
 
   cd $XIJA/examples/pcm
-  ../../gui_fit.py pcm.json --stop 2012:095 --days 30
+  xija_gui_fit pcm.json --stop 2012:095 --days 30
 
 Command line options
 ^^^^^^^^^^^^^^^^^^^^^
 
-The GUI fit tool supports the following command line options::
+The ``xija_gui_fit`` tool supports the following command line options::
 
-  % ./gui_fit.py --help
-  usage: gui_fit.py [-h] [--days DAYS] [--stop STOP] [--nproc NPROC]
-                    [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
-                    [--set-data SET_DATA_EXPRS] [--quiet] [--keep-epoch]
-                    filename
+    % xija_gui_fit --help
 
-  positional arguments:
-    filename              Model file
-
-  optional arguments:
-    -h, --help            show this help message and exit
-    --days DAYS           Number of days in fit interval (default=90
-    --stop STOP           Stop time of fit interval (default=model values)
-    --nproc NPROC         Number of processors (default=1)
-    --fit-method FIT_METHOD
-                          Sherpa fit method (simplex|moncar|levmar)
-    --inherit-from INHERIT_FROM
-                          Inherit par values from model spec file
-    --set-data SET_DATA_EXPRS
-                          Set data value as '<comp_name>=<value>'
-    --quiet               Suppress screen output
-    --keep-epoch          Maintain epoch in SolarHeat models (default=recenter
-                          on fit interval)
+    usage: xija_gui_fit [-h] [--days DAYS] [--stop STOP] [--maxiter MAXITER]
+                        [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
+                        [--set-data SET_DATA_EXPRS] [--quiet]
+                        filename
+    
+    positional arguments:
+      filename              Model file
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      --days DAYS           Number of days in fit interval (default=90
+      --stop STOP           Stop time of fit interval (default=model values)
+      --maxiter MAXITER     Maximum number of fit iterations (default=1000)
+      --fit-method FIT_METHOD
+                            Sherpa fit method (simplex|moncar|levmar)
+      --inherit-from INHERIT_FROM
+                            Inherit par values from model spec file
+      --set-data SET_DATA_EXPRS
+                            Set data value as '<comp_name>=<value>'
+      --quiet               Suppress screen output
 
 Most of the time you should use the ``--days`` and ``--stop`` options.  Note that
-if you have saved a model specification and then restart ``gui_fit.py``, the
+if you have saved a model specification and then restart ``xija_gui_fit``, the
 most recently specified values will be used by default.
-
-``--nproc``
-  This option has not been tested recently though it might work.
 
 ``--fit-method``
   The default fit method is ``simplex`` which is a good compromise between speed
@@ -361,7 +357,7 @@ most recently specified values will be used by default.
 Assuming you have created a model specification file ``my_model_spec.json``
 then a typical calling sequence from the Xija source directory is::
 
-  ./gui_fit.py --stop 2012:002 --days 180 my_model_spec.json
+  xija_gui_fit --stop 2012:002 --days 180 my_model_spec.json
 
 
 Manipulating plots
@@ -373,21 +369,21 @@ model component followed by a description of the plot.  Plots can be deleted by
 pressing the corresponding ``Delete`` button.
 
 One handy feature is that the time-based plots are always linked in the time
-axis so that if you zoom in to one then all plots zoom accordingly.  When you
-want to go back to the full view you can use the ``Home`` button on the plot
-where you originally zoomed.
+axis so that if you zoom in or pan on one then all plots zoom or pan accordingly.  
+When you want to go back to the full view, you can use the ``Home`` button on the 
+plot where you originally zoomed.
 
 Manipulating parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One of the key features of the GUI fit tool is the ability to visualize and
+One of the key features of ``xija_gui_fit`` is the ability to visualize and
 manipulate the dozens of parameters in a typical Xija model.  
 
 The parameters are on the right side panel.  Each one has a checkbox that
-indicates whether it will be fit (checked) or not (unchecked).  The value is
+indicates whether it will be fit (checked) or not (unchecked). The value is
 shown, then the minimum allowed fit value, a slider bar to select the value,
 and then the maximum allowed fit value.  As you change the slider the model
-will be recalculated and the plots updated.  It helps to make the GUI fit
+will be recalculated and the plots updated.  It helps to make the ``xija_gui_fit``
 window as wide as possible to make the sliders longer.
 
 If you want to change the min or max values just type in the box and then hit
@@ -404,11 +400,11 @@ Fit strategy
 ^^^^^^^^^^^^^^
 
 Fitting Xija models is a bit of an art and will it take some time to develop
-skill here.  A few rules of thumb and tips:
+skill here. A few rules of thumb and tips:
 
-* Start with all long-term variations frozen.  You want to begin with a single time span
-  that is about a year long and ends near the present.  The more parameters in the model
-  that get fit, the more data you need.  Start by try to get the model in the right
+* Start with all long-term variations frozen. You want to begin with a single time span
+  that is about a year long and ends near the present. The more parameters in the model
+  that get fit, the more data you need. Start by trying to get the model in the right
   ballpark. Typically this means::
 
     Freeze?   Parameters         Initial values
@@ -488,7 +484,7 @@ by playing with an existing calibrated model.  Do one of the following::
   % cp ~aldcroft/git/xija/examples/dpa/dpa.json ./          # ACIS
   % cp ~aldcroft/git/xija/examples/minusz/minusz.json ./    # Spacecraft
 
-You will run ``gui_fit.py`` specifying the stop time as ``2012:095`` and
+You will run ``xija_gui_fit`` specifying the stop time as ``2012:095`` and
 the number of days to fit as ``90``.
 
 Then do the following:
