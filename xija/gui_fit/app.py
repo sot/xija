@@ -1270,7 +1270,7 @@ def get_options():
         "--days",
         type=float,
         default=15,  # Fix this
-        help="Number of days in fit interval (default=90",
+        help="Number of days in fit interval (default=90)",
     )
     parser.add_argument(
         "--stop",
