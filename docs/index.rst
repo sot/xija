@@ -24,6 +24,7 @@ package.
    :maxdepth: 2
 
    design
+   gui_fit
    tutorial
    api
 
