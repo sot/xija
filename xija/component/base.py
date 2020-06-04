@@ -80,7 +80,7 @@ class ModelComponent(object):
             return super(ModelComponent, self).__getattribute__(attr)
 
     def __setattr__(self, attr, val):
-        if attr in self.pars:
+        if attr in self.pars_dict:
             self.pars_dict[attr].val = val
         else:
             super(ModelComponent, self).__setattr__(attr, val)
