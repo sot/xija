@@ -222,6 +222,14 @@ def test_pftank2t():
     for msid in msids:
         assert np.allclose(mdl.comp[msid].mvals, regr[msid])
 
+    # Test that setattr works for component parameter value by changing one
+    # value and seeing that the model prediction changes substantially.
+    mvals = mdl.comp['pftank2t'].mvals.copy()
+    mdl.comp['solarheat__pf0tank2t'].P_60 = 5.0
+    mdl.calc()
+    mvals2 = mdl.comp['pftank2t'].mvals
+    assert np.any(abs(mvals2 - mvals) > 5)
+
 
 def test_multi_solar_heat_values():
     P_pitches = [45, 180]
