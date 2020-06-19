@@ -95,7 +95,7 @@ class SolarHeatSimZ(SolarHeat):
     """Solar heating (pitch and SimZ dependent)"""
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
                  hrci_bias=0.0, hrcs_bias=0.0, acisi_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, var_func, tau, ampl, bias,
