@@ -506,7 +506,10 @@ class EarthHeat(PrecomputedHeatPower):
                           for x in ('x', 'y', 'z')]
             aoattqt_1234s = [getattr(self, 'aoattqt{}'.format(x))
                              for x in range(1, 5)]
-            ephems = np.array([x.dvals for x in ephem_xyzs]).transpose()
+            # Note: the copy() here is so that the array becomes contiguous in
+            # memory and allows numba to run faster (and avoids NumbaPerformanceWarning:
+            # np.dot() is faster on contiguous arrays).
+            ephems = np.array([x.dvals for x in ephem_xyzs]).transpose().copy()
             q_atts = np.array([x.dvals for x in aoattqt_1234s]).transpose()
 
             # Q_atts can have occasional bad values, maybe because the
