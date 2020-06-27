@@ -149,9 +149,7 @@ def test_dpa():
 
     regr = np.load(reffile)
     assert np.allclose(mdl.times, regr['times'], rtol=0, atol=1e-3)
-    print('DPA', np.max(np.abs(dpa.dvals - regr['dvals'])))
     assert np.allclose(dpa.dvals, regr['dvals'])
-    print('DPA', np.max(np.abs(dpa.mvals - regr['mvals'])))
     assert np.allclose(dpa.mvals, regr['mvals'])
 
 
@@ -197,7 +195,6 @@ def test_minusz():
     regr = np.load(regrfile)
     assert np.allclose(mdl.times, regr['times'])
     for msid in msids:
-        print(msid, np.max(np.abs(mdl.comp[msid].mvals - regr[msid])))
         assert np.allclose(mdl.comp[msid].mvals, regr[msid])
 
 
@@ -223,7 +220,6 @@ def test_pftank2t():
     regr = np.load(regrfile)
     assert np.allclose(mdl.times, regr['times'])
     for msid in msids:
-        print(msid, np.max(np.abs(mdl.comp[msid].mvals - regr[msid])))
         assert np.allclose(mdl.comp[msid].mvals, regr[msid])
 
     # Test that setattr works for component parameter value by changing one
