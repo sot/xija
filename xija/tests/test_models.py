@@ -26,7 +26,7 @@ def abs_path(spec):
 
 
 def test_dpa_real():
-    mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+    mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
                        model_spec=abs_path('dpa.json'))
     # Check that cmd_states database can be read.  Skip if not, probably
     # running test on a platform without access.
@@ -57,7 +57,7 @@ def test_pitch_clip():
     has been modified so the solarheat pitch range is from 55 .. 153.
     Make sure the model still runs with no interpolation error.
     """
-    mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+    mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
                        model_spec=abs_path('dpa_clip.json'))
     try:
         mdl._get_cmd_states()
@@ -78,7 +78,7 @@ def test_pitch_range_clip():
     Make sure the pitch range stored does not include values outside of the 45
     to 180 degree range.
     """
-    mdl = ThermalModel('tank', start='2019:120', stop='2019:122',
+    mdl = ThermalModel('tank', start='2019:120:12:00:00', stop='2019:122:12:00:00',
                        model_spec=abs_path('pftank2t.json'))
 
     mdl.comp['pf0tank2t'].set_data(20.0)
@@ -91,7 +91,7 @@ def test_pitch_range_clip():
 
 
 def test_dpa_remove_pow():
-    mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+    mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
                        model_spec=abs_path('dpa_remove_pow.json'))
     # Check that cmd_states database can be read.  Skip if not, probably
     # running test on a platform without access.
@@ -116,7 +116,7 @@ def test_dpa_remove_pow():
     assert np.allclose(dpa.mvals, regr['mvals'])
 
 def get_dpa_model():
-    mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+    mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
                             model_spec=abs_path('dpa.json'))
     times = (mdl.times - mdl.times[0]) / 10000.0
     mdl.comp['1dpamzt'].set_data(30.0)
@@ -148,7 +148,7 @@ def test_dpa():
                  mvals=dpa.mvals)
 
     regr = np.load(reffile)
-    assert np.allclose(mdl.times, regr['times'])
+    assert np.allclose(mdl.times, regr['times'], rtol=0, atol=1e-3)
     assert np.allclose(dpa.dvals, regr['dvals'])
     assert np.allclose(dpa.mvals, regr['mvals'])
 
@@ -162,7 +162,7 @@ def test_plotdate():
 
 def test_data_types():
     for data_type in (int, float, np.float32, np.float64, np.int32, np.int64, np.complex64):
-        mdl = ThermalModel('dpa', start='2012:001', stop='2012:007',
+        mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
                            model_spec=abs_path('dpa.json'))
         dpa = mdl.comp['1dpamzt']
         dpa.set_data(data_type(30.0))
@@ -174,7 +174,7 @@ def test_data_types():
 
 
 def test_minusz():
-    mdl = ThermalModel('minusz', start='2012:001', stop='2012:004',
+    mdl = ThermalModel('minusz', start='2012:001:12:00:00', stop='2012:004:12:00:00',
                        model_spec=abs_path('minusz.json'))
     times = (mdl.times - mdl.times[0]) / 10000.0
     msids = ('tephin', 'tcylaft6', 'tcylfmzm', 'tmzp_my', 'tfssbkt1')
@@ -199,7 +199,7 @@ def test_minusz():
 
 
 def test_pftank2t():
-    mdl = ThermalModel('pftank2t', start='2012:001', stop='2012:004',
+    mdl = ThermalModel('pftank2t', start='2012:001:12:00:00', stop='2012:004:12:00:00',
                        model_spec=abs_path('pftank2t.json'))
     times = (mdl.times - mdl.times[0]) / 10000.0
     msids = ('pftank2t', 'pf0tank2t')
@@ -237,7 +237,7 @@ def test_multi_solar_heat_values():
     P_pitches2 = [45, 65, 90, 140, 180]
     P_vals2 = [1.0, 1.0, 0.0, 1.0, 1.0]
 
-    model = ThermalModel('test', start='2011:001', stop='2011:005')
+    model = ThermalModel('test', start='2011:001:12:00:00', stop='2011:005:12:00:00')
     tephin = model.add(Node, 'tephin')
     tcylaft6 = model.add(Node, 'tcylaft6')
     pitch = model.add(Pitch)
@@ -273,7 +273,7 @@ def test_multi_solar_heat_values():
     temp_name = tempfile.NamedTemporaryFile(delete=False).name
     model.write(temp_name)
     model2 = ThermalModel('test', model_spec=temp_name,
-                          start='2011:001', stop='2011:005')
+                          start='2011:001:12:00:00', stop='2011:005:12:00:00')
     os.unlink(temp_name)
     model2.get_comp('tephin').set_data(30.0)
     model2.get_comp('tcylaft6').set_data(30.0)

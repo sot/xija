@@ -117,7 +117,7 @@ class SolarHeat(PrecomputedHeatPower):
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001'):
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00'):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
@@ -283,10 +283,10 @@ class SolarHeat(PrecomputedHeatPower):
 class SolarHeatMulplicative(SolarHeat):
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001'):
+                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001:12:00:00'):
         super(SolarHeatMulplicative, self).__init__(
             model, node, pitch_comp, eclipse_comp=eclipse_comp,
-            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func, 
+            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func,
             tau=tau, ampl=ampl, bias=bias, epoch=epoch)
 
     def _compute_dvals(self):
@@ -316,7 +316,7 @@ class SolarHeatAcisCameraBody(SolarHeat):
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
                  dh_heater_comp=None, dh_heater_bias=0.0):
 
         super(SolarHeatAcisCameraBody, self).__init__(
@@ -353,7 +353,7 @@ class SolarHeatHrc(SolarHeat):
     """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
                  hrc_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, var_func, tau, ampl, bias,
@@ -391,7 +391,7 @@ class SolarHeatHrcOpts(SolarHeat):
     """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001',
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
                  hrci_bias=0.0, hrcs_bias=0.0):
         SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
                            P_pitches, Ps, dPs, var_func, tau, ampl, bias,
@@ -415,12 +415,12 @@ class SolarHeatHrcOpts(SolarHeat):
 class SolarHeatHrcMult(SolarHeatHrcOpts, SolarHeatMulplicative):
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001',
+                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001:12:00:00',
                  hrci_bias=0.0, hrcs_bias=0.0):
         super(SolarHeatHrcMult, self).__init__(
             model, node, simz_comp, pitch_comp, eclipse_comp=eclipse_comp,
             P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func, tau=tau,
-            ampl=ampl, bias=bias, epoch=epoch, hrci_bias=hrci_bias, 
+            ampl=ampl, bias=bias, epoch=epoch, hrci_bias=hrci_bias,
             hrcs_bias=hrcs_bias)
 
 # For back compatibility prior to Xija 0.2
@@ -506,7 +506,10 @@ class EarthHeat(PrecomputedHeatPower):
                           for x in ('x', 'y', 'z')]
             aoattqt_1234s = [getattr(self, 'aoattqt{}'.format(x))
                              for x in range(1, 5)]
-            ephems = np.array([x.dvals for x in ephem_xyzs]).transpose()
+            # Note: the copy() here is so that the array becomes contiguous in
+            # memory and allows numba to run faster (and avoids NumbaPerformanceWarning:
+            # np.dot() is faster on contiguous arrays).
+            ephems = np.array([x.dvals for x in ephem_xyzs]).transpose().copy()
             q_atts = np.array([x.dvals for x in aoattqt_1234s]).transpose()
 
             # Q_atts can have occasional bad values, maybe because the
@@ -608,7 +611,7 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
     """Solar heating of PSMC box.  This is dependent on SIM-Z"""
     def __init__(self, model, node, pitch_comp, simz_comp, dh_heater_comp, P_pitches=None,
                  P_vals=None, dPs=None, var_func='linear',
-                 tau=1732.0, ampl=0.05, epoch='2013:001', dh_heater=0.05):
+                 tau=1732.0, ampl=0.05, epoch='2013:001:12:00:00', dh_heater=0.05):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = self.model.get_comp(node)
@@ -833,7 +836,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     state.  See dpa/NOTES.power.
     """
     def __init__(self, model, node, mult=1.0,
-                 fep_count=None, ccd_count=None, 
+                 fep_count=None, ccd_count=None,
                  vid_board=None, clocking=None,
                  pow_states=None):
         super(AcisDpaStatePower, self).__init__(model)
@@ -927,7 +930,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         else:
             plot_cxctime(self.model.times, powers, ls='-',
                          color='#d92121', fig=fig, ax=ax)
-            plot_cxctime(self.model.times, self.dvals, 
+            plot_cxctime(self.model.times, self.dvals,
                          color='#386cb0', ls='-', fig=fig, ax=ax)
             ax.grid()
             ax.set_title('{}: model (red) and data (blue)'.format(self.name))
@@ -1013,7 +1016,7 @@ class ThermostatHeater(ActiveHeatPower):
 
 class StepFunctionPower(PrecomputedHeatPower):
     """
-    A class that applies a constant temperature shift only 
+    A class that applies a constant temperature shift only
     after a certain point in time.
     """
     def __init__(self, model, node, time, P=0.0):
