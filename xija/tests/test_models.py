@@ -28,13 +28,7 @@ def abs_path(spec):
 def test_dpa_real():
     mdl = ThermalModel('dpa', start='2020:001:12:00:00', stop='2020:007:12:00:00',
                        model_spec=abs_path('dpa.json'))
-    # Check that cmd_states database can be read.  Skip if not, probably
-    # running test on a platform without access.
-    try:
-        mdl._get_cmd_states()
-    except:
-        pytest.skip('No commanded states access - '
-                    'cannot run DPA model with real states')
+    mdl._get_cmd_states()
 
     mdl.make()
     mdl.calc()
@@ -59,11 +53,7 @@ def test_pitch_clip():
     """
     mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
                        model_spec=abs_path('dpa_clip.json'))
-    try:
-        mdl._get_cmd_states()
-    except:
-        pytest.skip('No commanded states access - '
-                    'cannot run DPA model with real states')
+    mdl._get_cmd_states()
 
     mdl.make()
     mdl.calc()
@@ -93,13 +83,7 @@ def test_pitch_range_clip():
 def test_dpa_remove_pow():
     mdl = ThermalModel('dpa', start='2019:001:12:00:00', stop='2019:007:12:00:00',
                        model_spec=abs_path('dpa_remove_pow.json'))
-    # Check that cmd_states database can be read.  Skip if not, probably
-    # running test on a platform without access.
-    try:
-        mdl._get_cmd_states()
-    except:
-        pytest.skip('No commanded states access - '
-                    'cannot run DPA model with real states')
+    mdl._get_cmd_states()
 
     mdl.make()
     mdl.calc()
