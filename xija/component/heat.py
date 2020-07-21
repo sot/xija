@@ -1013,18 +1013,26 @@ class ThermostatHeater(ActiveHeatPower):
 
 class StepFunctionPower(PrecomputedHeatPower):
     """
-    A class that applies a constant temperature shift only 
-    after a certain point in time.
+    A class that applies a constant heat power shift only
+    after a certain point in time.  The shift is 0.0 before
+    ``time`` and ``P`` after ``time``.
+
+    :param model: parent model object
+    :param node: node name or object for which to apply shift
+    :param time: time of step function shift
+    :param P: size of shift in heat power (default=0.0)
+    :param id: str, identifier to allow multiple steps (default='')
     """
-    def __init__(self, model, node, time, P=0.0):
+    def __init__(self, model, node, time, P=0.0, id=''):
         super(StepFunctionPower, self).__init__(model)
         self.time = DateTime(time).secs
         self.node = self.model.get_comp(node)
-        self.add_par('P', P, min=-10.0, max=10.0)
         self.n_mvals = 1
+        self.id = id
+        self.add_par('P', P, min=-10.0, max=10.0)
 
     def __str__(self):
-        return 'step_power__{0}'.format(self.node)
+        return f'step_power{self.id}__{self.node}'
 
     def get_dvals_tlm(self):
         """Return an array of zeros => no activation of the heater.
