@@ -18,15 +18,11 @@ import numpy as np
 from . import component
 from . import tmal
 
-try:
-    # Optional packages for model fitting or use on HEAD LAN
-    from Chandra.Time import DateTime, date2secs
-    from astropy.io import ascii
-    import Ska.Numpy
-    import Chandra.cmd_states
-    import Ska.DBI
-except ImportError:
-    pass
+# Optional packages for model fitting or use on HEAD LAN
+from Chandra.Time import DateTime, date2secs
+from astropy.io import ascii
+import Ska.Numpy
+import Ska.DBI
 
 import pyyaks.context as pyc
 from .files import files as xija_files
@@ -73,9 +69,9 @@ class XijaModel(object):
     - ``evolve_method = 1`` uses the original ODE solver which treats every
       two steps as a full RK2 step.
     - ``evolve_method = 2`` uses the new ODE solver which treats every step
-      as a full RK2 step, and optionally allows for RK4 if ``rk4 = 1``.  
+      as a full RK2 step, and optionally allows for RK4 if ``rk4 = 1``.
     - Otherwise defaults are: ``name='xijamodel'``, ``start = stop - 45 days``,
-      ``stop = NOW - 30 days``, ``dt = 328 secs``, ``evolve_method = 1``, 
+      ``stop = NOW - 30 days``, ``dt = 328 secs``, ``evolve_method = 1``,
       ``rk4 = 0``
 
     :param name: model name
@@ -158,7 +154,7 @@ class XijaModel(object):
         """
         This method ensures that only certain timesteps are chosen,
         which are integer multiples of 8.2 and where 328.0/dt is an
-        integer. 
+        integer.
         """
         if dt > DEFAULT_DT:
             logger.warning("dt = %g s greater than upper "
@@ -218,23 +214,11 @@ class XijaModel(object):
 
     def _get_cmd_states(self):
         if not hasattr(self, '_cmd_states'):
-            logger.info('Reading commanded states DB over %s to %s' %
+            import kadi.commands.states as kadi_states
+            logger.info('Getting kadi commanded states over %s to %s' %
                         (self.datestart, self.datestop))
-            for dbi in ('hdf5', 'sybase'):
-                try:
-                    states = Chandra.cmd_states.fetch_states(
-                        self.datestart, self.datestop, dbi=dbi)
-                    break
-                except IOError as err:
-                    logger.info('Warning: ' + str(err))
-                    pass
-            else:
-                # Both hdf5 and sybase failed
-                raise IOError('Could not read commanded states from '
-                              'HDF5 or sybase tables')
-
-            self._cmd_states = Chandra.cmd_states.interpolate_states(
-                states, self.times)
+            states = kadi_states.get_states(self.datestart, self.datestop)
+            self._cmd_states = kadi_states.interpolate_states(states, self.times).as_array()
 
         return self._cmd_states
 
@@ -591,7 +575,7 @@ class XijaModel(object):
             _core_2 = np.ctypeslib.load_library('core_2', loader_path)
             _core_2.calc_model_2.restype = ctypes.c_int
             _core_2.calc_model_2.argtypes = [
-                ctypes.c_int, ctypes.c_int, ctypes.c_int, 
+                ctypes.c_int, ctypes.c_int, ctypes.c_int,
                 ctypes.c_int, ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
