@@ -18,54 +18,85 @@ jobs:
     - name: Login to GitHub Package Registry
       run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
     - name: Pull Docker image
-      run: docker pull docker.pkg.github.com/sot/skare3/centos5-builder:latest
+      run: docker pull docker.pkg.github.com/sot/skare3/centos7-builder:latest
     - name: Build
       id: build
       run: >
         docker run --rm  --name builder -v $GITHUB_WORKSPACE:/github/workspace -w /github/workspace
         -e CONDA_PASSWORD -e GIT_USERNAME -e GIT_PASSWORD
-        docker.pkg.github.com/sot/skare3/centos5-builder:latest
+        docker.pkg.github.com/sot/skare3/centos7-builder:latest
         ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
       env:
         CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
         GIT_USERNAME: chandra-xray
         GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
         GIT_ASKPASS: /home/aca/git_pass.py
-    - uses: sot/skare3_tools/actions/gdrive_upload@master
-      name: Upload to Google Drive
+    - name: Save package
+      uses: actions/upload-artifact@v2
       with:
-        files: |
-          builds/linux-64
-          builds/noarch
-        directory: /ska3/conda-test
-        options: --drive=cxc_ops
-      env:
-        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+        name: conda-package
+        path: |
+          builds/noarch/
+          builds/linux-64/
+          !builds/*/*repodata*
+          !builds/*/index.html
 
 
-  build-macos:
-    runs-on: macos-latest
-    name: Build on Mac OS
+  build-other:
+    runs-on: ${{ matrix.os }}-latest
+    name: Build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["macos", "windows"]
     steps:
-    - name: Fetch Skare3 Tools
+    - name: Fetch Skare3-tools
       uses: actions/checkout@v2
       with:
         repository: sot/skare3_tools
         ref: master
         path: skare3_tools
-    - name: Build
+    - uses: sot/setup-miniconda@v1
+      with:
+        miniconda-version: "py38_4.8.3"
+        python-version: "3.8"
+        channels: https://ska:${{ secrets.CONDA_PASSWORD }}@cxc.cfa.harvard.edu/mta/ASPECT/ska3-conda/shiny
+    - name: Build Dependencies
+      shell: bash -l {0}
+      run: conda install setuptools_scm gitpython conda-build jinja2 pyyaml python=3.8 numpy packaging
+    - name: Build Package
+      shell: bash -l {0}
       run: |
-        source ./skare3_tools/actions/build/files/setup_conda.sh
-        ./skare3_tools/actions/build/files/build.py ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
+        python skare3_tools/actions/build/files/build.py --arch-specific ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
       env:
         CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
-        GIT_USER: chandra-xray
-        GIT_ASKPASS: skare3_tools/actions/build/files/git_pass.py
+        GIT_USERNAME: chandra-xray
+        GIT_ASKPASS: ${{ github.workspace }}/skare3_tools/actions/build/files/git_pass.py
         GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
-    - name: Upload to Google Drive
-      run: |
-        sudo pip3 install -r ./skare3_tools/requirements.txt
-        sudo pip3 install ./skare3_tools
-        gdrive --batch upload ./builds/osx-64 ./builds/noarch /ska3/conda-test --drive cxc_ops
-      env:
-        GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+    - name: Save package
+      uses: actions/upload-artifact@v2
+      with:
+        name: conda-package
+        path: |
+          builds/noarch/
+          builds/osx-64/
+          builds/win-64/
+          !builds/*/*repodata*
+          !builds/*/index.html
+
+  update-channel:
+    runs-on: head
+    name: Update Conda Channel
+    needs: [build-linux, build-other]
+    steps:
+      - name: Get linux package
+        uses: actions/download-artifact@v2
+        with:
+          name: conda-package
+          path: package
+      - name: Update channel
+        run: |
+          rsync -a package/ ${CONDA_CHANNEL_DIR}
+          for d in ${CONDA_CHANNEL_DIR}/*; do conda index $d; done;
+        env:
+          CONDA_CHANNEL_DIR: /proj/sot/ska/www/ASPECT/ska3-conda/masters
