@@ -97,6 +97,12 @@ jobs:
       - name: Update channel
         run: |
           rsync -a package/ ${CONDA_CHANNEL_DIR}
-          for d in ${CONDA_CHANNEL_DIR}/*; do conda index $d; done;
+          for d in noarch linux-64 osx-64 win-64;
+          do
+            if [ -d "${CONDA_CHANNEL_DIR}/$d" ];
+            then
+              conda index ${CONDA_CHANNEL_DIR}/$d;
+            fi
+          done;
         env:
           CONDA_CHANNEL_DIR: /proj/sot/ska/www/ASPECT/ska3-conda/masters
