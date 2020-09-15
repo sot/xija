@@ -1,0 +1,717 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xija.model &#8212; xija 4.19.1.dev18+gc34a0c9 documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">Ska!</span><span id="logotext2">xija</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="">
+        <span id="logotext1"></span><span id="logotext2"></span>
+    </a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../index.html">xija 4.19.1.dev18+gc34a0c9 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for xija.model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Licensed under a 3-clause BSD style license - see LICENSE.rst</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Xija - framework to model complex time-series data using a network of</span>
+<span class="sd">coupled nodes with pluggable model components that define the node</span>
+<span class="sd">interactions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cStringIO</span> <span class="k">as</span> <span class="n">StringIO</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">component</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">tmal</span>
+
+<span class="c1"># Optional packages for model fitting or use on HEAD LAN</span>
+<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">date2secs</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">ascii</span>
+<span class="kn">import</span> <span class="nn">Ska.Numpy</span>
+<span class="kn">import</span> <span class="nn">Ska.DBI</span>
+
+<span class="kn">import</span> <span class="nn">pyyaks.context</span> <span class="k">as</span> <span class="nn">pyc</span>
+<span class="kn">from</span> <span class="nn">.files</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">xija_files</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">clogging</span>
+
+<span class="c1"># HDF5 version of commanded states table</span>
+<span class="n">H5FILE</span> <span class="o">=</span> <span class="s1">&#39;/proj/sot/ska/data/cmd_states/cmd_states.h5&#39;</span>
+
+<span class="n">src</span> <span class="o">=</span> <span class="n">pyc</span><span class="o">.</span><span class="n">CONTEXT</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;src&#39;</span> <span class="ow">in</span> <span class="n">pyc</span><span class="o">.</span><span class="n">CONTEXT</span> <span class="k">else</span> <span class="n">pyc</span><span class="o">.</span><span class="n">ContextDict</span><span class="p">(</span><span class="s1">&#39;src&#39;</span><span class="p">)</span>
+<span class="n">files</span> <span class="o">=</span> <span class="p">(</span><span class="n">pyc</span><span class="o">.</span><span class="n">CONTEXT</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;file&#39;</span> <span class="ow">in</span> <span class="n">pyc</span><span class="o">.</span><span class="n">CONTEXT</span> <span class="k">else</span>
+         <span class="n">pyc</span><span class="o">.</span><span class="n">ContextDict</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">basedir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()))</span>
+<span class="n">files</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">xija_files</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="s1">&#39;debug&#39;</span> <span class="ow">in</span> <span class="nb">globals</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">IPython.Debugger</span> <span class="kn">import</span> <span class="n">Tracer</span>
+    <span class="n">pdb_settrace</span> <span class="o">=</span> <span class="n">Tracer</span><span class="p">()</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">clogging</span><span class="o">.</span><span class="n">config_logger</span><span class="p">(</span><span class="s1">&#39;xija&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">clogging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<span class="n">DEFAULT_DT</span> <span class="o">=</span> <span class="mf">328.0</span>
+<span class="n">dt_factors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.125</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">])</span>
+
+<span class="c1">#int calc_model(int n_times, int n_preds, int n_tmals, double dt,</span>
+<span class="c1">#               double **mvals, int **tmal_ints, double **tmal_floats)</span>
+
+
+<span class="k">def</span> <span class="nf">convert_type_star_star</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">ctype_type</span><span class="p">):</span>
+    <span class="n">f4ptr</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctype_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">f4ptr</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">))(</span><span class="o">*</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data_as</span><span class="p">(</span><span class="n">f4ptr</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="FetchError"><a class="viewcode-back" href="../../api.html#xija.model.FetchError">[docs]</a><span class="k">class</span> <span class="nc">FetchError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="XijaModel"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel">[docs]</a><span class="k">class</span> <span class="nc">XijaModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Xija model class to encapsulate all ModelComponents and provide the</span>
+<span class="sd">    infrastructure to define and evaluate models.</span>
+
+<span class="sd">    The parameters ``name``, ``start``, and ``stop`` are determined as follows:</span>
+
+<span class="sd">    - If a model specification is provided then that sets the default values</span>
+<span class="sd">      for keywords that are not supplied to the class init call.</span>
+<span class="sd">    - ``evolve_method = 1`` uses the original ODE solver which treats every</span>
+<span class="sd">      two steps as a full RK2 step.</span>
+<span class="sd">    - ``evolve_method = 2`` uses the new ODE solver which treats every step</span>
+<span class="sd">      as a full RK2 step, and optionally allows for RK4 if ``rk4 = 1``.</span>
+<span class="sd">    - Otherwise defaults are: ``name=&#39;xijamodel&#39;``, ``start = stop - 45 days``,</span>
+<span class="sd">      ``stop = NOW - 30 days``, ``dt = 328 secs``, ``evolve_method = 1``,</span>
+<span class="sd">      ``rk4 = 0``</span>
+
+<span class="sd">    :param name: model name</span>
+<span class="sd">    :param start: model start time (any DateTime format)</span>
+<span class="sd">    :param stop: model stop time (any DateTime format)</span>
+<span class="sd">    :param dt: delta time step (default=328 sec)</span>
+<span class="sd">    :param model_spec: model specification (None | filename | dict)</span>
+<span class="sd">    :param cmd_states: commanded states input (None | structured array)</span>
+<span class="sd">    :param evolve_method: choose method to evolve ODE (None | 1 or 2, default 1)</span>
+<span class="sd">    :param rk4: use 4th-order Runge-Kutta to evolve ODE, only works with</span>
+<span class="sd">           evolve_method == 2 (None | 0 or 1, default 0)</span>
+<span class="sd">    :param limits: dict of limit values (None | dict)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">model_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmd_states</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">evolve_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">rk4</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># If model_spec supplied as a string then read model spec as a dict</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_spec</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">model_spec</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">model_spec</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">))</span>
+        <span class="c1"># If a model_spec is now available (dict) then use as kwarg defaults</span>
+        <span class="k">if</span> <span class="n">model_spec</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">stop</span> <span class="ow">or</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;datestop&#39;</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">start</span> <span class="ow">or</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;datestart&#39;</span><span class="p">]</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span> <span class="ow">or</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;dt&#39;</span><span class="p">]</span>
+            <span class="n">evolve_method</span> <span class="o">=</span> <span class="n">evolve_method</span> <span class="ow">or</span> <span class="n">model_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;evolve_method&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">rk4</span> <span class="o">=</span> <span class="n">rk4</span> <span class="ow">or</span> <span class="n">model_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rk4&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">limits</span> <span class="o">=</span> <span class="n">model_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;limits&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">if</span> <span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">()</span> <span class="o">-</span> <span class="mi">30</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span> <span class="o">-</span> <span class="mi">45</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;xijamodel&#39;</span>
+        <span class="k">if</span> <span class="n">dt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">DEFAULT_DT</span>
+        <span class="k">if</span> <span class="n">evolve_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">evolve_method</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">rk4</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rk4</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">limits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">limits</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_allowed_timestep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt_ksec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">/</span> <span class="mf">1000.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eng_match_times</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tstop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ksecs</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1000.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datestart</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstart</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datestop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstop</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evolve_method</span> <span class="o">=</span> <span class="n">evolve_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rk4</span> <span class="o">=</span> <span class="n">rk4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">limits</span> <span class="o">=</span> <span class="n">limits</span>
+
+        <span class="k">if</span> <span class="n">model_spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="s1">&#39;bad_times&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_spec</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;bad_times&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="p">:</span>
+            <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">([</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span><span class="o">.</span><span class="n">secs</span>
+            <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pars</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">model_spec</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_from_model_spec</span><span class="p">(</span><span class="n">model_spec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd_states</span> <span class="o">=</span> <span class="n">cmd_states</span>
+
+    <span class="k">def</span> <span class="nf">_get_allowed_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method ensures that only certain timesteps are chosen,</span>
+<span class="sd">        which are integer multiples of 8.2 and where 328.0/dt is an</span>
+<span class="sd">        integer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dt</span> <span class="o">&gt;</span> <span class="n">DEFAULT_DT</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;dt = </span><span class="si">%g</span><span class="s2"> s greater than upper &quot;</span>
+                           <span class="s2">&quot;limit of </span><span class="si">%g</span><span class="s2"> s! &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">DEFAULT_DT</span><span class="p">)</span> <span class="o">+</span>
+                           <span class="s2">&quot;Setting dt = </span><span class="si">%g</span><span class="s2"> s.&quot;</span> <span class="o">%</span> <span class="n">DEFAULT_DT</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">DEFAULT_DT</span>
+        <span class="n">dt_factor</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">/</span> <span class="n">DEFAULT_DT</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dt_factor</span><span class="o">-</span><span class="n">dt_factors</span><span class="p">))</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">DEFAULT_DT</span><span class="o">*</span><span class="n">dt_factors</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using dt = </span><span class="si">%g</span><span class="s2"> s.&quot;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dt</span>
+
+    <span class="k">def</span> <span class="nf">_set_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;comps&#39;</span><span class="p">]:</span>
+            <span class="n">ComponentClass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">comp</span><span class="p">[</span><span class="s1">&#39;class_name&#39;</span><span class="p">])</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">comp</span><span class="p">[</span><span class="s1">&#39;init_args&#39;</span><span class="p">]</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comp</span><span class="p">[</span><span class="s1">&#39;init_kwargs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ComponentClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">pars</span> <span class="o">=</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;pars&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Number of spec pars does not match model: </span><span class="se">\n</span><span class="s1">&#39;</span>
+                             <span class="s1">&#39;</span><span class="si">{0}</span><span class="se">\n</span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pars</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">specpar</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">,</span> <span class="n">pars</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">specpar</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">specpar</span><span class="p">[</span><span class="n">attr</span><span class="p">])</span>
+
+<div class="viewcode-block" id="XijaModel.inherit_from_model_spec"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.inherit_from_model_spec">[docs]</a>    <span class="k">def</span> <span class="nf">inherit_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inherit_spec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Inherit parameter values from any like-named parameters within the</span>
+<span class="sd">        inherit_spec model specification.  This is useful for making a new</span>
+<span class="sd">        variation of an existing model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">inherit_spec</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">inherit_spec</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">inherit_pars</span> <span class="o">=</span> <span class="p">{</span><span class="n">par</span><span class="p">[</span><span class="s1">&#39;full_name&#39;</span><span class="p">]:</span> <span class="n">par</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">inherit_spec</span><span class="p">[</span><span class="s1">&#39;pars&#39;</span><span class="p">]}</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">full_name</span> <span class="ow">in</span> <span class="n">inherit_pars</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inheriting par </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">))</span>
+                <span class="n">par</span><span class="o">.</span><span class="n">val</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s1">&#39;val&#39;</span><span class="p">]</span>
+                <span class="n">par</span><span class="o">.</span><span class="n">min</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s1">&#39;min&#39;</span><span class="p">]</span>
+                <span class="n">par</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s1">&#39;max&#39;</span><span class="p">]</span>
+                <span class="n">par</span><span class="o">.</span><span class="n">frozen</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s1">&#39;frozen&#39;</span><span class="p">]</span>
+                <span class="n">par</span><span class="o">.</span><span class="n">fmt</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s1">&#39;fmt&#39;</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_eng_match_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return an array of times between ``start`` and ``stop`` at ``dt``</span>
+<span class="sd">        sec intervals.  The times are roughly aligned (within 1 sec) to the</span>
+<span class="sd">        timestamps in the &#39;5min&#39; (328 sec) Ska eng archive data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">time0</span> <span class="o">=</span> <span class="mf">410270764.0</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">DateTime</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span> <span class="o">-</span> <span class="n">time0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">i1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span> <span class="o">-</span> <span class="n">time0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">time0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+
+    <span class="k">def</span> <span class="nf">_get_cmd_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cmd_states&#39;</span><span class="p">):</span>
+            <span class="kn">import</span> <span class="nn">kadi.commands.states</span> <span class="k">as</span> <span class="nn">kadi_states</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting kadi commanded states over </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datestart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datestop</span><span class="p">))</span>
+            <span class="n">states</span> <span class="o">=</span> <span class="n">kadi_states</span><span class="o">.</span><span class="n">get_states</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datestart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datestop</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_states</span> <span class="o">=</span> <span class="n">kadi_states</span><span class="o">.</span><span class="n">interpolate_states</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span><span class="o">.</span><span class="n">as_array</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_states</span>
+
+    <span class="k">def</span> <span class="nf">_set_cmd_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the states that define component data inputs.</span>
+
+<span class="sd">        :param states: numpy structured array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">states</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;tstart&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span>
+                <span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;tstop&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cmd_states time range too small:</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                 <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> : </span><span class="si">{}</span><span class="s1"> versus </span><span class="si">{}</span><span class="s1"> : </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;tstart&#39;</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;tstop&#39;</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+            <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="s1">&#39;tstop&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_states</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
+
+    <span class="n">cmd_states</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_cmd_states</span><span class="p">,</span> <span class="n">_set_cmd_states</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;test cmdstats&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="XijaModel.fetch"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msid</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;vals&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get data from the Chandra engineering archive.&quot;&quot;&quot;</span>
+        <span class="n">tpad</span> <span class="o">=</span> <span class="n">DEFAULT_DT</span><span class="o">*</span><span class="mf">5.0</span>
+        <span class="n">datestart</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="o">-</span> <span class="n">tpad</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
+        <span class="n">datestop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstop</span> <span class="o">+</span> <span class="n">tpad</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Fetching msid: </span><span class="si">%s</span><span class="s1"> over </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">Ska.engarchive.fetch_sci</span> <span class="k">as</span> <span class="nn">fetch</span>
+            <span class="n">tlm</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">MSID</span><span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s1">&#39;5min&#39;</span><span class="p">)</span>
+            <span class="n">tlm</span><span class="o">.</span><span class="n">filter_bad_times</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Ska.engarchive.fetch not available&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="ow">or</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstop</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Fetched telemetry does not span model start and &#39;</span>
+                             <span class="s1">&#39;stop times for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msid</span><span class="p">))</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">Ska</span><span class="o">.</span><span class="n">Numpy</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">tlm</span><span class="p">,</span> <span class="n">attr</span><span class="p">),</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vals</span></div>
+
+<div class="viewcode-block" id="XijaModel.interpolate_data"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.interpolate_data">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Interpolate supplied ``data`` values at the model times using</span>
+<span class="sd">        nearest-neighbor or state value interpolation.</span>
+
+<span class="sd">        The ``times`` arg can be either a 1-d or 2-d ndarray.  If 1-d,</span>
+<span class="sd">        then ``data`` is interpreted as a set of values at the specified</span>
+<span class="sd">        ``times``.  If 2-d then ``data`` is interpreted as a set of binned</span>
+<span class="sd">        state values with ``tstarts = times[0, :]`` and</span>
+<span class="sd">        ``tstops = times[1, :]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Data length not equal to model times&#39;</span>
+                                 <span class="s1">&#39; for </span><span class="si">{}</span><span class="s1"> component&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comp</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">!=</span> <span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Data length not equal to data times&#39;</span>
+                             <span class="s1">&#39; for </span><span class="si">{}</span><span class="s1"> component&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comp</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">times</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Data value specification</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">Ska</span><span class="o">.</span><span class="n">Numpy</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+                                         <span class="n">method</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">times</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># State-value specification</span>
+            <span class="n">tstarts</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">tstops</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tstarts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">tstops</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Model times extend outside the state value&#39;</span>
+                                 <span class="s1">&#39; data_times for component </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comp</span><span class="p">))</span>
+            <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">tstops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;data_times for </span><span class="si">{}</span><span class="s1"> has </span><span class="si">{}</span><span class="s1"> dimensions, &#39;</span>
+                             <span class="s1">&#39; must be either 1 or 2&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comp</span><span class="p">,</span> <span class="n">times</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">vals</span></div>
+
+<div class="viewcode-block" id="XijaModel.add"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ComponentClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new component to the model&quot;&quot;&quot;</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">ComponentClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Store args and kwargs used to initialize object for later object</span>
+        <span class="c1"># storage and re-creation</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">init_args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="n">comp</span><span class="o">.</span><span class="n">init_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp</span><span class="p">[</span><span class="n">comp</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">pars</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">comp</span></div>
+
+    <span class="n">comps</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <span class="sd">&quot;&quot;&quot;List of model components&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="XijaModel.get_comp"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_comp">[docs]</a>    <span class="k">def</span> <span class="nf">get_comp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a model component.  Works with either a string or a component</span>
+<span class="sd">        object&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a full model specification data structure for this</span>
+<span class="sd">        model&quot;&quot;&quot;</span>
+        <span class="n">model_spec</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                          <span class="n">comps</span><span class="o">=</span><span class="p">[],</span>
+                          <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+                          <span class="n">datestart</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datestart</span><span class="p">,</span>
+                          <span class="n">datestop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datestop</span><span class="p">,</span>
+                          <span class="n">tlm_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">mval_names</span><span class="o">=</span><span class="p">[],</span>
+                          <span class="n">evolve_method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evolve_method</span><span class="p">,</span>
+                          <span class="n">rk4</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rk4</span><span class="p">)</span>
+
+        <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;bad_times&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span>
+
+        <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;pars&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">par</span><span class="p">)</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">]</span>
+
+        <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;limits&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span>
+
+        <span class="n">stringfy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">ModelComponent</span><span class="p">)</span>
+                              <span class="k">else</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span><span class="p">:</span>
+            <span class="n">init_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">stringfy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">init_args</span><span class="p">]</span>
+            <span class="n">init_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">stringfy</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                               <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">init_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;comps&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">class_name</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                            <span class="n">name</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                            <span class="n">init_args</span><span class="o">=</span><span class="n">init_args</span><span class="p">,</span>
+                                            <span class="n">init_kwargs</span><span class="o">=</span><span class="n">init_kwargs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">model_spec</span>
+
+<div class="viewcode-block" id="XijaModel.write_vals"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write_vals">[docs]</a>    <span class="k">def</span> <span class="nf">write_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write dvals and mvals for each model component (as applicable) to an</span>
+<span class="sd">        ascii table file.  Some component have neither (couplings), some have</span>
+<span class="sd">        just dvals (TelemData), others have both (Node, AcisDpaPower).</span>
+<span class="sd">        Everything is guaranteed to be time synced, so write a single time</span>
+<span class="sd">        column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">colvals</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">comp</span><span class="p">,</span> <span class="s1">&#39;dvals&#39;</span><span class="p">):</span>
+                <span class="n">colvals</span><span class="p">[</span><span class="n">comp</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">dvals</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">comp</span><span class="p">,</span> <span class="s1">&#39;mvals&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">comp</span><span class="o">.</span><span class="n">predict</span><span class="p">:</span>
+                <span class="n">colvals</span><span class="p">[</span><span class="n">comp</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">mvals</span>
+
+        <span class="n">ascii</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">colvals</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">colvals</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="XijaModel.write"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the model specification as JSON or Python to a file.</span>
+
+<span class="sd">        If the file name ends with &quot;.py&quot; then the output will the Python</span>
+<span class="sd">        code to create the model (using ``get_model_code()``), otherwise</span>
+<span class="sd">        the JSON model specification will be written.</span>
+
+<span class="sd">        :param filename: output filename</span>
+<span class="sd">        :param model_spec: model spec structure (optional)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">model_spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_spec</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">):</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_model_code</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model_spec</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XijaModel.get_model_code"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_model_code">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return Python code that will create the current model.</span>
+
+<span class="sd">        This is useful during model development as a way to derive from and</span>
+<span class="sd">        modify existing models while retaining good parameter values.</span>
+
+<span class="sd">        :returns: string of Python code</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_spec</span>
+
+        <span class="n">model_call</span> <span class="o">=</span> <span class="s2">&quot;model = xija.XijaModel(</span><span class="si">{}</span><span class="s2">, start=</span><span class="si">{}</span><span class="s2">, stop=</span><span class="si">{}</span><span class="s2">, dt=</span><span class="si">{}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">model_call</span> <span class="o">+=</span> <span class="s2">&quot;evolve_method=</span><span class="si">{}</span><span class="s2"> rk4=</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;import sys&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;import xija</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">model_call</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="s1">&#39;datestart&#39;</span><span class="p">]),</span>
+                                <span class="nb">repr</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="s1">&#39;datestop&#39;</span><span class="p">]),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="s1">&#39;dt&#39;</span><span class="p">]),</span>
+                                <span class="nb">repr</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="s1">&#39;evolve_method&#39;</span><span class="p">]),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="s1">&#39;rk4&#39;</span><span class="p">])),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">ms</span><span class="p">[</span><span class="s1">&#39;comps&#39;</span><span class="p">]:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comp</span><span class="p">[</span><span class="s1">&#39;init_args&#39;</span><span class="p">]]</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                      <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comp</span><span class="p">[</span><span class="s1">&#39;init_kwargs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;model.add(xija.</span><span class="si">{}</span><span class="s1">,&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comp</span><span class="p">[</span><span class="s1">&#39;class_name&#39;</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;          </span><span class="si">{}</span><span class="s1">,&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">arg</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">kwarg</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;          </span><span class="si">{}</span><span class="s1">,&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwarg</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;         )&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="n">parattrs</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt&#39;</span><span class="p">,</span> <span class="s1">&#39;frozen&#39;</span><span class="p">)</span>
+        <span class="n">last_comp_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">ms</span><span class="p">[</span><span class="s1">&#39;pars&#39;</span><span class="p">]:</span>
+            <span class="n">comp_name</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;comp_name&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">comp_name</span> <span class="o">!=</span> <span class="n">last_comp_name</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# Set </span><span class="si">{}</span><span class="s1"> component parameters&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comp_name</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;comp = model.get_comp(</span><span class="si">{}</span><span class="s1">)</span><span class="se">\n</span><span class="s1">&#39;</span> \
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">comp_name</span><span class="p">)),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;par = comp.get_par(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+            <span class="n">par_upds</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="n">attr</span><span class="p">]))</span>
+                        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">parattrs</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;par.update(dict(</span><span class="si">{}</span><span class="s1">))</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">par_upds</span><span class="p">)),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+            <span class="n">last_comp_name</span> <span class="o">=</span> <span class="n">comp_name</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;model.bad_times = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="p">)),</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;if len(sys.argv) &gt; 1:&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    model.write(sys.argv[1])&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a (read-only) tuple of parameter values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">val</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the full list of parameter values.  No provision is made for</span>
+<span class="sd">        setting individual elements or slicing (use self.pars directly in this</span>
+<span class="sd">        case).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Length mismatch setting parvals </span><span class="si">{}</span><span class="s1"> vs </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+            <span class="n">par</span><span class="o">.</span><span class="n">val</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="n">parvals</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_parvals</span><span class="p">,</span> <span class="n">_set_parvals</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a tuple of all model parameter names&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XijaModel.make"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make">[docs]</a>    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Call self.make_mvals and self.make_tmal to prepare for model evaluation</span>
+<span class="sd">        once all model components have been added.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_mvals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_tmal</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="XijaModel.make_mvals"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_mvals">[docs]</a>    <span class="k">def</span> <span class="nf">make_mvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the global mvals (model values) array.  This is an</span>
+<span class="sd">        N (rows) x n_times (cols) array that contains all data needed</span>
+<span class="sd">        to compute the model prediction.  All rows are initialized to</span>
+<span class="sd">        relevant data values (e.g. node temps, time-dependent power,</span>
+<span class="sd">        external temperatures, etc).  In the model calculation some</span>
+<span class="sd">        rows will be overwritten with predictions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Select components with data values, and from those select ones that</span>
+        <span class="c1"># get predicted and those that do not get predicted</span>
+        <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">n_mvals</span><span class="p">]</span>
+        <span class="n">preds</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">predict</span><span class="p">]</span>
+        <span class="n">unpreds</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">predict</span><span class="p">]</span>
+
+        <span class="c1"># Register the location of component mvals in global mvals</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">preds</span> <span class="o">+</span> <span class="n">unpreds</span><span class="p">:</span>
+            <span class="n">comp</span><span class="o">.</span><span class="n">mvals_i</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="n">comp</span><span class="o">.</span><span class="n">n_mvals</span>
+
+        <span class="c1"># Stack the input dvals.  This *copies* the data values.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_preds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">preds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">comp</span><span class="o">.</span><span class="n">dvals</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">preds</span> <span class="o">+</span> <span class="n">unpreds</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">comps</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># why doesn&#39;t this use vstack?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="XijaModel.make_tmal"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_tmal">[docs]</a>    <span class="k">def</span> <span class="nf">make_tmal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Make the TMAL &quot;code&quot; using components that generate TMAL</span>
+<span class="sd">        statements&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span><span class="p">:</span>
+            <span class="n">comp</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="n">tmal_comps</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;tmal_ints&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmal_ints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">tmal_comps</span><span class="p">),</span> <span class="n">tmal</span><span class="o">.</span><span class="n">N_INTS</span><span class="p">),</span>
+                                  <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmal_floats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">tmal_comps</span><span class="p">),</span> <span class="n">tmal</span><span class="o">.</span><span class="n">N_FLOATS</span><span class="p">),</span>
+                                    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tmal_comps</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tmal_ints</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">tmal_ints</span><span class="p">)]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">tmal_ints</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tmal_floats</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">tmal_floats</span><span class="p">)]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">tmal_floats</span></div>
+
+<div class="viewcode-block" id="XijaModel.calc"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the model.  The results appear in the self.mvals array.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_tmal</span><span class="p">()</span>
+        <span class="c1"># int calc_model(int n_times, int n_preds, int n_tmals, float dt,</span>
+        <span class="c1">#                float **mvals, int **tmal_ints, float **tmal_floats)</span>
+
+        <span class="n">mvals</span> <span class="o">=</span> <span class="n">convert_type_star_star</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">)</span>
+        <span class="n">tmal_ints</span> <span class="o">=</span> <span class="n">convert_type_star_star</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmal_ints</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">)</span>
+        <span class="n">tmal_floats</span> <span class="o">=</span> <span class="n">convert_type_star_star</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmal_floats</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">evolve_method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_ksec</span> <span class="o">*</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core_1</span><span class="o">.</span><span class="n">calc_model_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_times</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_preds</span><span class="p">,</span>
+                                     <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmal_ints</span><span class="p">),</span> <span class="n">dt</span><span class="p">,</span> <span class="n">mvals</span><span class="p">,</span>
+                                     <span class="n">tmal_ints</span><span class="p">,</span> <span class="n">tmal_floats</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">evolve_method</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_ksec</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core_2</span><span class="o">.</span><span class="n">calc_model_2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rk4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_preds</span><span class="p">,</span>
+                                     <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmal_ints</span><span class="p">),</span> <span class="n">dt</span><span class="p">,</span> <span class="n">mvals</span><span class="p">,</span>
+                                     <span class="n">tmal_ints</span><span class="p">,</span> <span class="n">tmal_floats</span><span class="p">)</span>
+
+        <span class="c1"># hackish fix to ensure last value is computed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="XijaModel.calc_stat"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_stat">[docs]</a>    <span class="k">def</span> <span class="nf">calc_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate model fit statistic as the sum of component fit stats&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calc</span><span class="p">()</span>            <span class="c1"># parvals already set with dummy_calc</span>
+        <span class="n">fit_stat</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">calc_stat</span><span class="p">()</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span> <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">predict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fit_stat</span></div>
+
+<div class="viewcode-block" id="XijaModel.calc_staterror"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_staterror">[docs]</a>    <span class="k">def</span> <span class="nf">calc_staterror</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate model fit statistic error (dummy array for Sherpa use)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">date_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return formatted date range string&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstart</span><span class="p">)</span><span class="o">.</span><span class="n">greta</span><span class="p">[:</span><span class="mi">7</span><span class="p">],</span>
+                          <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstop</span><span class="p">)</span><span class="o">.</span><span class="n">greta</span><span class="p">[:</span><span class="mi">7</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">core_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_1&quot; ctypes shared object libary that does the</span>
+<span class="sd">        low-level model calculation via the C &quot;calc_model_1&quot; routine.  Only</span>
+<span class="sd">        load once by setting/returning a class attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">XijaModel</span><span class="p">,</span> <span class="s1">&#39;_core_1&#39;</span><span class="p">):</span>
+            <span class="n">loader_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+            <span class="n">_core_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">load_library</span><span class="p">(</span><span class="s1">&#39;core_1&#39;</span><span class="p">,</span> <span class="n">loader_path</span><span class="p">)</span>
+            <span class="n">_core_1</span><span class="o">.</span><span class="n">calc_model_1</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span>
+            <span class="n">_core_1</span><span class="o">.</span><span class="n">calc_model_1</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">,</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">,</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">)),</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">)),</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">))</span>
+                <span class="p">]</span>
+            <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_1</span> <span class="o">=</span> <span class="n">_core_1</span>
+        <span class="k">return</span> <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">core_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_2&quot; ctypes shared object libary that does the</span>
+<span class="sd">        low-level model calculation via the C &quot;calc_model_2&quot; routine.  Only</span>
+<span class="sd">        load once by setting/returning a class attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">XijaModel</span><span class="p">,</span> <span class="s1">&#39;_core_2&#39;</span><span class="p">):</span>
+            <span class="n">loader_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+            <span class="n">_core_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">load_library</span><span class="p">(</span><span class="s1">&#39;core_2&#39;</span><span class="p">,</span> <span class="n">loader_path</span><span class="p">)</span>
+            <span class="n">_core_2</span><span class="o">.</span><span class="n">calc_model_2</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span>
+            <span class="n">_core_2</span><span class="o">.</span><span class="n">calc_model_2</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">,</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">,</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">)),</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">)),</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">))</span>
+            <span class="p">]</span>
+            <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_2</span> <span class="o">=</span> <span class="n">_core_2</span>
+        <span class="k">return</span> <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_2</span>
+
+    <span class="k">def</span> <span class="nf">append_mask_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">):</span>
+        <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span>
+        <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reset_mask_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">annotate_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">draw_line</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;ax</span><span class="si">{}</span><span class="s1">line&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">dir</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;acisi_data_quality&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;acisi_data_quality&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;aciss_data_quality&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;aciss_data_quality&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;purple&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;planning_caution_high&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;planning_caution_high&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;planning_warning_low&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;planning_warning_low&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;planning_warning_high&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;planning_warning_high&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;odb_caution_low&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;odb_caution_low&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gold&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;odb_caution_high&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;odb_caution_high&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gold&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;odb_warning_low&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;odb_warning_low&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;odb_warning_high&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">:</span>
+            <span class="n">draw_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limits</span><span class="p">[</span><span class="s1">&#39;odb_warning_high&#39;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span></div>
+
+<span class="n">ThermalModel</span> <span class="o">=</span> <span class="n">XijaModel</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2016, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>

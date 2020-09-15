@@ -1,0 +1,640 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial &#8212; xija 4.19.1.dev18+gc34a0c9 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API docs" href="api.html" />
+    <link rel="prev" title="Design overview" href="design.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">Ska!</span><span id="logotext2">xija</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="">
+        <span id="logotext1"></span><span id="logotext2"></span>
+    </a></li>
+    <li><a title="General Index" href="genindex.html">Index</a></li>
+    <li><a title="Module Index" href="py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="api.html" title="API docs">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="design.html" title="Design overview">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">xija 4.19.1.dev18+gc34a0c9 documentation</a>
+	 &#187;
+      </li>
+      
+      <li>Tutorial</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="setup-for-xija-modeling">
+<h2>Setup for Xija modeling<a class="headerlink" href="#setup-for-xija-modeling" title="Permalink to this headline">¶</a></h2>
+<p>When you first start working with Xija create a local copy of the Xija source code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% mkdir -p ~/git  # OR WHEREVER, but ~/git is easiest!
+% cd ~/git
+% git clone git://github.com/sot/xija.git  # on HEAD
+% git clone /proj/sot/ska/git/xija         # on GRETA
+% cd xija
+% setenv XIJA $PWD
+% python setup.py build_ext --inplace  # build C core module
+</pre></div>
+</div>
+<p>Later on you should work in your xija repository and update to the latest development version of Xija:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">cd</span> <span class="o">~/</span><span class="n">git</span><span class="o">/</span><span class="n">xija</span>
+<span class="o">%</span> <span class="n">git</span> <span class="n">pull</span>   <span class="c1"># Update with latest dev version of xija</span>
+<span class="o">%</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build_ext</span> <span class="o">--</span><span class="n">inplace</span>  <span class="c1"># build C core module</span>
+</pre></div>
+</div>
+<p>Finally set the PYTHONPATH environment variable to ensure that you import
+your local version of xija from any sub-directory where you might be
+working:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% setenv PYTHONPATH $XIJA
+</pre></div>
+</div>
+</div>
+<div class="section" id="navigating-the-xija-source">
+<h2>Navigating the Xija source<a class="headerlink" href="#navigating-the-xija-source" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://github.com/sot/xija">Xija source</a> is always available at <a class="reference external" href="http://github.com">github</a>.  Within the <strong>Files</strong> tab you will find a directory
+browser.  At the top level you will see the <code class="docutils literal notranslate"><span class="pre">xija</span></code> directory that contains
+the actual Xija package files.  There is also <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code> that is the GUI
+model fitting tool.  Within the <code class="docutils literal notranslate"><span class="pre">xija</span></code> directory the key files are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">py</span>             <span class="n">Top</span><span class="o">-</span><span class="n">level</span> <span class="n">model</span> <span class="k">class</span> <span class="nc">and</span> <span class="n">functionality</span>
+<span class="n">component</span><span class="o">/</span>           <span class="n">Model</span> <span class="n">components</span> <span class="n">directory</span>
+          <span class="n">base</span><span class="o">.</span><span class="n">py</span>    <span class="n">Base</span> <span class="n">components</span> <span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">HeatSink</span><span class="p">,</span> <span class="n">TelemData</span><span class="p">,</span> <span class="n">etc</span><span class="p">)</span>
+          <span class="n">heat</span><span class="o">.</span><span class="n">py</span>    <span class="n">Heat</span> <span class="n">components</span> <span class="p">(</span><span class="n">SolarHeat</span><span class="p">,</span> <span class="n">passive</span> <span class="ow">and</span> <span class="n">active</span> <span class="n">heaters</span><span class="p">)</span>
+          <span class="n">mask</span><span class="o">.</span><span class="n">py</span>    <span class="n">Mask</span> <span class="n">components</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-and-understanding-models">
+<h2>Creating and understanding models<a class="headerlink" href="#creating-and-understanding-models" title="Permalink to this headline">¶</a></h2>
+<p>The example models show here are available in the <code class="docutils literal notranslate"><span class="pre">examples/doc/</span></code> directory of the Xija git repository.</p>
+<p>Each model component is handled by a
+separate Python class.  Some currently implemented examples include:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="api.html#xija.component.base.ModelComponent" title="xija.component.base.ModelComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelComponent</span></code></a> : model component base class (name, parameter methods)</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.base.Node" title="xija.component.base.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> : single node with a temperature, sigma, data_quantization, etc</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.base.Coupling" title="xija.component.base.Coupling"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coupling</span></code></a> : Couple two nodes together (one-way coupling)</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.base.HeatSink" title="xija.component.base.HeatSink"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeatSink</span></code></a> : Fixed temperature external heat bath</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.heat.SolarHeat" title="xija.component.heat.SolarHeat"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolarHeat</span></code></a> : Solar heating (pitch dependent)</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.heat.EarthHeat" title="xija.component.heat.EarthHeat"><code class="xref py py-class docutils literal notranslate"><span class="pre">EarthHeat</span></code></a> : Earth heating of ACIS cold radiator (attitude, ephem dependent)</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.heat.PropHeater" title="xija.component.heat.PropHeater"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropHeater</span></code></a> : Proportional heater (P = k * (T - T_set) for T &gt; T_set)</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.heat.ThermostatHeater" title="xija.component.heat.ThermostatHeater"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThermostatHeater</span></code></a> : Thermostat heater (with configurable deadband)</p></li>
+<li><p><a class="reference internal" href="api.html#xija.component.heat.AcisDpaStatePower" title="xija.component.heat.AcisDpaStatePower"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcisDpaStatePower</span></code></a> : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)</p></li>
+</ul>
+<div class="section" id="example-1-simplest-model">
+<h3>Example 1: simplest model<a class="headerlink" href="#example-1-simplest-model" title="Permalink to this headline">¶</a></h3>
+<p>Start with the simplest example with a single node with solar heating.  We use only two
+bin points at 45 and 180 degrees.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">xija</span><span class="o">.</span><span class="n">XijaModel</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s1">&#39;2015:001&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s1">&#39;2015:050&#39;</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="s1">&#39;aacccdpt&#39;</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">Pitch</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">Eclipse</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">SolarHeat</span><span class="p">,</span>
+          <span class="n">node</span><span class="o">=</span><span class="s1">&#39;aacccdpt&#39;</span><span class="p">,</span>
+          <span class="n">pitch_comp</span><span class="o">=</span><span class="s1">&#39;pitch&#39;</span><span class="p">,</span>
+          <span class="n">eclipse_comp</span><span class="o">=</span><span class="s1">&#39;eclipse&#39;</span><span class="p">,</span>
+          <span class="n">P_pitches</span><span class="o">=</span><span class="p">[</span><span class="mi">45</span><span class="p">,</span> <span class="mi">180</span><span class="p">],</span>
+          <span class="n">Ps</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+          <span class="n">ampl</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+          <span class="n">epoch</span><span class="o">=</span><span class="s1">&#39;2010:001&#39;</span><span class="p">,</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p>To make and run the model do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% cd $XIJA/examples/doc
+% python example1.py
+% ../../gui_fit.py example1.json --autoscale
+</pre></div>
+</div>
+<p>Points for discussion:</p>
+<ul class="simple">
+<li><p>What is fundamentally wrong with this model?</p></li>
+</ul>
+</div>
+<div class="section" id="example-2-add-a-heat-sink">
+<h3>Example 2: add a heat sink<a class="headerlink" href="#example-2-add-a-heat-sink" title="Permalink to this headline">¶</a></h3>
+<p>Same as example 1, but add a heat sink with a temperature of -16 C and a tau of 30 ksec.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">HeatSink</span><span class="p">,</span>
+          <span class="n">node</span><span class="o">=</span><span class="s1">&#39;aacccdpt&#39;</span><span class="p">,</span>
+          <span class="n">tau</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+          <span class="n">T</span><span class="o">=-</span><span class="mf">16.0</span><span class="p">,</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p>To make and run the model do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% cd $XIJA/examples/doc
+% python example2.py
+% ../../gui_fit.py example2.json --autoscale
+</pre></div>
+</div>
+<p>Points for discussion:</p>
+<ul class="simple">
+<li><p>Twiddle each fittable parameter and observe the response.</p></li>
+<li><p>Use a longer interval <cite>./gui_fit.py example2.json –autoscale –stop=2015:240 –days=400</cite>
+for dP and solar amplitude.</p></li>
+<li><p>Discuss epoch: <cite>./gui_fit.py example2.json –autoscale –stop=2015:240 –days=400 –keep-epoch</cite>.
+It is important to verify that SolarHeat epoch is explicitly in JSON file in order
+to have auto-epoch updating.  This should be an <code class="docutils literal notranslate"><span class="pre">&quot;epoch&quot;</span></code> field in the <code class="docutils literal notranslate"><span class="pre">&quot;init_kwargs&quot;</span></code>
+element of <code class="docutils literal notranslate"><span class="pre">SolarHeat</span></code> components.  (Note: <code class="docutils literal notranslate"><span class="pre">SolarHeatOffNomRoll</span></code> is a bit different
+and does not have an epoch).</p></li>
+</ul>
+</div>
+<div class="section" id="example-3-add-pitch-bins">
+<h3>Example 3: add pitch bins<a class="headerlink" href="#example-3-add-pitch-bins" title="Permalink to this headline">¶</a></h3>
+<p>Same as example 2, but now the <code class="docutils literal notranslate"><span class="pre">SolarHeat</span></code> component has 6 pitch bins:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">SolarHeat</span><span class="p">,</span>
+          <span class="n">node</span><span class="o">=</span><span class="s1">&#39;aacccdpt&#39;</span><span class="p">,</span>
+          <span class="n">pitch_comp</span><span class="o">=</span><span class="s1">&#39;pitch&#39;</span><span class="p">,</span>
+          <span class="n">eclipse_comp</span><span class="o">=</span><span class="s1">&#39;eclipse&#39;</span><span class="p">,</span>
+          <span class="p">[</span><span class="mi">45</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">115</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">180</span><span class="p">],</span>
+          <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span>
+          <span class="n">ampl</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+          <span class="n">epoch</span><span class="o">=</span><span class="s1">&#39;2010:001&#39;</span><span class="p">,</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p>To make and run the model do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% cd $XIJA/examples/doc
+% python example2.py
+% ../../gui_fit.py example3.json --stop=2015:240 --days=400
+</pre></div>
+</div>
+<p>Points for discussion:</p>
+<ul class="simple">
+<li><p>Why no <code class="docutils literal notranslate"><span class="pre">--autoscale</span></code>?</p></li>
+<li><p>Fit the model</p>
+<ul>
+<li><p>Naive try.</p></li>
+<li><p>Set heat sink time scale</p></li>
+</ul>
+</li>
+<li><p>Managing degenerate model parameters (heatsink T, solarheat bias, solarheat P values).</p></li>
+<li><p>But note: eclipse data breaks degeneracy.  This can be used for short-timescale components.</p></li>
+<li><p>Save the best fit as <code class="docutils literal notranslate"><span class="pre">example3_fit.json</span></code></p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="working-with-a-model">
+<h2>Working with a model<a class="headerlink" href="#working-with-a-model" title="Permalink to this headline">¶</a></h2>
+<p>As an example, here is the code (available in <code class="docutils literal notranslate"><span class="pre">examples/dpa/plot_dpa_resid.py</span></code>) to plot
+residuals versus temperature for the ACIS DPA model.  You can run this with
+<code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">examples/dpa;</span> <span class="pre">python</span> <span class="pre">plot_dpa_resid.py</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xija</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">Ska.Matplotlib</span> <span class="kn">import</span> <span class="n">pointpair</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="s1">&#39;2010:001&#39;</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="s1">&#39;2011:345&#39;</span>
+
+<span class="n">msid</span> <span class="o">=</span> <span class="s1">&#39;1dpamzt&#39;</span>
+<span class="n">model_spec</span> <span class="o">=</span> <span class="s1">&#39;dpa.json&#39;</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">xija</span><span class="o">.</span><span class="n">XijaModel</span><span class="p">(</span><span class="s1">&#39;dpa&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span>
+                          <span class="n">model_spec</span><span class="o">=</span><span class="n">model_spec</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">make</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">calc</span><span class="p">()</span>
+
+<span class="n">dpa</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_comp</span><span class="p">(</span><span class="n">msid</span><span class="p">)</span>
+<span class="n">resid</span> <span class="o">=</span> <span class="n">dpa</span><span class="o">.</span><span class="n">dvals</span> <span class="o">-</span> <span class="n">dpa</span><span class="o">.</span><span class="n">mvals</span>
+
+<span class="n">xscatter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dpa</span><span class="o">.</span><span class="n">dvals</span><span class="p">))</span>
+<span class="n">yscatter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dpa</span><span class="o">.</span><span class="n">dvals</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dpa</span><span class="o">.</span><span class="n">dvals</span> <span class="o">+</span> <span class="n">xscatter</span><span class="p">,</span> <span class="n">resid</span> <span class="o">+</span> <span class="n">yscatter</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> telemetry (degC)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msid</span><span class="o">.</span><span class="n">upper</span><span class="p">()))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Data - Model (degC)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Residual vs. Data (</span><span class="si">{}</span><span class="s1"> - </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">))</span>
+
+<span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mf">26.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="n">r1</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">r99</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">ns</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">xs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+    <span class="n">ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">dpa</span><span class="o">.</span><span class="n">dvals</span> <span class="o">&gt;=</span> <span class="n">x0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dpa</span><span class="o">.</span><span class="n">dvals</span> <span class="o">&lt;</span> <span class="n">x1</span><span class="p">)</span>
+    <span class="n">val1</span><span class="p">,</span> <span class="n">val99</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">resid</span><span class="p">[</span><span class="n">ok</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">99</span><span class="p">])</span>
+    <span class="n">xs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0</span> <span class="o">+</span> <span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">r1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val1</span><span class="p">)</span>
+    <span class="n">r99</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val99</span><span class="p">)</span>
+    <span class="n">ns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ok</span><span class="p">))</span>
+
+<span class="n">xspp</span> <span class="o">=</span> <span class="n">pointpair</span><span class="p">(</span><span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="n">r1pp</span> <span class="o">=</span> <span class="n">pointpair</span><span class="p">(</span><span class="n">r1</span><span class="p">)</span>
+<span class="n">r99pp</span> <span class="o">=</span> <span class="n">pointpair</span><span class="p">(</span><span class="n">r99</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xspp</span><span class="p">,</span> <span class="n">r1pp</span><span class="p">,</span> <span class="s1">&#39;-r&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xspp</span><span class="p">,</span> <span class="n">r99pp</span><span class="p">,</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;1</span><span class="si">% a</span><span class="s1">nd 99</span><span class="si">% li</span><span class="s1">mits&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">],</span> <span class="s1">&#39;g--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;+/- 3.5 degC&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">],</span> <span class="s1">&#39;g--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">r99</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s1">&#39;N=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+         <span class="n">rotation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;dpa_resid_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">ThermalModel</span></code> is a synonym for <code class="docutils literal notranslate"><span class="pre">XijaModel</span></code> available for back-compatibility,
+but new code should use <code class="docutils literal notranslate"><span class="pre">XijaModel</span></code>.</p>
+</div>
+</div>
+<div class="section" id="modifying-an-existing-model">
+<h2>Modifying an existing model<a class="headerlink" href="#modifying-an-existing-model" title="Permalink to this headline">¶</a></h2>
+<p>Much of the time the best way to create a new model is to start from an
+existing model.  There are a few strategies for doing this:</p>
+<ul class="simple">
+<li><p>Extend an existing model at the Python API level</p></li>
+<li><p>Create a new model in Python and inherit existing model parameters</p></li>
+<li><p>Directly edit the model JSON specification</p></li>
+<li><p>Convert the model spec to Python and edit the Python</p></li>
+</ul>
+<div class="section" id="extend-an-existing-model">
+<h3>Extend an existing model<a class="headerlink" href="#extend-an-existing-model" title="Permalink to this headline">¶</a></h3>
+<p>If you have an existing model (e.g. <code class="docutils literal notranslate"><span class="pre">pcm03t</span></code> from the previous examples) and
+want to extend it by adding a model component, the technique is to read in the
+model,  add the component, make the model, and then write out the new model.
+This is illustrated in the <a class="reference external" href="xija_extend_model.html">Xija extend model</a> notebook.</p>
+</div>
+<div class="section" id="inherit-from-an-existing-model">
+<h3>Inherit from an existing model<a class="headerlink" href="#inherit-from-an-existing-model" title="Permalink to this headline">¶</a></h3>
+<p>This option provides a way to use some of the existing (calibrated) components
+from an existing model.  In particular if you want to remove a component this
+is one way to do it. This is illustrated in the <a class="reference external" href="xija_inherit.html">Xija inherit</a> IPython notebook.</p>
+</div>
+<div class="section" id="edit-the-model-specification">
+<h3>Edit the model specification<a class="headerlink" href="#edit-the-model-specification" title="Permalink to this headline">¶</a></h3>
+<p>Xija models are stored in a file format called <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a>.  This captures the model definition,
+model parameters, and also everything about the GUI fit application (screen
+size, plots, frozen / thawed parameters) when the model was saved.</p>
+<p>Although it requires a bit of care, sometimes the easiest way to produce a
+derived model is by directly editing the JSON model specification.</p>
+</div>
+<div class="section" id="convert-model-spec-back-to-python">
+<h3>Convert model spec back to Python<a class="headerlink" href="#convert-model-spec-back-to-python" title="Permalink to this headline">¶</a></h3>
+<p>A very good way to modify an existing model spec is to write it back out as
+Python code.  This can be done in three ways:</p>
+<ul>
+<li><p>Within <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code> save the model with a name ending in <code class="docutils literal notranslate"><span class="pre">.py</span></code></p></li>
+<li><p>Within a Python session or script use the <code class="docutils literal notranslate"><span class="pre">write()</span></code> method of a Xija model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">xija</span><span class="o">.</span><span class="n">XijaModel</span><span class="p">(</span><span class="s1">&#39;mdl&#39;</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="s1">&#39;mdl.json&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;mdl.py&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>From the command line use the <cite>xija.convert</cite> module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">xija</span><span class="o">.</span><span class="n">convert</span> <span class="o">--</span><span class="n">help</span>
+<span class="o">%</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">xija</span><span class="o">.</span><span class="n">convert</span> <span class="n">mdl</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="fitting-a-model">
+<h2>Fitting a model<a class="headerlink" href="#fitting-a-model" title="Permalink to this headline">¶</a></h2>
+<p>So far we have been manually working with a Xija model to understand a bit of
+what is going on underneath and know how to make performance predictions.
+However, the key task of actually calibrating the model parameters is done with
+the <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code> application.</p>
+<p>GUI fit overview</p>
+<p>The image below shows an example of fitting the ACIS DPA model with
+<code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code>.</p>
+<a class="reference internal image-reference" href="_images/gui_fit_guide.png"><img alt="_images/gui_fit_guide.png" src="_images/gui_fit_guide.png" style="width: 100%;" /></a>
+<p>Live demo using a Ska window:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $XIJA/examples/pcm
+../../gui_fit.py pcm.json --stop 2012:095 --days 30
+</pre></div>
+</div>
+<div class="section" id="command-line-options">
+<h3>Command line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h3>
+<p>The GUI fit tool supports the following command line options:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="o">./</span><span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">usage</span><span class="p">:</span> <span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">days</span> <span class="n">DAYS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">stop</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">fit</span><span class="o">-</span><span class="n">method</span> <span class="n">FIT_METHOD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">inherit</span><span class="o">-</span><span class="kn">from</span> <span class="nn">INHERIT_FROM</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="nb">set</span><span class="o">-</span><span class="n">data</span> <span class="n">SET_DATA_EXPRS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">quiet</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">keep</span><span class="o">-</span><span class="n">epoch</span><span class="p">]</span>
+                  <span class="n">filename</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">filename</span>              <span class="n">Model</span> <span class="n">file</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">--</span><span class="n">days</span> <span class="n">DAYS</span>           <span class="n">Number</span> <span class="n">of</span> <span class="n">days</span> <span class="ow">in</span> <span class="n">fit</span> <span class="n">interval</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">90</span>
+  <span class="o">--</span><span class="n">stop</span> <span class="n">STOP</span>           <span class="n">Stop</span> <span class="n">time</span> <span class="n">of</span> <span class="n">fit</span> <span class="n">interval</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">model</span> <span class="n">values</span><span class="p">)</span>
+  <span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span>         <span class="n">Number</span> <span class="n">of</span> <span class="n">processors</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+  <span class="o">--</span><span class="n">fit</span><span class="o">-</span><span class="n">method</span> <span class="n">FIT_METHOD</span>
+                        <span class="n">Sherpa</span> <span class="n">fit</span> <span class="n">method</span> <span class="p">(</span><span class="n">simplex</span><span class="o">|</span><span class="n">moncar</span><span class="o">|</span><span class="n">levmar</span><span class="p">)</span>
+  <span class="o">--</span><span class="n">inherit</span><span class="o">-</span><span class="kn">from</span> <span class="nn">INHERIT_FROM</span>
+                        <span class="n">Inherit</span> <span class="n">par</span> <span class="n">values</span> <span class="kn">from</span> <span class="nn">model</span> <span class="n">spec</span> <span class="n">file</span>
+  <span class="o">--</span><span class="nb">set</span><span class="o">-</span><span class="n">data</span> <span class="n">SET_DATA_EXPRS</span>
+                        <span class="n">Set</span> <span class="n">data</span> <span class="n">value</span> <span class="k">as</span> <span class="s1">&#39;&lt;comp_name&gt;=&lt;value&gt;&#39;</span>
+  <span class="o">--</span><span class="n">quiet</span>               <span class="n">Suppress</span> <span class="n">screen</span> <span class="n">output</span>
+  <span class="o">--</span><span class="n">keep</span><span class="o">-</span><span class="n">epoch</span>          <span class="n">Maintain</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">SolarHeat</span> <span class="n">models</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">recenter</span>
+                        <span class="n">on</span> <span class="n">fit</span> <span class="n">interval</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Most of the time you should use the <code class="docutils literal notranslate"><span class="pre">--days</span></code> and <code class="docutils literal notranslate"><span class="pre">--stop</span></code> options.  Note that
+if you have saved a model specification and then restart <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code>, the
+most recently specified values will be used by default.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--nproc</span></code></dt><dd><p>This option has not been tested recently though it might work.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--fit-method</span></code></dt><dd><p>The default fit method is <code class="docutils literal notranslate"><span class="pre">simplex</span></code> which is a good compromise between speed
+and completeness.  For the fastest fitting use <code class="docutils literal notranslate"><span class="pre">levmar</span></code>.  If already have
+somewhat decent parameters and want to try to refine for the very best fit
+then select <code class="docutils literal notranslate"><span class="pre">moncar</span></code>.  However, do not choose this option with more than
+about 10 or 15 free parameters as it can take a long time.  Typically with
+<code class="docutils literal notranslate"><span class="pre">moncar</span></code> you need to start the fitting and then do something else for a
+while (many hours or more).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--inherit-from</span></code></dt><dd><p>This provides a way to construct a model which is similar to an existing
+model but has some differences.  All the model parameters which are
+exactly the same will be taking from the inherited model specification.</p>
+</dd>
+</dl>
+<p>Assuming you have created a model specification file <code class="docutils literal notranslate"><span class="pre">my_model_spec.json</span></code>
+then a typical calling sequence from the Xija source directory is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">stop</span> <span class="mi">2012</span><span class="p">:</span><span class="mi">002</span> <span class="o">--</span><span class="n">days</span> <span class="mi">180</span> <span class="n">my_model_spec</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="manipulating-plots">
+<h3>Manipulating plots<a class="headerlink" href="#manipulating-plots" title="Permalink to this headline">¶</a></h3>
+<p>Many model components have built-in plots that can be added to the fit window
+via the <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">plots...</span></code> drop down menu.  The available plot names correspond to the
+model component followed by a description of the plot.  Plots can be deleted by
+pressing the corresponding <code class="docutils literal notranslate"><span class="pre">Delete</span></code> button.</p>
+<p>One handy feature is that the time-based plots are always linked in the time
+axis so that if you zoom in to one then all plots zoom accordingly.  When you
+want to go back to the full view you can use the <code class="docutils literal notranslate"><span class="pre">Home</span></code> button on the plot
+where you originally zoomed.</p>
+</div>
+<div class="section" id="manipulating-parameters">
+<h3>Manipulating parameters<a class="headerlink" href="#manipulating-parameters" title="Permalink to this headline">¶</a></h3>
+<p>One of the key features of the GUI fit tool is the ability to visualize and
+manipulate the dozens of parameters in a typical Xija model.</p>
+<p>The parameters are on the right side panel.  Each one has a checkbox that
+indicates whether it will be fit (checked) or not (unchecked).  The value is
+shown, then the minimum allowed fit value, a slider bar to select the value,
+and then the maximum allowed fit value.  As you change the slider the model
+will be recalculated and the plots updated.  It helps to make the GUI fit
+window as wide as possible to make the sliders longer.</p>
+<p>If you want to change the min or max values just type in the box and then hit
+enter.  (If you don’t hit enter the new value won’t apply).</p>
+<p>You can freeze or thaw many parameters at once using the “glob” syntax in the
+entry box at the top of the fit window.  Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">thaw</span> <span class="o">*</span>                 <span class="c1"># thaw all parameters</span>
+<span class="n">freeze</span> <span class="n">solarheat</span><span class="o">*</span>      <span class="c1"># freeze all the solarheat params</span>
+<span class="n">freeze</span> <span class="n">solarheat</span><span class="o">*</span><span class="n">_dP_</span><span class="o">*</span> <span class="c1"># freeze the long-term solarheat variation params</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="fit-strategy">
+<h3>Fit strategy<a class="headerlink" href="#fit-strategy" title="Permalink to this headline">¶</a></h3>
+<p>Fitting Xija models is a bit of an art and will it take some time to develop
+skill here.  A few rules of thumb and tips:</p>
+<ul>
+<li><p>Start with all long-term variations frozen.  You want to begin with a single time span
+that is about a year long and ends near the present.  The more parameters in the model
+that get fit, the more data you need.  Start by try to get the model in the right
+ballpark. Typically this means:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Freeze?   Parameters         Initial values
+-------   ------------------ ----------------------
+freeze    solarheat_*_dP_*        0
+freeze    solarheat_*_tau       365
+freeze    solarheat_*_ampl        0
+freeze    heatsink_T          ~10 deg below typical
+thaw      solarheat_*_P_*         0
+thaw      heatsink_tau        Typical time scale
+thaw      coupling_*             30
+</pre></div>
+</div>
+</li>
+<li><p>Almost always have the <code class="docutils literal notranslate"><span class="pre">solarheat_*_bias</span></code> terms frozen at 0.  This
+parameter is degenerate with the <code class="docutils literal notranslate"><span class="pre">solarheat_*_P_*</span></code> values and is used for
+certain diagnostics.</p></li>
+<li><p>Once you have a model that fits reasonably well over the one year period then freeze all
+parameters <em>except</em> for <code class="docutils literal notranslate"><span class="pre">solarheat_*_dP_*</span></code> and <code class="docutils literal notranslate"><span class="pre">solarheat_*_ampl</span></code> parameters.  Fit
+over a 2-3 year time period which ends at the present time.</p></li>
+<li><p>Next you might want to refine the <code class="docutils literal notranslate"><span class="pre">solarheat_*_P_*</span></code> parameters at this point by
+thawing those ones and freezing the long-term parameters and fitting.  Remember that if
+the time span is not long enough then <code class="docutils literal notranslate"><span class="pre">P</span></code> and <code class="docutils literal notranslate"><span class="pre">dP</span></code> are degenerate and the fit may
+not converge.</p></li>
+<li><p>It can be useful to include long normal-sun dwells in the fitting to have
+some high-temperature data in the fit dataset.</p></li>
+<li><p>Remember to save your model fit when you get a good fit.  It is not saved by
+default and there is currently no warning to this effect.  Often there is a
+progression of model fits and it may be useful to incrementally number the
+models, e.g. <code class="docutils literal notranslate"><span class="pre">pcm03t_1.json</span></code>, <code class="docutils literal notranslate"><span class="pre">pcm03t_2.json</span></code>, etc.  By convention the
+final “flight” models that get configured are called
+<code class="docutils literal notranslate"><span class="pre">&lt;modelname&gt;_model_spec.json</span></code>, so avoid using this name during development.</p></li>
+<li><p>Saving also saves the state of plots and your parameters.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="bad-times">
+<h2>Bad Times<a class="headerlink" href="#bad-times" title="Permalink to this headline">¶</a></h2>
+<p>If there are one or more intervals of time where the data are effectively
+bad for fitting (i.e. the thermal model is not expected to predict accurately
+due to off-nominal spacecraft configuration), then one can add a <code class="docutils literal notranslate"><span class="pre">bad_times</span></code>
+tag to the JSON model file.  This would like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;bad_times&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">[</span>
+            <span class="s2">&quot;2014:001&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;2014:003&quot;</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="s2">&quot;2014:010&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;2014:013&quot;</span>
+        <span class="p">]</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;comps&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;class_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Mask&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;init_args&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;1dpamzt&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gt&quot;</span><span class="p">,</span>
+                <span class="mf">20.0</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;init_kwargs&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;mask__1dpamzt_gt&quot;</span>
+        <span class="p">},</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Permalink to this headline">¶</a></h2>
+<p>The exercise for both teams will be to first get familiar with the GUI fit tool
+by playing with an existing calibrated model.  Do one of the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">cp</span> <span class="o">~</span><span class="n">aldcroft</span><span class="o">/</span><span class="n">git</span><span class="o">/</span><span class="n">xija</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">dpa</span><span class="o">/</span><span class="n">dpa</span><span class="o">.</span><span class="n">json</span> <span class="o">./</span>          <span class="c1"># ACIS</span>
+<span class="o">%</span> <span class="n">cp</span> <span class="o">~</span><span class="n">aldcroft</span><span class="o">/</span><span class="n">git</span><span class="o">/</span><span class="n">xija</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">minusz</span><span class="o">/</span><span class="n">minusz</span><span class="o">.</span><span class="n">json</span> <span class="o">./</span>    <span class="c1"># Spacecraft</span>
+</pre></div>
+</div>
+<p>You will run <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code> specifying the stop time as <code class="docutils literal notranslate"><span class="pre">2012:095</span></code> and
+the number of days to fit as <code class="docutils literal notranslate"><span class="pre">90</span></code>.</p>
+<p>Then do the following:</p>
+<ul class="simple">
+<li><p>Explore the different available plots.</p></li>
+<li><p>Try moving various sliders and see how it affects the model.</p></li>
+<li><p>Try fitting various parameter sets using both the check boxes and the glob
+tool to freeze and thaw.</p></li>
+</ul>
+<div class="section" id="team-acis">
+<h3>Team ACIS<a class="headerlink" href="#team-acis" title="Permalink to this headline">¶</a></h3>
+<p><strong>Goal</strong>: Make a model for 1DEAMZT that is analogous to the 1DPAMZT model.</p>
+<p>Choose the best way to derive a DEA model from the DPA model.</p>
+</div>
+<div class="section" id="team-spacecraft">
+<h3>Team Spacecraft<a class="headerlink" href="#team-spacecraft" title="Permalink to this headline">¶</a></h3>
+<p><strong>Goal</strong>: Make a working model for PCM03T.</p>
+<p>The first step will be to calibrate the PCM03T model that we have created
+which uses TCYLAFT6 and TCYLFMZM as known inputs.  The second step will be to
+integrate the PCM03T model into the MinusZ model.</p>
+<blockquote>
+<div><p>% cp ~aldcroft/git/xija/examples/pcm/pcm.json ./    # Spacecraft</p>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Tutorial</a><ul>
+<li><a class="reference internal" href="#setup-for-xija-modeling">Setup for Xija modeling</a></li>
+<li><a class="reference internal" href="#navigating-the-xija-source">Navigating the Xija source</a></li>
+<li><a class="reference internal" href="#creating-and-understanding-models">Creating and understanding models</a><ul>
+<li><a class="reference internal" href="#example-1-simplest-model">Example 1: simplest model</a></li>
+<li><a class="reference internal" href="#example-2-add-a-heat-sink">Example 2: add a heat sink</a></li>
+<li><a class="reference internal" href="#example-3-add-pitch-bins">Example 3: add pitch bins</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#working-with-a-model">Working with a model</a></li>
+<li><a class="reference internal" href="#modifying-an-existing-model">Modifying an existing model</a><ul>
+<li><a class="reference internal" href="#extend-an-existing-model">Extend an existing model</a></li>
+<li><a class="reference internal" href="#inherit-from-an-existing-model">Inherit from an existing model</a></li>
+<li><a class="reference internal" href="#edit-the-model-specification">Edit the model specification</a></li>
+<li><a class="reference internal" href="#convert-model-spec-back-to-python">Convert model spec back to Python</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fitting-a-model">Fitting a model</a><ul>
+<li><a class="reference internal" href="#command-line-options">Command line options</a></li>
+<li><a class="reference internal" href="#manipulating-plots">Manipulating plots</a></li>
+<li><a class="reference internal" href="#manipulating-parameters">Manipulating parameters</a></li>
+<li><a class="reference internal" href="#fit-strategy">Fit strategy</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bad-times">Bad Times</a></li>
+<li><a class="reference internal" href="#exercises">Exercises</a><ul>
+<li><a class="reference internal" href="#team-acis">Team ACIS</a></li>
+<li><a class="reference internal" href="#team-spacecraft">Team Spacecraft</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="design.html"
+                        title="previous chapter">Design overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">API docs</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tutorial.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="_sources/tutorial.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2016, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>

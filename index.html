@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xija modeling framework &#8212; xija 4.19.1.dev18+gc34a0c9 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Design overview" href="design.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="#"><span id="logotext1">Ska!</span><span id="logotext2">xija</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="">
+        <span id="logotext1"></span><span id="logotext2"></span>
+    </a></li>
+    <li><a title="General Index" href="genindex.html">Index</a></li>
+    <li><a title="Module Index" href="py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="design.html" title="Design overview">
+	  next &raquo;
+	</a>
+      </li>
+      <li>
+	<a href="#">xija 4.19.1.dev18+gc34a0c9 documentation</a>
+	 &#187;
+      </li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="xija-modeling-framework">
+<h1>Xija modeling framework<a class="headerlink" href="#xija-modeling-framework" title="Permalink to this headline">¶</a></h1>
+<p>The Xija modeling framework is used to create, calibrate, and compute
+time-series models.  This package provides a generalized framework to model
+complex time series data using a network of coupled nodes with pluggable model
+components that define the node interactions.  Systems that can be represented
+by a set of coupled first-order differential equations are candidates for Xija
+modeling.</p>
+<p>At present the model components include thermal conduction and passive and
+active heating elements, but the framework itself is fairly general and could
+be used for other applications.  A key feature is a GUI fitting application
+that allows for rapid evaluation of model fit results and interactive
+many-parameter fits of large time-series datasets using the Sherpa fitting
+package.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Design overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="design.html#xija-features">Xija features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#setup-for-xija-modeling">Setup for Xija modeling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#navigating-the-xija-source">Navigating the Xija source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#creating-and-understanding-models">Creating and understanding models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#working-with-a-model">Working with a model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#modifying-an-existing-model">Modifying an existing model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#fitting-a-model">Fitting a model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#bad-times">Bad Times</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#exercises">Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API docs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-xija.model">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#components">Components</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Xija modeling framework</a></li>
+</ul>
+
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="design.html"
+                        title="next chapter">Design overview</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="_sources/index.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2016, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>
