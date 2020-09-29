@@ -1,0 +1,49 @@
+---
+name: Deploy Docs
+on:
+  release:
+    types:
+    - created
+  repository_dispatch:
+    types:
+    - build-docs
+
+jobs:
+  build-linux:
+    runs-on: head
+    name: Deploy Docs
+    steps:
+      - name: Fetch gh-pages
+        uses: actions/checkout@v2
+        with:
+          path: gh-pages
+          ref: gh-pages
+      - name: Fetch source
+        uses: actions/checkout@v2
+        with:
+          path: source
+      - name: clear
+        run: rm -fr gh-pages/docs/*
+      - name: build
+        run: |
+          eval "$(/export/jgonzale/github-workflows/miniconda3-shiny/bin/conda shell.bash hook)"
+          conda activate ska3-masters
+          mkdir -p _static
+          make html
+        working-directory: source/docs
+        env:
+          PYTHONPATH: ${{ github.workspace }}/source
+          GITHUB_API_TOKEN: ${{ secrets.CHANDRA_XRAY_TOKEN }}
+      - name: copy
+        run: cp -fr source/docs/_build/html/* gh-pages/docs
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v4
+        with:
+          ref: "gh-pages"
+          cwd: "gh-pages"
+          author_name: Javier Gonzalez
+          author_email: javierggt@yahoo.com
+          message: "Deploy docs"
+          add: "docs"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
