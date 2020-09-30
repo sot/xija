@@ -27,3 +27,9 @@ Mask classes
 
 .. automodule:: xija.component.mask
    :members:
+
+Get model spec
+--------------
+.. automodule:: xija.get_model_spec
+   :members:
+
