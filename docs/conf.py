@@ -40,6 +40,10 @@ extensions = [
     'numpydoc',
 ]
 
+# Don't show summaries of the members in each class along with the
+# class' docstring
+numpydoc_show_class_members = False
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
