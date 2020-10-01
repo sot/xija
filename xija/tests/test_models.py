@@ -46,10 +46,16 @@ def test_dpa_real():
 
 
 def test_pitch_clip():
-    """
-    Pitch in this time range goes from 48.62 to 158.41.  dpa_clip.json
+    """Pitch in this time range goes from 48.62 to 158.41.  dpa_clip.json
     has been modified so the solarheat pitch range is from 55 .. 153.
     Make sure the model still runs with no interpolation error.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
                        model_spec=abs_path('dpa_clip.json'))
@@ -60,13 +66,19 @@ def test_pitch_clip():
 
 
 def test_pitch_range_clip():
-    """
-    Pitch in this time range goes from approximately 48.5 to 175.0 degrees.
+    """Pitch in this time range goes from approximately 48.5 to 175.0 degrees.
     pftank2t.json is used as a placeholder to load a new thermal model, and
     should be able to be replaced with any other model. Make sure the pitch
     range stored in the model object does not get clipped to a narrower range.
     Make sure the pitch range stored does not include values outside of the 45
     to 180 degree range.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     mdl = ThermalModel('tank', start='2019:120:12:00:00', stop='2019:122:12:00:00',
                        model_spec=abs_path('pftank2t.json'))

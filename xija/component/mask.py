@@ -20,6 +20,13 @@ class Mask(ModelComponent):
       "lt": <
       "eq": ==
       "ne" !=
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, op, val, min_=-1e38, max_=1e38):
         ModelComponent.__init__(self, model)
@@ -69,6 +76,13 @@ class Mask(ModelComponent):
 class MaskBox(Mask):
     """Create object with a ``mask`` attribute corresponding to
       val0 < node.dvals < val1
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, val0, val1, min_=-1000, max_=1000):
         ModelComponent.__init__(self, model)

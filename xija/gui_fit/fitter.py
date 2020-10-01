@@ -93,6 +93,15 @@ class FitWorker(object):
 
     def start(self, widget=None):
         """Start a Sherpa fit process as a spawned (non-blocking) process.
+
+        Parameters
+        ----------
+        widget :
+             (Default value = None)
+
+        Returns
+        -------
+
         """
         self.fit_process = mp.Process(target=self.fit)
         self.fit_process.start()
@@ -101,6 +110,15 @@ class FitWorker(object):
     def terminate(self, widget=None):
         """Terminate a Sherpa fit process in a controlled way by sending a
         message.  Get the final parameter values if possible.
+
+        Parameters
+        ----------
+        widget :
+             (Default value = None)
+
+        Returns
+        -------
+
         """
         if hasattr(self, "fit_process"):
             # Only do this if we had started a fit to begin with

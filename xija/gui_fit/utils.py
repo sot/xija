@@ -36,15 +36,21 @@ def start_in_process_kernel():
 
 
 def in_process_console(console_class=RichJupyterWidget, **kwargs):
-    """
-    Create a console widget, connected to an in-process Kernel
-
+    """Create a console widget, connected to an in-process Kernel
+    
     Keyword arguments will be added to the namespace of the shell.
 
     Parameters
     ----------
-    console_class : `type`
-        The class of the console widget to create
+    console_class :
+         (Default value = RichJupyterWidget)
+    **kwargs :
+        
+
+    Returns
+    -------
+
+    
     """
 
     global kernel_manager, kernel_client
