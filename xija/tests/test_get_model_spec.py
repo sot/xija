@@ -8,11 +8,18 @@ import pytest
 import requests
 
 from ..get_model_spec import (get_xija_model_file, get_xija_model_names,
-                              get_repo_version, check_github_version)
+                              get_repo_version, get_github_version)
+
+try:
+    req = requests.get('https://raw.githubusercontent.com/sot/chandra_models/master/README',
+                       timeout=5)
+    HAS_GITHUB = req.status_code == 200
+except Exception:
+    HAS_GITHUB = False
 
 
 def test_get_model_file_aca():
-    fn = get_xija_model_file('aca')
+    fn = get_xija_model_file('aca', check_version=HAS_GITHUB)
     assert fn.startswith(os.environ['SKA'])
     assert Path(fn).name == 'aca_spec.json'
     spec = json.load(open(fn))
@@ -38,17 +45,18 @@ def test_get_repo_version():
     assert re.match(r'^[0-9.]+$', version)
 
 
+@pytest.mark.skipif('not HAS_GITHUB')
 def test_check_github_version():
     version = get_repo_version()
-    status = check_github_version(version)
+    status = get_github_version() == version
     assert status is True
 
-    status = check_github_version('asdf')
+    status = get_github_version() == 'asdf'
     assert status is False
 
     # Force timeout
-    status = check_github_version(version, timeout=0.00001)
+    status = get_github_version(timeout=0.00001)
     assert status is None
 
     with pytest.raises(requests.ConnectionError):
-        check_github_version(version, 'https://______bad_url______')
+        get_github_version(url='https://______bad_url______')

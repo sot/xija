@@ -4,6 +4,7 @@ Get Chandra model specifications
 """
 import os
 import re
+import warnings
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -12,7 +13,7 @@ import requests
 from Ska.File import get_globfiles
 
 __all__ = ['get_xija_model_file', 'get_xija_model_names', 'get_repo_version',
-           'check_github_version']
+           'get_github_version']
 
 REPO_PATH = Path(os.environ['SKA'], 'data', 'chandra_models')
 MODELS_PATH = REPO_PATH / 'chandra_models' / 'xija'
@@ -23,7 +24,8 @@ def _models_path(repo_path=REPO_PATH) -> Path:
     return Path(repo_path) / 'chandra_models' / 'xija'
 
 
-def get_xija_model_file(model_name, repo_path=REPO_PATH) -> str:
+def get_xija_model_file(model_name, repo_path=REPO_PATH, check_version=False,
+                        timeout=5) -> str:
     """
     Get file name of Xija model specification for the specified ``model_name``.
 
@@ -49,6 +51,11 @@ def get_xija_model_file(model_name, repo_path=REPO_PATH) -> str:
     repo_path : str, Path
         Path to directory containing chandra_models repository (default is
         $SKA/data/chandra_models)
+    check_version : bool
+        Check that the chandra_models repo at the same version as GitHub
+    timeout : int, float
+        Timeout (sec) for querying GitHub for the expected chandra_models version.
+        Default = 5 sec.
 
     Returns
     -------
@@ -68,6 +75,18 @@ def get_xija_model_file(model_name, repo_path=REPO_PATH) -> str:
         names = get_xija_model_names()
         raise ValueError(f'no models matched {model_name}. Available models are: '
                          f'{", ".join(names)}')
+
+    # Get version and also check that local repo is clean and tag is at tip of HEAD
+    repo_version = get_repo_version(repo_path)
+
+    if check_version:
+        gh_version = get_github_version(timeout=timeout)
+        if gh_version is None:
+            warnings.warn('Could not verify GitHub chandra_models release tag '
+                          f'due to timeout ({timeout} sec)')
+        elif repo_version != gh_version:
+            raise ValueError(f'version mismatch: local repo {repo_version} vs '
+                             f'github {gh_version}')
 
     return file_name
 
@@ -134,16 +153,14 @@ def get_repo_version(repo_path: Path = REPO_PATH) -> str:
     return tag_repo.name
 
 
-def check_github_version(tag_name: str, url: str = CHANDRA_MODELS_URL,
-                         timeout: Union[int, float] = 5) -> Optional[bool]:
-    """Check that latest chandra_models GitHub repo release matches ``tag_name``.
+def get_github_version(url: str = CHANDRA_MODELS_URL,
+                       timeout: Union[int, float] = 5) -> Optional[bool]:
+    """Get latest chandra_models GitHub repo release tag (version).
 
     This queries GitHub for the latest release of chandra_models.
 
     Parameters
     ----------
-    tag_name : str
-        Tag name e.g. '3.32'
     url : str
         URL for chandra_models releases on GitHub API
     timeout : int, float
@@ -151,8 +168,8 @@ def check_github_version(tag_name: str, url: str = CHANDRA_MODELS_URL,
 
     Returns
     -------
-    bool, None
-        True if chandra_models release on GitHub matches tag_name.
+    str, None
+        Tag name (str) of latest chandra_models release on GitHub.
         None if the request timed out, indicating indeterminate answer.
     """
     try:
@@ -166,4 +183,4 @@ def check_github_version(tag_name: str, url: str = CHANDRA_MODELS_URL,
     tags_gh = sorted(req.json(), key=lambda tag: tag['published_at'])
     tag_gh_name = tags_gh[-1]['tag_name']
 
-    return tag_gh_name == tag_name
+    return tag_gh_name
