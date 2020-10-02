@@ -24,7 +24,7 @@ def test_get_model_file_fail():
         get_xija_model_file('xxxyyyzzz')
 
     with pytest.raises(FileNotFoundError, match='xija models directory'):
-        get_xija_model_file('aca', models_path='__NOT_A_DIRECTORY__')
+        get_xija_model_file('aca', repo_path='__NOT_A_DIRECTORY__')
 
 
 def test_get_xija_model_names():

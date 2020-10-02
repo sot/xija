@@ -5,7 +5,7 @@ Get Chandra model specifications
 import os
 import re
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from git import Repo
 import requests
@@ -19,7 +19,11 @@ MODELS_PATH = REPO_PATH / 'chandra_models' / 'xija'
 CHANDRA_MODELS_URL = 'https://api.github.com/repos/sot/chandra_models/releases'
 
 
-def get_xija_model_file(model_name, models_path=MODELS_PATH) -> str:
+def _models_path(repo_path=REPO_PATH) -> Path:
+    return Path(repo_path) / 'chandra_models' / 'xija'
+
+
+def get_xija_model_file(model_name, repo_path=REPO_PATH) -> str:
     """
     Get file name of Xija model specification for the specified ``model_name``.
 
@@ -42,8 +46,8 @@ def get_xija_model_file(model_name, models_path=MODELS_PATH) -> str:
     ----------
     model_name : str
         Name of model
-    models_path : str, Path
-        Path to directory containing xija model spec files (default is
+    repo_path : str, Path
+        Path to directory containing chandra_models repository (default is
         $SKA/data/chandra_models)
 
     Returns
@@ -51,7 +55,7 @@ def get_xija_model_file(model_name, models_path=MODELS_PATH) -> str:
     str
         File name of the corresponding Xija model specification
     """
-    models_path = Path(models_path)
+    models_path = _models_path(repo_path)
 
     if not models_path.exists():
         raise FileNotFoundError(f'xija models directory {models_path} does not exist')
@@ -68,14 +72,8 @@ def get_xija_model_file(model_name, models_path=MODELS_PATH) -> str:
     return file_name
 
 
-def get_xija_model_names(models_path=MODELS_PATH) -> List[str]:
+def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:
     """Return list of available xija model names.
-
-    Parameters
-    ----------
-    models_path : str, Path
-        Path to directory containing xija model spec files (default is
-        $SKA/data/chandra_models)
 
     Examples
     --------
@@ -96,12 +94,18 @@ def get_xija_model_names(models_path=MODELS_PATH) -> List[str]:
      'psmc',
      'tcylaft6']
 
+    Parameters
+    ----------
+    repo_path : str, Path
+        Path to directory containing chandra_models repository (default is
+        $SKA/data/chandra_models)
+
     Returns
     -------
     list
         List of available xija model names
     """
-    models_path = Path(models_path)
+    models_path = _models_path(repo_path)
 
     fns = get_globfiles(str(models_path / '*' / '*_spec.json'), minfiles=0, maxfiles=None)
     names = [re.sub(r'_spec\.json', '', Path(fn).name) for fn in sorted(fns)]
@@ -109,7 +113,7 @@ def get_xija_model_names(models_path=MODELS_PATH) -> List[str]:
     return names
 
 
-def get_repo_version() -> str:
+def get_repo_version(repo_path: Path = REPO_PATH) -> str:
     """Return version (most recent tag) of models repository.
 
     Returns
@@ -117,7 +121,7 @@ def get_repo_version() -> str:
     str
         Version (most recent tag) of models repository
     """
-    repo = Repo(REPO_PATH)
+    repo = Repo(repo_path)
 
     if repo.is_dirty():
         raise ValueError('repo is dirty')
@@ -130,7 +134,8 @@ def get_repo_version() -> str:
     return tag_repo.name
 
 
-def check_github_version(tag_name, url=CHANDRA_MODELS_URL, timeout=5) -> Optional[bool]:
+def check_github_version(tag_name: str, url: str = CHANDRA_MODELS_URL,
+                         timeout: Union[int, float] = 5) -> Optional[bool]:
     """Check that latest chandra_models GitHub repo release matches ``tag_name``.
 
     This queries GitHub for the latest release of chandra_models.
