@@ -10,7 +10,7 @@ import warnings
 from pathlib import Path
 from typing import List, Optional, Union
 
-from git import Repo
+import git
 import requests
 from Ska.File import get_globfiles
 
@@ -51,10 +51,11 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
     model_name : str
         Name of model
     version : str
-        Version of chandra_models to use (default=latest from local repo)
+        Tag, branch or commit of chandra_models to use (default=latest tag from
+        repo)
     repo_path : str, Path
-        Path to directory containing chandra_models repository (default is
-        $SKA/data/chandra_models)
+        Path to directory or URL containing chandra_models repository (default
+        is $SKA/data/chandra_models)
     check_version : bool
         Check that ``version`` matches the latest release on GitHub
     timeout : int, float
@@ -66,19 +67,11 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
     dict
         Xija model specification dict
     """
-    repo_path = Path(repo_path)
-
-    if not repo_path.exists():
-        raise FileNotFoundError(f'chandra_models repository {repo_path} does not exist')
-
-    if version is None:
-        return _get_xija_model_spec(model_name, version, repo_path, check_version, timeout)
-
-    repo_ska = Repo(repo_path)
-    with tempfile.TemporaryDirectory() as repo_path:
-        repo = repo_ska.clone(repo_path)
-        repo.git.checkout(version)
-        spec = _get_xija_model_spec(model_name, version, repo_path, check_version, timeout)
+    with tempfile.TemporaryDirectory() as repo_path_local:
+        repo = git.Repo.clone_from(repo_path, repo_path_local)
+        if version is not None:
+            repo.git.checkout(version)
+        spec = _get_xija_model_spec(model_name, version, repo_path_local, check_version, timeout)
 
     return spec
 
@@ -167,7 +160,7 @@ def get_repo_version(repo_path: Path = REPO_PATH) -> str:
     str
         Version (most recent tag) of models repository
     """
-    repo = Repo(repo_path)
+    repo = git.Repo(repo_path)
 
     if repo.is_dirty():
         raise ValueError('repo is dirty')

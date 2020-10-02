@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-import json
-from pathlib import Path
 import re
+
 import pytest
 import requests
+import git
 
 from ..get_model_spec import (get_xija_model_spec, get_xija_model_names,
                               get_repo_version, get_github_version)
@@ -28,7 +27,7 @@ def test_get_model_file_fail():
     with pytest.raises(ValueError, match='no models matched xxxyyyzzz'):
         get_xija_model_spec('xxxyyyzzz')
 
-    with pytest.raises(FileNotFoundError, match='chandra_models repository'):
+    with pytest.raises(git.GitCommandError, match='does not exist'):
         get_xija_model_spec('aca', repo_path='__NOT_A_DIRECTORY__')
 
 
