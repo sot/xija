@@ -11,11 +11,19 @@ import matplotlib.dates as mdates
 
 
 def digitize_data(Ttelem, nbins=50):
-    """ Digitize telemetry.
+    """Digitize telemetry.
 
-    :param Ttelem: telemetry values
-    :param nbins: number of bins
-    :returns: coordinates for error quantile line
+    Parameters
+    ----------
+    Ttelem :
+        telemetry values
+    nbins :
+        number of bins (Default value = 50)
+
+    Returns
+    -------
+    type
+        coordinates for error quantile line
 
     """
 
@@ -30,10 +38,19 @@ def digitize_data(Ttelem, nbins=50):
 
 
 def calcquantiles(errors):
-    """ Calculate the error quantiles.
+    """Calculate the error quantiles.
 
-    :param error: model errors (telemetry - model)
-    :returns: datastructure that includes errors (input) and quantile values
+    Parameters
+    ----------
+    error :
+        model errors (telemetry - model)
+    errors :
+        
+
+    Returns
+    -------
+    type
+        datastructure that includes errors (input) and quantile values
 
     """
 
@@ -51,13 +68,21 @@ def calcquantiles(errors):
 
 
 def calcquantstats(Ttelem, error):
-    """ Calculate error quantiles for individual telemetry temperatures (each count individually).
+    """Calculate error quantiles for individual telemetry temperatures (each count individually).
 
-    :param Ttelem: telemetry values
-    :param error: model error (telemetry - model)
-    :returns: coordinates for error quantile line
+    Parameters
+    ----------
+    Ttelem :
+        telemetry values
+    error :
+        model error (telemetry - model)
 
-    This is used for the telemetry vs. error plot (axis 3).
+    Returns
+    -------
+    type
+        coordinates for error quantile line
+        
+        This is used for the telemetry vs. error plot (axis 3).
 
     """
 
@@ -76,14 +101,22 @@ def calcquantstats(Ttelem, error):
 
 
 def getQuantPlotPoints(quantstats, quantile):
-    """ Calculate the error quantile line coordinates for the data in each telemetry count value.
+    """Calculate the error quantile line coordinates for the data in each telemetry count value.
 
-    :param quantstats: output from calcquantstats()
-    :param quantile: quantile (string - e.g. "q01"), used as a key into quantstats datastructure
-    :returns: coordinates for error quantile line
+    Parameters
+    ----------
+    quantstats :
+        output from calcquantstats()
+    quantile :
+        quantile (string - e.g. "q01"), used as a key into quantstats datastructure
 
-    This is used to calculate the quantile lines plotted on the telemetry vs. error plot (axis 3)
-    enclosing the data (i.e. the 1 and 99 percentile lines).
+    Returns
+    -------
+    type
+        coordinates for error quantile line
+        
+        This is used to calculate the quantile lines plotted on the telemetry vs. error plot (axis 3)
+        enclosing the data (i.e. the 1 and 99 percentile lines).
 
     """
 
@@ -106,8 +139,16 @@ def get_radzones(model):
 
 
 def clearLayout(layout):
-    """
-    From http://stackoverflow.com/questions/9374063/pyqt4-remove-widgets-and-layout-as-well
+    """From http://stackoverflow.com/questions/9374063/pyqt4-remove-widgets-and-layout-as-well
+
+    Parameters
+    ----------
+    layout :
+        
+
+    Returns
+    -------
+
     """
     if layout is not None:
         while layout.count():

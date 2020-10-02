@@ -12,7 +12,15 @@ from .. import tmal
 
 class Param(dict):
     """Model component parameter.  Inherits from dict but adds attribute access
-    for convenience."""
+    for convenience.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
     def __init__(self, comp_name, name, val, min=-1e38, max=1e38,
                  fmt="{:.4g}", frozen=False):
         dict.__init__(self)
@@ -63,9 +71,7 @@ class ModelComponent(object):
         self.pars.append(param)
 
     def _getAttributeNames(self):
-        """
-        Add dynamic attribute names for IPython completer.
-        """
+        """Add dynamic attribute names for IPython completer."""
         return [par.name for par in self.pars]
 
     def __getattr__(self, attr):
@@ -190,21 +196,35 @@ class CmdStatesData(TelemData):
 
 class Node(TelemData):
     """Time-series dataset for prediction.
-
+    
     If the ``sigma`` value is negative then sigma is computed from the
     node data values as the specified percent of the data standard
     deviation.  The default ``sigma`` value is -10, so this implies
     using a sigma of 10% of the data standard deviation.  If ``sigma``
     is set to 0 then the fit statistic is set to 0.0 for this node.
 
-    :param model: parent model
-    :param msid: MSID for telemetry data
-    :param name: component name (default=``msid``)
-    :param sigma: sigma value used in chi^2 fit statistic
-    :param quant: use quantized stats (not currently implemented)
-    :param predict: compute prediction for this node (default=True)
-    :param mask: Mask component for masking values from fit statistic
-    :param data: Node data (None or a single value)
+    Parameters
+    ----------
+    model :
+        parent model
+    msid :
+        MSID for telemetry data
+    name :
+        component name (default=``msid``)
+    sigma :
+        sigma value used in chi^2 fit statistic
+    quant :
+        use quantized stats (not currently implemented)
+    predict :
+        compute prediction for this node (default=True)
+    mask :
+        Mask component for masking values from fit statistic
+    data :
+        Node data (None or a single value)
+
+    Returns
+    -------
+
     """
     def __init__(self, model, msid, sigma=-10, quant=None,
                  predict=True, mask=None, name=None, data=None,
@@ -224,6 +244,13 @@ class Node(TelemData):
     def randx(self):
         """Random X-offset for plotting which is a uniform distribution
         with width = self.quant or 1.0
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         if not hasattr(self, '_randx'):
             dx = self.quant or 1.0
@@ -307,8 +334,15 @@ class Coupling(ModelComponent):
     """\
     First-order coupling between Nodes `node1` and `node2`
     ::
-
+    
       dy1/dt = -(y1 - y2) / tau
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node1, node2, tau):
         ModelComponent.__init__(self, model)
@@ -350,14 +384,21 @@ class HeatSinkRef(ModelComponent):
     tau does not affect the mean model temperature.  This requires an extra
     non-fitted parameter T_ref which corresponds to a reference temperature for
     the node.::
-
+    
       dT/dt = U * (Te - T)
             = P + U* (T_ref - T)   # reparameterization
-
+    
       P = U * (Te - T_ref)
       Te = P / U + T_ref
-
+    
     In code below, "T" corresponds to "Te" above.  The "T" above is node.dvals.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, T=0.0, tau=20.0, T_ref=20.0):
         ModelComponent.__init__(self, model)
@@ -399,6 +440,13 @@ class Pitch(TelemData):
 class AcisFPtemp(Node):
     """Make a wrapper around MSID FPTEMP_11 because that currently comes from
     the eng_archive in K instead of C.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     def __init__(self, model, mask=None):
         Node.__init__(self, model, 'fptemp_11', mask=mask)

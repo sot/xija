@@ -789,23 +789,23 @@ class MainWindow(object):
     def open_console(self):
 
         def fit():
-            """
-            Perform a fit.
-            """
+            """Perform a fit."""
             self.fit_worker.start()
             self.fit_monitor()
 
         def freeze(params):
-            """
-            Freeze the parameter or parameters which
+            """Freeze the parameter or parameters which
             correspond to the given glob pattern.
 
             Parameters
             ----------
             params : string
-                The name of the parameter to freeze. 
+                The name of the parameter to freeze.
                 Multiple parameters can be specified using
                 a glob/regex pattern.
+
+            Returns
+            -------
 
             Examples
             --------
@@ -814,16 +814,18 @@ class MainWindow(object):
             self.parse_command("freeze {}".format(params))
 
         def thaw(params):
-            """
-            Thaw the parameter or parameters which
+            """Thaw the parameter or parameters which
             correspond to the given glob pattern.
 
             Parameters
             ----------
             params : string
-                The name of the parameter to thaw. 
+                The name of the parameter to thaw.
                 Multiple parameters can be specified using
                 a glob/regex pattern.
+
+            Returns
+            -------
 
             Examples
             --------
@@ -832,8 +834,7 @@ class MainWindow(object):
             self.parse_command("thaw {}".format(params))
 
         def ignore(tstart, tstop):
-            """
-            Ignore specified time ranges when performing a fit.
+            """Ignore specified time ranges when performing a fit.
 
             Parameters
             ----------
@@ -846,12 +847,15 @@ class MainWindow(object):
                 If None, this will default to the end of the
                 imported data range.
 
+            Returns
+            -------
+
             Examples
             --------
             >>> # When only the year and DOY are included,
             >>> # assumed time is 12:00:00
             >>> ignore("2019:100:09:10:12", "2019:200")
-
+            
             >>> ignore(None, "2019:056:17:15:10")
             """
             if tstart is None:
@@ -861,10 +865,16 @@ class MainWindow(object):
             self.parse_command("ignore {} {}".format(tstart, tstop))
 
         def notice():
-            """
-            Remove all time masks which were set by the
+            """Remove all time masks which were set by the
             *ignore* command. Note: this does not remove
             "bad times".
+
+            Parameters
+            ----------
+
+            Returns
+            -------
+
             """
             self.parse_command("notice")
 
@@ -983,6 +993,13 @@ class MainWindow(object):
         possibility for other commands later) and the subsequent args are
         space-delimited parameter globs using the UNIX file-globbing syntax.
         This then sets the corresponding params_table checkbuttons.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         widget = self.cbp.command_entry
         command = widget.text().strip()

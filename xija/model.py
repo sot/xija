@@ -61,9 +61,9 @@ class FetchError(Exception):
 class XijaModel(object):
     """Xija model class to encapsulate all ModelComponents and provide the
     infrastructure to define and evaluate models.
-
+    
     The parameters ``name``, ``start``, and ``stop`` are determined as follows:
-
+    
     - If a model specification is provided then that sets the default values
       for keywords that are not supplied to the class init call.
     - ``evolve_method = 1`` uses the original ODE solver which treats every
@@ -74,16 +74,31 @@ class XijaModel(object):
       ``stop = NOW - 30 days``, ``dt = 328 secs``, ``evolve_method = 1``,
       ``rk4 = 0``
 
-    :param name: model name
-    :param start: model start time (any DateTime format)
-    :param stop: model stop time (any DateTime format)
-    :param dt: delta time step (default=328 sec)
-    :param model_spec: model specification (None | filename | dict)
-    :param cmd_states: commanded states input (None | structured array)
-    :param evolve_method: choose method to evolve ODE (None | 1 or 2, default 1)
-    :param rk4: use 4th-order Runge-Kutta to evolve ODE, only works with
-           evolve_method == 2 (None | 0 or 1, default 0)
-    :param limits: dict of limit values (None | dict)
+    Parameters
+    ----------
+    name :
+        model name
+    start :
+        model start time (any DateTime format)
+    stop :
+        model stop time (any DateTime format)
+    dt :
+        delta time step (default=328 sec)
+    model_spec :
+        model specification (None | filename | dict)
+    cmd_states :
+        commanded states input (None | structured array)
+    evolve_method :
+        choose method to evolve ODE (None | 1 or 2, default 1)
+    rk4 :
+        use 4th-order Runge-Kutta to evolve ODE, only works with
+        evolve_method == 2 (None | 0 or 1, default 0)
+    limits :
+        dict of limit values (None | dict)
+
+    Returns
+    -------
+
     """
     def __init__(self, name=None, start=None, stop=None, dt=None,
                  model_spec=None, cmd_states=None, evolve_method=None,
@@ -151,10 +166,18 @@ class XijaModel(object):
         self.cmd_states = cmd_states
 
     def _get_allowed_timestep(self, dt):
-        """
-        This method ensures that only certain timesteps are chosen,
+        """This method ensures that only certain timesteps are chosen,
         which are integer multiples of 8.2 and where 328.0/dt is an
         integer.
+
+        Parameters
+        ----------
+        dt :
+            
+
+        Returns
+        -------
+
         """
         if dt > DEFAULT_DT:
             logger.warning("dt = %g s greater than upper "
@@ -186,6 +209,15 @@ class XijaModel(object):
         """Inherit parameter values from any like-named parameters within the
         inherit_spec model specification.  This is useful for making a new
         variation of an existing model.
+
+        Parameters
+        ----------
+        inherit_spec :
+            
+
+        Returns
+        -------
+
         """
         try:
             inherit_spec = json.load(open(inherit_spec, 'r'))
@@ -203,9 +235,21 @@ class XijaModel(object):
                 par.fmt = inherit_pars[par.full_name]['fmt']
 
     def _eng_match_times(self, start, stop):
-        """Return an array of times between ``start`` and ``stop`` at ``dt``
-        sec intervals.  The times are roughly aligned (within 1 sec) to the
-        timestamps in the '5min' (328 sec) Ska eng archive data.
+        """
+
+        Parameters
+        ----------
+        start :
+            
+        stop :
+            
+
+        Returns
+        -------
+        type
+            sec intervals.  The times are roughly aligned (within 1 sec) to the
+            timestamps in the '5min' (328 sec) Ska eng archive data.
+
         """
         time0 = 410270764.0
         i0 = int((DateTime(start).secs - time0) / self.dt) + 1
@@ -225,7 +269,14 @@ class XijaModel(object):
     def _set_cmd_states(self, states):
         """Set the states that define component data inputs.
 
-        :param states: numpy structured array
+        Parameters
+        ----------
+        states :
+            numpy structured array
+
+        Returns
+        -------
+
         """
         if states is not None:
             if (states[0]['tstart'] >= self.times[0] or
@@ -242,7 +293,21 @@ class XijaModel(object):
     """test cmdstats"""
 
     def fetch(self, msid, attr='vals', method='linear'):
-        """Get data from the Chandra engineering archive."""
+        """Get data from the Chandra engineering archive.
+
+        Parameters
+        ----------
+        msid :
+            
+        attr :
+             (Default value = 'vals')
+        method :
+             (Default value = 'linear')
+
+        Returns
+        -------
+
+        """
         tpad = DEFAULT_DT*5.0
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
@@ -264,12 +329,25 @@ class XijaModel(object):
     def interpolate_data(self, data, times, comp=None):
         """Interpolate supplied ``data`` values at the model times using
         nearest-neighbor or state value interpolation.
-
+        
         The ``times`` arg can be either a 1-d or 2-d ndarray.  If 1-d,
         then ``data`` is interpreted as a set of values at the specified
         ``times``.  If 2-d then ``data`` is interpreted as a set of binned
         state values with ``tstarts = times[0, :]`` and
         ``tstops = times[1, :]``.
+
+        Parameters
+        ----------
+        data :
+            
+        times :
+            
+        comp :
+             (Default value = None)
+
+        Returns
+        -------
+
         """
         if times is None:
             if len(data) != self.n_times:
@@ -298,7 +376,21 @@ class XijaModel(object):
         return vals
 
     def add(self, ComponentClass, *args, **kwargs):
-        """Add a new component to the model"""
+        """Add a new component to the model
+
+        Parameters
+        ----------
+        ComponentClass :
+            
+        *args :
+            
+        **kwargs :
+            
+
+        Returns
+        -------
+
+        """
         comp = ComponentClass(self, *args, **kwargs)
         # Store args and kwargs used to initialize object for later object
         # storage and re-creation
@@ -315,13 +407,31 @@ class XijaModel(object):
 
     def get_comp(self, name):
         """Get a model component.  Works with either a string or a component
-        object"""
+        object
+
+        Parameters
+        ----------
+        name :
+            
+
+        Returns
+        -------
+
+        """
         return None if name is None else self.comp[str(name)]
 
     @property
     def model_spec(self):
         """Generate a full model specification data structure for this
-        model"""
+        model
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         model_spec = dict(name=self.name,
                           comps=[],
                           dt=self.dt,
@@ -356,6 +466,15 @@ class XijaModel(object):
         just dvals (TelemData), others have both (Node, AcisDpaPower).
         Everything is guaranteed to be time synced, so write a single time
         column.
+
+        Parameters
+        ----------
+        filename :
+            
+
+        Returns
+        -------
+
         """
         colvals = OrderedDict(time=self.times)
         for comp in self.comps:
@@ -368,13 +487,21 @@ class XijaModel(object):
 
     def write(self, filename, model_spec=None):
         """Write the model specification as JSON or Python to a file.
-
+        
         If the file name ends with ".py" then the output will the Python
         code to create the model (using ``get_model_code()``), otherwise
         the JSON model specification will be written.
 
-        :param filename: output filename
-        :param model_spec: model spec structure (optional)
+        Parameters
+        ----------
+        filename :
+            output filename
+        model_spec :
+            model spec structure (optional) (Default value = None)
+
+        Returns
+        -------
+
         """
         if model_spec is None:
             model_spec = self.model_spec
@@ -387,11 +514,18 @@ class XijaModel(object):
 
     def get_model_code(self):
         """Return Python code that will create the current model.
-
+        
         This is useful during model development as a way to derive from and
         modify existing models while retaining good parameter values.
 
-        :returns: string of Python code
+        Parameters
+        ----------
+
+        Returns
+        -------
+        type
+            string of Python code
+
         """
         out = StringIO()
         ms = self.model_spec
@@ -438,13 +572,23 @@ class XijaModel(object):
         return out.getvalue()
 
     def _get_parvals(self):
-        """Return a (read-only) tuple of parameter values."""
+        """ """
         return tuple(par.val for par in self.pars)
 
     def _set_parvals(self, vals):
         """Set the full list of parameter values.  No provision is made for
         setting individual elements or slicing (use self.pars directly in this
-        case)."""
+        case).
+
+        Parameters
+        ----------
+        vals :
+            
+
+        Returns
+        -------
+
+        """
         if len(vals) != len(self.pars):
             raise ValueError('Length mismatch setting parvals {} vs {}'.format(
                     len(self.pars), len(vals)))
@@ -455,12 +599,20 @@ class XijaModel(object):
 
     @property
     def parnames(self):
-        """Return a tuple of all model parameter names"""
+        """ """
         return tuple(par.full_name for par in self.pars)
 
     def make(self):
         """Call self.make_mvals and self.make_tmal to prepare for model evaluation
-        once all model components have been added."""
+        once all model components have been added.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         self.make_mvals()
         self.make_tmal()
 
@@ -471,6 +623,13 @@ class XijaModel(object):
         relevant data values (e.g. node temps, time-dependent power,
         external temperatures, etc).  In the model calculation some
         rows will be overwritten with predictions.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         # Select components with data values, and from those select ones that
         # get predicted and those that do not get predicted
@@ -491,8 +650,16 @@ class XijaModel(object):
         self.cvals = self.mvals[:, 0::2]
 
     def make_tmal(self):
-        """ Make the TMAL "code" using components that generate TMAL
-        statements"""
+        """Make the TMAL "code" using components that generate TMAL
+        statements
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         for comp in self.comps:
             comp.update()
         tmal_comps = [x for x in self.comps if hasattr(x, 'tmal_ints')]
@@ -535,12 +702,22 @@ class XijaModel(object):
         return fit_stat
 
     def calc_staterror(self, data):
-        """Calculate model fit statistic error (dummy array for Sherpa use)"""
+        """Calculate model fit statistic error (dummy array for Sherpa use)
+
+        Parameters
+        ----------
+        data :
+            
+
+        Returns
+        -------
+
+        """
         return np.ones_like(data)
 
     @property
     def date_range(self):
-        """Return formatted date range string"""
+        """ """
         return '%s_%s' % (DateTime(self.tstart).greta[:7],
                           DateTime(self.tstop).greta[:7])
 
@@ -549,6 +726,13 @@ class XijaModel(object):
         """Lazy-load the "core_1" ctypes shared object libary that does the
         low-level model calculation via the C "calc_model_1" routine.  Only
         load once by setting/returning a class attribute.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         if not hasattr(XijaModel, '_core_1'):
             loader_path = os.path.abspath(os.path.dirname(__file__))
@@ -569,6 +753,13 @@ class XijaModel(object):
         """Lazy-load the "core_2" ctypes shared object libary that does the
         low-level model calculation via the C "calc_model_2" routine.  Only
         load once by setting/returning a class attribute.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         if not hasattr(XijaModel, '_core_2'):
             loader_path = os.path.abspath(os.path.dirname(__file__))

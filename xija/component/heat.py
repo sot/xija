@@ -47,22 +47,36 @@ class PrecomputedHeatPower(ModelComponent):
 
 class ActiveHeatPower(ModelComponent):
     """Component that provides active heat power input which depends on
-    current or past computed model values"""
+    current or past computed model values
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
     pass
 
 
 class SolarHeatOffNomRoll(PrecomputedHeatPower):
-    """
-    Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
+    """Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
     heating is proportional to the projection of the sun on body +Y axis (which is a value
     from -1 to 1).  There are two parameters ``P_plus_y`` and ``P_minus_y``.  For sun on
     the +Y side the ``P_plus_y`` parameter is used, and likewise for sun on -Y.  For
     example for +Y sun::
-
+    
        heat = P_plus_y * sun_body_y
-
+    
     The following reference has useful diagrams concerning off-nominal roll and
     projections: http://occweb.cfa.harvard.edu/twiki/pub/Aspect/WebHome/ROLLDEV3.pdf.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
 
     def __init__(self, model, node, pitch_comp, roll_comp, eclipse_comp=None,
@@ -102,18 +116,36 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
 class SolarHeat(PrecomputedHeatPower):
     """Solar heating (pitch dependent)
 
-    :param model: parent model
-    :param node: node which is coupled to solar heat
-    :param pitch_comp: solar Pitch component
-    :param eclipse_comp: Eclipse component (optional)
-    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
-    :param Ps: list of solar heating values (default=[1.0, ...])
-    :param dPs: list of delta heating values (default=[0.0, ...])
-    :param var_func: variability function ('exp' | 'linear')
-    :param tau: variability timescale (days)
-    :param ampl: ampl of annual sinusoidal heating variation
-    :param bias: constant offset to all solar heating values
-    :param epoch: reference date at which ``Ps`` values apply
+    Parameters
+    ----------
+    model :
+        parent model
+    node :
+        node which is coupled to solar heat
+    pitch_comp :
+        solar Pitch component
+    eclipse_comp :
+        Eclipse component (optional)
+    P_pitches :
+        list of pitch values (default=[45, 65, 90, 130, 180])
+    Ps :
+        list of solar heating values (default=[1.0, ...])
+    dPs :
+        list of delta heating values (default=[0.0, ...])
+    var_func :
+        variability function ('exp' | 'linear')
+    tau :
+        variability timescale (days)
+    ampl :
+        ampl of annual sinusoidal heating variation
+    bias :
+        constant offset to all solar heating values
+    epoch :
+        reference date at which ``Ps`` values apply
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
@@ -211,8 +243,7 @@ class SolarHeat(PrecomputedHeatPower):
         self._epoch = value
 
     def dvals_post_hook(self):
-        """Override this method to adjust self._dvals after main computation.
-        """
+        """Override this method to adjust self._dvals after main computation."""
         pass
 
     def _compute_dvals(self):
@@ -298,21 +329,42 @@ class SolarHeatMulplicative(SolarHeat):
 class SolarHeatAcisCameraBody(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent)
 
-    :param model: parent model
-    :param node: node which is coupled to solar heat
-    :param simz_comp: SimZ component
-    :param pitch_comp: solar Pitch component
-    :param eclipse_comp: Eclipse component (optional)
-    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
-    :param Ps: list of solar heating values (default=[1.0, ...])
-    :param dPs: list of delta heating values (default=[0.0, ...])
-    :param var_func: variability function ('exp' | 'linear')
-    :param tau: variability timescale (days)
-    :param ampl: ampl of annual sinusoidal heating variation
-    :param bias: constant offset to all solar heating values
-    :param epoch: reference date at which ``Ps`` values apply
-    :param dh_heater_comp: detector housing heater status (True = On)
-    :param dh_heater_bias: bias power when DH heater is on
+    Parameters
+    ----------
+    model :
+        parent model
+    node :
+        node which is coupled to solar heat
+    simz_comp :
+        SimZ component
+    pitch_comp :
+        solar Pitch component
+    eclipse_comp :
+        Eclipse component (optional)
+    P_pitches :
+        list of pitch values (default=[45, 65, 90, 130, 180])
+    Ps :
+        list of solar heating values (default=[1.0, ...])
+    dPs :
+        list of delta heating values (default=[0.0, ...])
+    var_func :
+        variability function ('exp' | 'linear')
+    tau :
+        variability timescale (days)
+    ampl :
+        ampl of annual sinusoidal heating variation
+    bias :
+        constant offset to all solar heating values
+    epoch :
+        reference date at which ``Ps`` values apply
+    dh_heater_comp :
+        detector housing heater status (True = On)
+    dh_heater_bias :
+        bias power when DH heater is on
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
@@ -328,28 +380,47 @@ class SolarHeatAcisCameraBody(SolarHeat):
         self.add_par('dh_heater_bias', dh_heater_bias, min=-1.0, max=1.0)
 
     def dvals_post_hook(self):
-        """Apply a bias power offset when detector housing heater is on
-        """
+        """Apply a bias power offset when detector housing heater is on"""
         self._dvals[self.dh_heater_comp.dvals] += self.dh_heater_bias
 
 
 class SolarHeatHrc(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent)
 
-    :param model: parent model
-    :param node: node which is coupled to solar heat
-    :param simz_comp: SimZ component
-    :param pitch_comp: solar Pitch component
-    :param eclipse_comp: Eclipse component (optional)
-    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
-    :param Ps: list of solar heating values (default=[1.0, ...])
-    :param dPs: list of delta heating values (default=[0.0, ...])
-    :param var_func: variability function ('exp' | 'linear')
-    :param tau: variability timescale (days)
-    :param ampl: ampl of annual sinusoidal heating variation
-    :param bias: constant offset to all solar heating values
-    :param epoch: reference date at which ``Ps`` values apply
-    :param hrc_bias: solar heating bias when SIM-Z < 0 (HRC)
+    Parameters
+    ----------
+    model :
+        parent model
+    node :
+        node which is coupled to solar heat
+    simz_comp :
+        SimZ component
+    pitch_comp :
+        solar Pitch component
+    eclipse_comp :
+        Eclipse component (optional)
+    P_pitches :
+        list of pitch values (default=[45, 65, 90, 130, 180])
+    Ps :
+        list of solar heating values (default=[1.0, ...])
+    dPs :
+        list of delta heating values (default=[0.0, ...])
+    var_func :
+        variability function ('exp' | 'linear')
+    tau :
+        variability timescale (days)
+    ampl :
+        ampl of annual sinusoidal heating variation
+    bias :
+        constant offset to all solar heating values
+    epoch :
+        reference date at which ``Ps`` values apply
+    hrc_bias :
+        solar heating bias when SIM-Z < 0 (HRC)
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
@@ -362,8 +433,7 @@ class SolarHeatHrc(SolarHeat):
         self.add_par('hrc_bias', hrc_bias, min=-1.0, max=1.0)
 
     def dvals_post_hook(self):
-        """Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.
-        """
+        """Apply a bias power offset when SIM-Z is at HRC-S or HRC-I."""
         if not hasattr(self, 'hrc_mask'):
             self.hrc_mask = self.simz_comp.dvals < 0
         self._dvals[self.hrc_mask] += self.hrc_bias
@@ -373,21 +443,42 @@ class SolarHeatHrcOpts(SolarHeat):
     """Solar heating (pitch and SIM-Z dependent, two parameters for
     HRC-I and HRC-S)
 
-    :param model: parent model
-    :param node: node which is coupled to solar heat
-    :param simz_comp: SimZ component
-    :param pitch_comp: solar Pitch component
-    :param eclipse_comp: Eclipse component (optional)
-    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])
-    :param Ps: list of solar heating values (default=[1.0, ...])
-    :param dPs: list of delta heating values (default=[0.0, ...])
-    :param var_func: variability function ('exp' | 'linear')
-    :param tau: variability timescale (days)
-    :param ampl: ampl of annual sinusoidal heating variation
-    :param bias: constant offset to all solar heating values
-    :param epoch: reference date at which ``Ps`` values apply
-    :param hrci_bias: solar heating bias when HRC-I is in the focal plane.
-    :param hrcs_bias: solar heating bias when HRC-S is in the focal plane.
+    Parameters
+    ----------
+    model :
+        parent model
+    node :
+        node which is coupled to solar heat
+    simz_comp :
+        SimZ component
+    pitch_comp :
+        solar Pitch component
+    eclipse_comp :
+        Eclipse component (optional)
+    P_pitches :
+        list of pitch values (default=[45, 65, 90, 130, 180])
+    Ps :
+        list of solar heating values (default=[1.0, ...])
+    dPs :
+        list of delta heating values (default=[0.0, ...])
+    var_func :
+        variability function ('exp' | 'linear')
+    tau :
+        variability timescale (days)
+    ampl :
+        ampl of annual sinusoidal heating variation
+    bias :
+        constant offset to all solar heating values
+    epoch :
+        reference date at which ``Ps`` values apply
+    hrci_bias :
+        solar heating bias when HRC-I is in the focal plane.
+    hrcs_bias :
+        solar heating bias when HRC-S is in the focal plane.
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
@@ -401,8 +492,7 @@ class SolarHeatHrcOpts(SolarHeat):
         self.add_par('hrcs_bias', hrcs_bias, min=-1.0, max=1.0)
 
     def dvals_post_hook(self):
-        """Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.
-        """
+        """Apply a bias power offset when SIM-Z is at HRC-S or HRC-I."""
         if not hasattr(self, 'hrci_mask'):
             self.hrci_mask = (self.simz_comp.dvals < 0) & \
                              (self.simz_comp.dvals > -86147)
@@ -545,6 +635,13 @@ class EarthHeat(PrecomputedHeatPower):
     def get_cached(self):
         """Find a cached version of the Earth solid angle values from
         file if possible.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         dts = {}  # delta times for each matching file
         filenames = glob.glob('esa_cache/*.npz')
@@ -766,6 +863,13 @@ class AcisDpaPower(PrecomputedHeatPower):
     def get_dvals_tlm(self):
         """Model dvals is set to the telemetered power.  This is not actually
         used by the model, but is useful for diagnostics.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         try:
             dvals = self.model.fetch('dp_dpa_power')
@@ -834,6 +938,13 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc).
     Use commanded states and assign an effective power for each "unique" power
     state.  See dpa/NOTES.power.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, mult=1.0,
                  fep_count=None, ccd_count=None,
@@ -899,6 +1010,13 @@ class AcisDpaStatePower(PrecomputedHeatPower):
     def get_dvals_tlm(self):
         """Model dvals is set to the telemetered power.  This is not actually
         used by the model, but is useful for diagnostics.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         try:
             dvals = self.model.fetch('dp_dpa_power')
@@ -911,6 +1029,13 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         the current power parameters, then slice that with self.par_idxs to
         generate the predicted power (based on the parameter specifying state
         power) at each time step.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         power_parvals = np.array([par.val for par in self.power_pars])
         powers = power_parvals[self.par_idxs]
@@ -952,8 +1077,7 @@ class PropHeater(PrecomputedHeatPower):
         return 'prop_heat__{0}'.format(self.node)
 
     def get_dvals_tlm(self):
-        """Return an array of zeros => no activation of the heater.
-        """
+        """ """
         return np.zeros_like(self.model.times)
 
     def update(self):
@@ -976,8 +1100,7 @@ class PropHeater(PrecomputedHeatPower):
 
 
 class ThermostatHeater(ActiveHeatPower):
-    """Thermostat heater (no deadband): heat = P for T < T_set).
-    """
+    """Thermostat heater (no deadband): heat = P for T < T_set)."""
     def __init__(self, model, node, node_control=None, P=0.1, T_set=20.0):
         super(ThermostatHeater, self).__init__(model)
         self.node = self.model.get_comp(node)
@@ -991,8 +1114,7 @@ class ThermostatHeater(ActiveHeatPower):
         return 'thermostat_heat__{0}'.format(self.node)
 
     def get_dvals_tlm(self):
-        """Return an array of zeros => no activation of the heater.
-        """
+        """ """
         return np.zeros_like(self.model.times)
 
     def update(self):
@@ -1015,16 +1137,26 @@ class ThermostatHeater(ActiveHeatPower):
 
 
 class StepFunctionPower(PrecomputedHeatPower):
-    """
-    A class that applies a constant heat power shift only
+    """A class that applies a constant heat power shift only
     after a certain point in time.  The shift is 0.0 before
     ``time`` and ``P`` after ``time``.
 
-    :param model: parent model object
-    :param node: node name or object for which to apply shift
-    :param time: time of step function shift
-    :param P: size of shift in heat power (default=0.0)
-    :param id: str, identifier to allow multiple steps (default='')
+    Parameters
+    ----------
+    model :
+        parent model object
+    node :
+        node name or object for which to apply shift
+    time :
+        time of step function shift
+    P :
+        size of shift in heat power (default=0.0)
+    id :
+        str, identifier to allow multiple steps (default='')
+
+    Returns
+    -------
+
     """
     def __init__(self, model, node, time, P=0.0, id=''):
         super(StepFunctionPower, self).__init__(model)
@@ -1038,13 +1170,11 @@ class StepFunctionPower(PrecomputedHeatPower):
         return f'step_power{self.id}__{self.node}'
 
     def get_dvals_tlm(self):
-        """Return an array of zeros => no activation of the heater.
-        """
+        """ """
         return np.zeros_like(self.model.times)
 
     def update(self):
-        """Update the model prediction as a precomputed heat.
-        """
+        """Update the model prediction as a precomputed heat."""
         self.mvals = np.full_like(self.model.times, fill_value=self.P)
         idx0 = np.searchsorted(self.model.times, self.time)
         self.mvals[:idx0] = 0.0
@@ -1067,7 +1197,19 @@ class StepFunctionPower(PrecomputedHeatPower):
 
 @jit(nopython=True)
 def quat_to_transform_transpose(q):
-    """Return transpose of transform matrix for Quat q"""
+    """
+
+    Parameters
+    ----------
+    q :
+        
+
+    Returns
+    -------
+    type
+        
+
+    """
     x, y, z, w = q
     xx2 = 2 * x * x
     yy2 = 2 * y * y
