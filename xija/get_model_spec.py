@@ -2,6 +2,7 @@
 """
 Get Chandra model specifications
 """
+import json
 import os
 import re
 import warnings
@@ -12,7 +13,7 @@ from git import Repo
 import requests
 from Ska.File import get_globfiles
 
-__all__ = ['get_xija_model_file', 'get_xija_model_names', 'get_repo_version',
+__all__ = ['get_xija_model_spec', 'get_xija_model_names', 'get_repo_version',
            'get_github_version']
 
 REPO_PATH = Path(os.environ['SKA'], 'data', 'chandra_models')
@@ -24,10 +25,10 @@ def _models_path(repo_path=REPO_PATH) -> Path:
     return Path(repo_path) / 'chandra_models' / 'xija'
 
 
-def get_xija_model_file(model_name, repo_path=REPO_PATH, check_version=False,
-                        timeout=5) -> str:
+def get_xija_model_spec(model_name, repo_path=REPO_PATH, check_version=False,
+                        timeout=5) -> dict:
     """
-    Get file name of Xija model specification for the specified ``model_name``.
+    Get Xija model specification for the specified ``model_name``.
 
     Supported model names include (but are not limited to): ``'aca'``,
     ``'acisfp'``, ``'dea'``, ``'dpa'``, ``'psmc'``, ``'minusyz'``, and
@@ -38,8 +39,8 @@ def get_xija_model_file(model_name, repo_path=REPO_PATH, check_version=False,
     Examples
     --------
     >>> import xija
-    >>> from xija.get_model_spec import get_xija_model_file
-    >>> model_spec = get_xija_model_file('acisfp')
+    >>> from xija.get_model_spec import get_xija_model_spec
+    >>> model_spec = get_xija_model_spec('acisfp')
     >>> model = xija.XijaModel('acisfp', model_spec=model_spec, start='2012:001', stop='2012:010')
     >>> model.make()
     >>> model.calc()
@@ -59,22 +60,13 @@ def get_xija_model_file(model_name, repo_path=REPO_PATH, check_version=False,
 
     Returns
     -------
-    str
-        File name of the corresponding Xija model specification
+    dict
+        Xija model specification dict
     """
     models_path = _models_path(repo_path)
 
     if not models_path.exists():
         raise FileNotFoundError(f'xija models directory {models_path} does not exist')
-
-    file_glob = str(models_path / '*' / f'{model_name.lower()}_spec.json')
-    try:
-        # get_globfiles() default requires exactly one file match and returns a list
-        file_name = get_globfiles(file_glob)[0]
-    except ValueError:
-        names = get_xija_model_names()
-        raise ValueError(f'no models matched {model_name}. Available models are: '
-                         f'{", ".join(names)}')
 
     # Get version and also check that local repo is clean and tag is at tip of HEAD
     repo_version = get_repo_version(repo_path)
@@ -88,7 +80,17 @@ def get_xija_model_file(model_name, repo_path=REPO_PATH, check_version=False,
             raise ValueError(f'version mismatch: local repo {repo_version} vs '
                              f'github {gh_version}')
 
-    return file_name
+    file_glob = str(models_path / '*' / f'{model_name.lower()}_spec.json')
+    try:
+        # get_globfiles() default requires exactly one file match and returns a list
+        file_name = get_globfiles(file_glob)[0]
+    except ValueError:
+        names = get_xija_model_names()
+        raise ValueError(f'no models matched {model_name}. Available models are: '
+                         f'{", ".join(names)}')
+
+    model_spec = json.load(open(file_name, 'r'))
+    return model_spec
 
 
 def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:

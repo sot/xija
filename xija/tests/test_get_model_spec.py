@@ -7,7 +7,7 @@ import re
 import pytest
 import requests
 
-from ..get_model_spec import (get_xija_model_file, get_xija_model_names,
+from ..get_model_spec import (get_xija_model_spec, get_xija_model_names,
                               get_repo_version, get_github_version)
 
 try:
@@ -18,20 +18,18 @@ except Exception:
     HAS_GITHUB = False
 
 
-def test_get_model_file_aca():
-    fn = get_xija_model_file('aca', check_version=HAS_GITHUB)
-    assert fn.startswith(os.environ['SKA'])
-    assert Path(fn).name == 'aca_spec.json'
-    spec = json.load(open(fn))
+def test_get_model_spec_aca():
+    spec = get_xija_model_spec('aca', check_version=HAS_GITHUB)
     assert spec['name'] == 'aacccdpt'
+    assert 'comps' in spec
 
 
 def test_get_model_file_fail():
     with pytest.raises(ValueError, match='no models matched xxxyyyzzz'):
-        get_xija_model_file('xxxyyyzzz')
+        get_xija_model_spec('xxxyyyzzz')
 
     with pytest.raises(FileNotFoundError, match='xija models directory'):
-        get_xija_model_file('aca', repo_path='__NOT_A_DIRECTORY__')
+        get_xija_model_spec('aca', repo_path='__NOT_A_DIRECTORY__')
 
 
 def test_get_xija_model_names():
