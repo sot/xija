@@ -25,8 +25,8 @@ def _models_path(repo_path=REPO_PATH) -> Path:
     return Path(repo_path) / 'chandra_models' / 'xija'
 
 
-def get_xija_model_spec(model_name, repo_path=REPO_PATH, check_version=False,
-                        timeout=5) -> dict:
+def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
+                        check_version=False, timeout=5) -> dict:
     """
     Get Xija model specification for the specified ``model_name``.
 
@@ -49,11 +49,13 @@ def get_xija_model_spec(model_name, repo_path=REPO_PATH, check_version=False,
     ----------
     model_name : str
         Name of model
+    version : str
+        Version of chandra_models to use (default=latest from local repo)
     repo_path : str, Path
         Path to directory containing chandra_models repository (default is
         $SKA/data/chandra_models)
     check_version : bool
-        Check that the chandra_models repo at the same version as GitHub
+        Check that ``version`` matches the latest release on GitHub
     timeout : int, float
         Timeout (sec) for querying GitHub for the expected chandra_models version.
         Default = 5 sec.
@@ -63,22 +65,21 @@ def get_xija_model_spec(model_name, repo_path=REPO_PATH, check_version=False,
     dict
         Xija model specification dict
     """
+    return _get_xija_model_spec(model_name, repo_path, check_version, timeout)
+
+
+def _get_xija_model_spec(model_name, repo_path=REPO_PATH,
+                         check_version=False, timeout=5) -> dict:
+
+    repo_path = Path(repo_path)
+
+    if not repo_path.exists():
+        raise FileNotFoundError(f'chandra_models repository {repo_path} does not exist')
+
     models_path = _models_path(repo_path)
 
     if not models_path.exists():
         raise FileNotFoundError(f'xija models directory {models_path} does not exist')
-
-    # Get version and also check that local repo is clean and tag is at tip of HEAD
-    repo_version = get_repo_version(repo_path)
-
-    if check_version:
-        gh_version = get_github_version(timeout=timeout)
-        if gh_version is None:
-            warnings.warn('Could not verify GitHub chandra_models release tag '
-                          f'due to timeout ({timeout} sec)')
-        elif repo_version != gh_version:
-            raise ValueError(f'version mismatch: local repo {repo_version} vs '
-                             f'github {gh_version}')
 
     file_glob = str(models_path / '*' / f'{model_name.lower()}_spec.json')
     try:
@@ -90,6 +91,19 @@ def get_xija_model_spec(model_name, repo_path=REPO_PATH, check_version=False,
                          f'{", ".join(names)}')
 
     model_spec = json.load(open(file_name, 'r'))
+
+    # Get version and ensure that repo is clean and tip is at latest tag
+    version = get_repo_version(repo_path)
+
+    if check_version:
+        gh_version = get_github_version(timeout=timeout)
+        if gh_version is None:
+            warnings.warn('Could not verify GitHub chandra_models release tag '
+                          f'due to timeout ({timeout} sec)')
+        elif version != gh_version:
+            raise ValueError(f'version mismatch: local repo {repo_version} vs '
+                             f'github {gh_version}')
+
     return model_spec
 
 

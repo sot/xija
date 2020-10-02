@@ -28,7 +28,7 @@ def test_get_model_file_fail():
     with pytest.raises(ValueError, match='no models matched xxxyyyzzz'):
         get_xija_model_spec('xxxyyyzzz')
 
-    with pytest.raises(FileNotFoundError, match='xija models directory'):
+    with pytest.raises(FileNotFoundError, match='chandra_models repository'):
         get_xija_model_spec('aca', repo_path='__NOT_A_DIRECTORY__')
 
 
