@@ -3,6 +3,7 @@
 Get Chandra model specifications
 """
 import json
+import tempfile
 import os
 import re
 import warnings
@@ -65,16 +66,25 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
     dict
         Xija model specification dict
     """
-    return _get_xija_model_spec(model_name, repo_path, check_version, timeout)
-
-
-def _get_xija_model_spec(model_name, repo_path=REPO_PATH,
-                         check_version=False, timeout=5) -> dict:
-
     repo_path = Path(repo_path)
 
     if not repo_path.exists():
         raise FileNotFoundError(f'chandra_models repository {repo_path} does not exist')
+
+    if version is None:
+        return _get_xija_model_spec(model_name, version, repo_path, check_version, timeout)
+
+    repo_ska = Repo(repo_path)
+    with tempfile.TemporaryDirectory() as repo_path:
+        repo = repo_ska.clone(repo_path)
+        repo.git.checkout(version)
+        spec = _get_xija_model_spec(model_name, version, repo_path, check_version, timeout)
+
+    return spec
+
+
+def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
+                         check_version=False, timeout=5) -> dict:
 
     models_path = _models_path(repo_path)
 
@@ -93,7 +103,8 @@ def _get_xija_model_spec(model_name, repo_path=REPO_PATH,
     model_spec = json.load(open(file_name, 'r'))
 
     # Get version and ensure that repo is clean and tip is at latest tag
-    version = get_repo_version(repo_path)
+    if version is None:
+        version = get_repo_version(repo_path)
 
     if check_version:
         gh_version = get_github_version(timeout=timeout)
@@ -101,7 +112,7 @@ def _get_xija_model_spec(model_name, repo_path=REPO_PATH,
             warnings.warn('Could not verify GitHub chandra_models release tag '
                           f'due to timeout ({timeout} sec)')
         elif version != gh_version:
-            raise ValueError(f'version mismatch: local repo {repo_version} vs '
+            raise ValueError(f'version mismatch: local repo {version} vs '
                              f'github {gh_version}')
 
     return model_spec
