@@ -47,7 +47,7 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
     >>> from xija.get_model_spec import get_xija_model_spec
     >>> model_spec, version = get_xija_model_spec('acisfp', check_version=True)
     >>> model = xija.XijaModel('acisfp', model_spec=model_spec,
-    ...                        start='2012:001', stop='2012:010')
+    ...                        start='2020:001', stop='2020:010')
     >>> model.make()
     >>> model.calc()
 
@@ -55,7 +55,8 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
     GitHub.
 
     >>> repo_path = 'https://github.com/sot/chandra_models.git'
-    >>> model_spec, version = get_xija_model_spec('aca', version='3.30', repo_path=repo_path)
+    >>> model_spec, version = get_xija_model_spec('aca', version='3.30',
+    ...                                           repo_path=repo_path)
 
     Parameters
     ----------
