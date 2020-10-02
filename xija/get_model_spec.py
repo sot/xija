@@ -39,12 +39,23 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
 
     Examples
     --------
+    Get the latest version of the ``acisfp`` model spec from the local Ska data
+    directory ``$SKA/data/chandra_models``, checking that the version matches
+    the latest release tag on GitHub.
+
     >>> import xija
     >>> from xija.get_model_spec import get_xija_model_spec
-    >>> model_spec = get_xija_model_spec('acisfp')
-    >>> model = xija.XijaModel('acisfp', model_spec=model_spec, start='2012:001', stop='2012:010')
+    >>> model_spec, version = get_xija_model_spec('acisfp', check_version=True)
+    >>> model = xija.XijaModel('acisfp', model_spec=model_spec,
+    ...                        start='2012:001', stop='2012:010')
     >>> model.make()
     >>> model.calc()
+
+    Get the ``aca`` model spec from release version 3.30 of chandra_models from
+    GitHub.
+
+    >>> repo_path = 'https://github.com/sot/chandra_models.git'
+    >>> model_spec, version = get_xija_model_spec('aca', version='3.30', repo_path=repo_path)
 
     Parameters
     ----------
@@ -64,16 +75,16 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
 
     Returns
     -------
-    dict
-        Xija model specification dict
+    dict, str
+        Xija model specification dict, chandra_models version
     """
     with tempfile.TemporaryDirectory() as repo_path_local:
         repo = git.Repo.clone_from(repo_path, repo_path_local)
         if version is not None:
             repo.git.checkout(version)
-        spec = _get_xija_model_spec(model_name, version, repo_path_local, check_version, timeout)
-
-    return spec
+        model_spec, version = _get_xija_model_spec(model_name, version, repo_path_local,
+                                                   check_version, timeout)
+    return model_spec, version
 
 
 def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
@@ -108,7 +119,7 @@ def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
             raise ValueError(f'version mismatch: local repo {version} vs '
                              f'github {gh_version}')
 
-    return model_spec
+    return model_spec, version
 
 
 def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:

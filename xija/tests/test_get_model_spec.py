@@ -10,6 +10,7 @@ from ..get_model_spec import (get_xija_model_spec, get_xija_model_names,
                               get_repo_version, get_github_version)
 
 try:
+    # Fast request to see if GitHub is available
     req = requests.get('https://raw.githubusercontent.com/sot/chandra_models/master/README',
                        timeout=5)
     HAS_GITHUB = req.status_code == 200
@@ -17,9 +18,30 @@ except Exception:
     HAS_GITHUB = False
 
 
-def test_get_model_spec_aca():
-    spec = get_xija_model_spec('aca', check_version=HAS_GITHUB)
+def test_get_model_spec_aca_3_30():
+    # Version 3.30
+    spec, version = get_xija_model_spec('aca', version='3.30')
     assert spec['name'] == 'aacccdpt'
+    assert 'comps' in spec
+    assert spec["datestop"] == "2018:305:11:52:30.816"
+
+
+def test_get_model_spec_aca_latest():
+    # Latest version
+    spec, version = get_xija_model_spec('aca', check_version=HAS_GITHUB)
+    assert spec['name'] == 'aacccdpt'
+    # version 3.30 value, changed in 3.31.1/3.32
+    assert spec["datestop"] != "2018:305:11:52:30.816"
+    assert 'comps' in spec
+
+
+@pytest.mark.skipif('not HAS_GITHUB')
+def test_get_model_spec_aca_from_github():
+    # Latest version
+    repo_path = 'https://github.com/sot/chandra_models.git'
+    spec, version = get_xija_model_spec('aca', repo_path=repo_path, version='3.30')
+    assert spec['name'] == 'aacccdpt'
+    assert spec["datestop"] == "2018:305:11:52:30.816"
     assert 'comps' in spec
 
 
