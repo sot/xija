@@ -5,12 +5,13 @@ import os
 import tempfile
 import numpy as np
 import pytest
+from pathlib import Path
 
 from xija import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
 from numpy import sin, cos, abs
 
 try:
-    import Ska.Matplotlib
+    import Ska.Matplotlib  # noqa
     HAS_PLOTDATE = True
 except ImportError:
     HAS_PLOTDATE = False
@@ -21,11 +22,15 @@ print('Version =', __version__)
 CURRDIR = os.path.abspath(os.path.dirname(__file__))
 
 
-def abs_path(spec):
-    return os.path.join(CURRDIR, spec)
+def abs_path(spec, as_path=False):
+    path = os.path.join(CURRDIR, spec)
+    if as_path:
+        path = Path(path)
+    return path
 
 
-def test_dpa_real():
+@pytest.mark.parametrize('as_path', [True, False])
+def test_dpa_real(as_path):
     mdl = ThermalModel('dpa', start='2020:001:12:00:00', stop='2020:007:12:00:00',
                        model_spec=abs_path('dpa.json'))
     mdl._get_cmd_states()

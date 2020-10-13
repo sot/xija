@@ -10,8 +10,8 @@ import os
 import json
 import ctypes
 from collections import OrderedDict
-from six.moves import cStringIO as StringIO
-import six
+from io import StringIO
+from pathlib import Path
 
 import numpy as np
 
@@ -61,9 +61,9 @@ class FetchError(Exception):
 class XijaModel(object):
     """Xija model class to encapsulate all ModelComponents and provide the
     infrastructure to define and evaluate models.
-    
+
     The parameters ``name``, ``start``, and ``stop`` are determined as follows:
-    
+
     - If a model specification is provided then that sets the default values
       for keywords that are not supplied to the class init call.
     - ``evolve_method = 1`` uses the original ODE solver which treats every
@@ -103,9 +103,10 @@ class XijaModel(object):
     def __init__(self, name=None, start=None, stop=None, dt=None,
                  model_spec=None, cmd_states=None, evolve_method=None,
                  rk4=None, limits=None):
-        # If model_spec supplied as a string then read model spec as a dict
-        if isinstance(model_spec, six.string_types):
+        # If model_spec is a str or Path then read that file
+        if isinstance(model_spec, (str, Path)):
             model_spec = json.load(open(model_spec, 'r'))
+
         # If a model_spec is now available (dict) then use as kwarg defaults
         if model_spec:
             stop = stop or model_spec['datestop']
@@ -173,7 +174,7 @@ class XijaModel(object):
         Parameters
         ----------
         dt :
-            
+
 
         Returns
         -------
@@ -213,7 +214,7 @@ class XijaModel(object):
         Parameters
         ----------
         inherit_spec :
-            
+
 
         Returns
         -------
@@ -240,9 +241,9 @@ class XijaModel(object):
         Parameters
         ----------
         start :
-            
+
         stop :
-            
+
 
         Returns
         -------
@@ -298,7 +299,7 @@ class XijaModel(object):
         Parameters
         ----------
         msid :
-            
+
         attr :
              (Default value = 'vals')
         method :
@@ -329,7 +330,7 @@ class XijaModel(object):
     def interpolate_data(self, data, times, comp=None):
         """Interpolate supplied ``data`` values at the model times using
         nearest-neighbor or state value interpolation.
-        
+
         The ``times`` arg can be either a 1-d or 2-d ndarray.  If 1-d,
         then ``data`` is interpreted as a set of values at the specified
         ``times``.  If 2-d then ``data`` is interpreted as a set of binned
@@ -339,9 +340,9 @@ class XijaModel(object):
         Parameters
         ----------
         data :
-            
+
         times :
-            
+
         comp :
              (Default value = None)
 
@@ -381,11 +382,11 @@ class XijaModel(object):
         Parameters
         ----------
         ComponentClass :
-            
+
         *args :
-            
+
         **kwargs :
-            
+
 
         Returns
         -------
@@ -412,7 +413,7 @@ class XijaModel(object):
         Parameters
         ----------
         name :
-            
+
 
         Returns
         -------
@@ -470,7 +471,7 @@ class XijaModel(object):
         Parameters
         ----------
         filename :
-            
+
 
         Returns
         -------
@@ -487,7 +488,7 @@ class XijaModel(object):
 
     def write(self, filename, model_spec=None):
         """Write the model specification as JSON or Python to a file.
-        
+
         If the file name ends with ".py" then the output will the Python
         code to create the model (using ``get_model_code()``), otherwise
         the JSON model specification will be written.
@@ -514,7 +515,7 @@ class XijaModel(object):
 
     def get_model_code(self):
         """Return Python code that will create the current model.
-        
+
         This is useful during model development as a way to derive from and
         modify existing models while retaining good parameter values.
 
@@ -583,7 +584,7 @@ class XijaModel(object):
         Parameters
         ----------
         vals :
-            
+
 
         Returns
         -------
@@ -707,7 +708,7 @@ class XijaModel(object):
         Parameters
         ----------
         data :
-            
+
 
         Returns
         -------
