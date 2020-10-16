@@ -3,7 +3,7 @@ name: Deploy Docs
 on:
   release:
     types:
-    - created
+    - released
   repository_dispatch:
     types:
     - build-docs
@@ -46,4 +46,4 @@ jobs:
           message: "Deploy docs"
           add: "docs"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CHANDRA_XRAY_TOKEN }}
