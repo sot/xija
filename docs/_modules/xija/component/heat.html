@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xija.component.heat &#8212; xija 4.19.1.dev19+gea88e09 documentation</title>
+    <title>xija.component.heat &#8212; xija 4.20.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">xija 4.19.1.dev19+gea88e09 documentation</a>
+	<a href="../../../index.html">xija 4.20.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -112,22 +112,36 @@
 
 <div class="viewcode-block" id="ActiveHeatPower"><a class="viewcode-back" href="../../../api.html#xija.component.heat.ActiveHeatPower">[docs]</a><span class="k">class</span> <span class="nc">ActiveHeatPower</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Component that provides active heat power input which depends on</span>
-<span class="sd">    current or past computed model values&quot;&quot;&quot;</span>
+<span class="sd">    current or past computed model values</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="SolarHeatOffNomRoll"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeatOffNomRoll">[docs]</a><span class="k">class</span> <span class="nc">SolarHeatOffNomRoll</span><span class="p">(</span><span class="n">PrecomputedHeatPower</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The</span>
+    <span class="sd">&quot;&quot;&quot;Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The</span>
 <span class="sd">    heating is proportional to the projection of the sun on body +Y axis (which is a value</span>
 <span class="sd">    from -1 to 1).  There are two parameters ``P_plus_y`` and ``P_minus_y``.  For sun on</span>
 <span class="sd">    the +Y side the ``P_plus_y`` parameter is used, and likewise for sun on -Y.  For</span>
 <span class="sd">    example for +Y sun::</span>
-
+<span class="sd">    </span>
 <span class="sd">       heat = P_plus_y * sun_body_y</span>
-
+<span class="sd">    </span>
 <span class="sd">    The following reference has useful diagrams concerning off-nominal roll and</span>
 <span class="sd">    projections: http://occweb.cfa.harvard.edu/twiki/pub/Aspect/WebHome/ROLLDEV3.pdf.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">pitch_comp</span><span class="p">,</span> <span class="n">roll_comp</span><span class="p">,</span> <span class="n">eclipse_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -167,18 +181,36 @@
 <div class="viewcode-block" id="SolarHeat"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeat">[docs]</a><span class="k">class</span> <span class="nc">SolarHeat</span><span class="p">(</span><span class="n">PrecomputedHeatPower</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Solar heating (pitch dependent)</span>
 
-<span class="sd">    :param model: parent model</span>
-<span class="sd">    :param node: node which is coupled to solar heat</span>
-<span class="sd">    :param pitch_comp: solar Pitch component</span>
-<span class="sd">    :param eclipse_comp: Eclipse component (optional)</span>
-<span class="sd">    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])</span>
-<span class="sd">    :param Ps: list of solar heating values (default=[1.0, ...])</span>
-<span class="sd">    :param dPs: list of delta heating values (default=[0.0, ...])</span>
-<span class="sd">    :param var_func: variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
-<span class="sd">    :param tau: variability timescale (days)</span>
-<span class="sd">    :param ampl: ampl of annual sinusoidal heating variation</span>
-<span class="sd">    :param bias: constant offset to all solar heating values</span>
-<span class="sd">    :param epoch: reference date at which ``Ps`` values apply</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model :</span>
+<span class="sd">        parent model</span>
+<span class="sd">    node :</span>
+<span class="sd">        node which is coupled to solar heat</span>
+<span class="sd">    pitch_comp :</span>
+<span class="sd">        solar Pitch component</span>
+<span class="sd">    eclipse_comp :</span>
+<span class="sd">        Eclipse component (optional)</span>
+<span class="sd">    P_pitches :</span>
+<span class="sd">        list of pitch values (default=[45, 65, 90, 130, 180])</span>
+<span class="sd">    Ps :</span>
+<span class="sd">        list of solar heating values (default=[1.0, ...])</span>
+<span class="sd">    dPs :</span>
+<span class="sd">        list of delta heating values (default=[0.0, ...])</span>
+<span class="sd">    var_func :</span>
+<span class="sd">        variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
+<span class="sd">    tau :</span>
+<span class="sd">        variability timescale (days)</span>
+<span class="sd">    ampl :</span>
+<span class="sd">        ampl of annual sinusoidal heating variation</span>
+<span class="sd">    bias :</span>
+<span class="sd">        constant offset to all solar heating values</span>
+<span class="sd">    epoch :</span>
+<span class="sd">        reference date at which ``Ps`` values apply</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">pitch_comp</span><span class="p">,</span> <span class="n">eclipse_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">P_pitches</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Ps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dPs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">var_func</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
@@ -276,8 +308,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_epoch</span> <span class="o">=</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="SolarHeat.dvals_post_hook"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeat.dvals_post_hook">[docs]</a>    <span class="k">def</span> <span class="nf">dvals_post_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Override this method to adjust self._dvals after main computation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Override this method to adjust self._dvals after main computation.&quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
     <span class="k">def</span> <span class="nf">_compute_dvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -363,21 +394,42 @@
 <div class="viewcode-block" id="SolarHeatAcisCameraBody"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeatAcisCameraBody">[docs]</a><span class="k">class</span> <span class="nc">SolarHeatAcisCameraBody</span><span class="p">(</span><span class="n">SolarHeat</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Solar heating (pitch and SIM-Z dependent)</span>
 
-<span class="sd">    :param model: parent model</span>
-<span class="sd">    :param node: node which is coupled to solar heat</span>
-<span class="sd">    :param simz_comp: SimZ component</span>
-<span class="sd">    :param pitch_comp: solar Pitch component</span>
-<span class="sd">    :param eclipse_comp: Eclipse component (optional)</span>
-<span class="sd">    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])</span>
-<span class="sd">    :param Ps: list of solar heating values (default=[1.0, ...])</span>
-<span class="sd">    :param dPs: list of delta heating values (default=[0.0, ...])</span>
-<span class="sd">    :param var_func: variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
-<span class="sd">    :param tau: variability timescale (days)</span>
-<span class="sd">    :param ampl: ampl of annual sinusoidal heating variation</span>
-<span class="sd">    :param bias: constant offset to all solar heating values</span>
-<span class="sd">    :param epoch: reference date at which ``Ps`` values apply</span>
-<span class="sd">    :param dh_heater_comp: detector housing heater status (True = On)</span>
-<span class="sd">    :param dh_heater_bias: bias power when DH heater is on</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model :</span>
+<span class="sd">        parent model</span>
+<span class="sd">    node :</span>
+<span class="sd">        node which is coupled to solar heat</span>
+<span class="sd">    simz_comp :</span>
+<span class="sd">        SimZ component</span>
+<span class="sd">    pitch_comp :</span>
+<span class="sd">        solar Pitch component</span>
+<span class="sd">    eclipse_comp :</span>
+<span class="sd">        Eclipse component (optional)</span>
+<span class="sd">    P_pitches :</span>
+<span class="sd">        list of pitch values (default=[45, 65, 90, 130, 180])</span>
+<span class="sd">    Ps :</span>
+<span class="sd">        list of solar heating values (default=[1.0, ...])</span>
+<span class="sd">    dPs :</span>
+<span class="sd">        list of delta heating values (default=[0.0, ...])</span>
+<span class="sd">    var_func :</span>
+<span class="sd">        variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
+<span class="sd">    tau :</span>
+<span class="sd">        variability timescale (days)</span>
+<span class="sd">    ampl :</span>
+<span class="sd">        ampl of annual sinusoidal heating variation</span>
+<span class="sd">    bias :</span>
+<span class="sd">        constant offset to all solar heating values</span>
+<span class="sd">    epoch :</span>
+<span class="sd">        reference date at which ``Ps`` values apply</span>
+<span class="sd">    dh_heater_comp :</span>
+<span class="sd">        detector housing heater status (True = On)</span>
+<span class="sd">    dh_heater_bias :</span>
+<span class="sd">        bias power when DH heater is on</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">pitch_comp</span><span class="p">,</span> <span class="n">eclipse_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">P_pitches</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Ps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dPs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">var_func</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
@@ -393,28 +445,47 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">add_par</span><span class="p">(</span><span class="s1">&#39;dh_heater_bias&#39;</span><span class="p">,</span> <span class="n">dh_heater_bias</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SolarHeatAcisCameraBody.dvals_post_hook"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeatAcisCameraBody.dvals_post_hook">[docs]</a>    <span class="k">def</span> <span class="nf">dvals_post_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply a bias power offset when detector housing heater is on</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Apply a bias power offset when detector housing heater is on&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dvals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dh_heater_comp</span><span class="o">.</span><span class="n">dvals</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dh_heater_bias</span></div></div>
 
 
 <div class="viewcode-block" id="SolarHeatHrc"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeatHrc">[docs]</a><span class="k">class</span> <span class="nc">SolarHeatHrc</span><span class="p">(</span><span class="n">SolarHeat</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Solar heating (pitch and SIM-Z dependent)</span>
 
-<span class="sd">    :param model: parent model</span>
-<span class="sd">    :param node: node which is coupled to solar heat</span>
-<span class="sd">    :param simz_comp: SimZ component</span>
-<span class="sd">    :param pitch_comp: solar Pitch component</span>
-<span class="sd">    :param eclipse_comp: Eclipse component (optional)</span>
-<span class="sd">    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])</span>
-<span class="sd">    :param Ps: list of solar heating values (default=[1.0, ...])</span>
-<span class="sd">    :param dPs: list of delta heating values (default=[0.0, ...])</span>
-<span class="sd">    :param var_func: variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
-<span class="sd">    :param tau: variability timescale (days)</span>
-<span class="sd">    :param ampl: ampl of annual sinusoidal heating variation</span>
-<span class="sd">    :param bias: constant offset to all solar heating values</span>
-<span class="sd">    :param epoch: reference date at which ``Ps`` values apply</span>
-<span class="sd">    :param hrc_bias: solar heating bias when SIM-Z &lt; 0 (HRC)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model :</span>
+<span class="sd">        parent model</span>
+<span class="sd">    node :</span>
+<span class="sd">        node which is coupled to solar heat</span>
+<span class="sd">    simz_comp :</span>
+<span class="sd">        SimZ component</span>
+<span class="sd">    pitch_comp :</span>
+<span class="sd">        solar Pitch component</span>
+<span class="sd">    eclipse_comp :</span>
+<span class="sd">        Eclipse component (optional)</span>
+<span class="sd">    P_pitches :</span>
+<span class="sd">        list of pitch values (default=[45, 65, 90, 130, 180])</span>
+<span class="sd">    Ps :</span>
+<span class="sd">        list of solar heating values (default=[1.0, ...])</span>
+<span class="sd">    dPs :</span>
+<span class="sd">        list of delta heating values (default=[0.0, ...])</span>
+<span class="sd">    var_func :</span>
+<span class="sd">        variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
+<span class="sd">    tau :</span>
+<span class="sd">        variability timescale (days)</span>
+<span class="sd">    ampl :</span>
+<span class="sd">        ampl of annual sinusoidal heating variation</span>
+<span class="sd">    bias :</span>
+<span class="sd">        constant offset to all solar heating values</span>
+<span class="sd">    epoch :</span>
+<span class="sd">        reference date at which ``Ps`` values apply</span>
+<span class="sd">    hrc_bias :</span>
+<span class="sd">        solar heating bias when SIM-Z &lt; 0 (HRC)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">simz_comp</span><span class="p">,</span> <span class="n">pitch_comp</span><span class="p">,</span> <span class="n">eclipse_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">P_pitches</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Ps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dPs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">var_func</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
@@ -427,8 +498,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">add_par</span><span class="p">(</span><span class="s1">&#39;hrc_bias&#39;</span><span class="p">,</span> <span class="n">hrc_bias</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SolarHeatHrc.dvals_post_hook"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeatHrc.dvals_post_hook">[docs]</a>    <span class="k">def</span> <span class="nf">dvals_post_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hrc_mask&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hrc_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simz_comp</span><span class="o">.</span><span class="n">dvals</span> <span class="o">&lt;</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dvals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">hrc_mask</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hrc_bias</span></div></div>
@@ -438,21 +508,42 @@
     <span class="sd">&quot;&quot;&quot;Solar heating (pitch and SIM-Z dependent, two parameters for</span>
 <span class="sd">    HRC-I and HRC-S)</span>
 
-<span class="sd">    :param model: parent model</span>
-<span class="sd">    :param node: node which is coupled to solar heat</span>
-<span class="sd">    :param simz_comp: SimZ component</span>
-<span class="sd">    :param pitch_comp: solar Pitch component</span>
-<span class="sd">    :param eclipse_comp: Eclipse component (optional)</span>
-<span class="sd">    :param P_pitches: list of pitch values (default=[45, 65, 90, 130, 180])</span>
-<span class="sd">    :param Ps: list of solar heating values (default=[1.0, ...])</span>
-<span class="sd">    :param dPs: list of delta heating values (default=[0.0, ...])</span>
-<span class="sd">    :param var_func: variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
-<span class="sd">    :param tau: variability timescale (days)</span>
-<span class="sd">    :param ampl: ampl of annual sinusoidal heating variation</span>
-<span class="sd">    :param bias: constant offset to all solar heating values</span>
-<span class="sd">    :param epoch: reference date at which ``Ps`` values apply</span>
-<span class="sd">    :param hrci_bias: solar heating bias when HRC-I is in the focal plane.</span>
-<span class="sd">    :param hrcs_bias: solar heating bias when HRC-S is in the focal plane.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model :</span>
+<span class="sd">        parent model</span>
+<span class="sd">    node :</span>
+<span class="sd">        node which is coupled to solar heat</span>
+<span class="sd">    simz_comp :</span>
+<span class="sd">        SimZ component</span>
+<span class="sd">    pitch_comp :</span>
+<span class="sd">        solar Pitch component</span>
+<span class="sd">    eclipse_comp :</span>
+<span class="sd">        Eclipse component (optional)</span>
+<span class="sd">    P_pitches :</span>
+<span class="sd">        list of pitch values (default=[45, 65, 90, 130, 180])</span>
+<span class="sd">    Ps :</span>
+<span class="sd">        list of solar heating values (default=[1.0, ...])</span>
+<span class="sd">    dPs :</span>
+<span class="sd">        list of delta heating values (default=[0.0, ...])</span>
+<span class="sd">    var_func :</span>
+<span class="sd">        variability function (&#39;exp&#39; | &#39;linear&#39;)</span>
+<span class="sd">    tau :</span>
+<span class="sd">        variability timescale (days)</span>
+<span class="sd">    ampl :</span>
+<span class="sd">        ampl of annual sinusoidal heating variation</span>
+<span class="sd">    bias :</span>
+<span class="sd">        constant offset to all solar heating values</span>
+<span class="sd">    epoch :</span>
+<span class="sd">        reference date at which ``Ps`` values apply</span>
+<span class="sd">    hrci_bias :</span>
+<span class="sd">        solar heating bias when HRC-I is in the focal plane.</span>
+<span class="sd">    hrcs_bias :</span>
+<span class="sd">        solar heating bias when HRC-S is in the focal plane.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">simz_comp</span><span class="p">,</span> <span class="n">pitch_comp</span><span class="p">,</span> <span class="n">eclipse_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">P_pitches</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Ps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dPs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">var_func</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
@@ -466,8 +557,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">add_par</span><span class="p">(</span><span class="s1">&#39;hrcs_bias&#39;</span><span class="p">,</span> <span class="n">hrcs_bias</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SolarHeatHrcOpts.dvals_post_hook"><a class="viewcode-back" href="../../../api.html#xija.component.heat.SolarHeatHrcOpts.dvals_post_hook">[docs]</a>    <span class="k">def</span> <span class="nf">dvals_post_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hrci_mask&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hrci_mask</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simz_comp</span><span class="o">.</span><span class="n">dvals</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> \
                              <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simz_comp</span><span class="o">.</span><span class="n">dvals</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">86147</span><span class="p">)</span>
@@ -610,6 +700,13 @@
 <div class="viewcode-block" id="EarthHeat.get_cached"><a class="viewcode-back" href="../../../api.html#xija.component.heat.EarthHeat.get_cached">[docs]</a>    <span class="k">def</span> <span class="nf">get_cached</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Find a cached version of the Earth solid angle values from</span>
 <span class="sd">        file if possible.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># delta times for each matching file</span>
         <span class="n">filenames</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;esa_cache/*.npz&#39;</span><span class="p">)</span>
@@ -831,6 +928,13 @@
 <div class="viewcode-block" id="AcisDpaPower.get_dvals_tlm"><a class="viewcode-back" href="../../../api.html#xija.component.heat.AcisDpaPower.get_dvals_tlm">[docs]</a>    <span class="k">def</span> <span class="nf">get_dvals_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Model dvals is set to the telemetered power.  This is not actually</span>
 <span class="sd">        used by the model, but is useful for diagnostics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">dvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;dp_dpa_power&#39;</span><span class="p">)</span>
@@ -899,6 +1003,13 @@
     <span class="sd">&quot;&quot;&quot;Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc).</span>
 <span class="sd">    Use commanded states and assign an effective power for each &quot;unique&quot; power</span>
 <span class="sd">    state.  See dpa/NOTES.power.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                  <span class="n">fep_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ccd_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -964,6 +1075,13 @@
 <div class="viewcode-block" id="AcisDpaStatePower.get_dvals_tlm"><a class="viewcode-back" href="../../../api.html#xija.component.heat.AcisDpaStatePower.get_dvals_tlm">[docs]</a>    <span class="k">def</span> <span class="nf">get_dvals_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Model dvals is set to the telemetered power.  This is not actually</span>
 <span class="sd">        used by the model, but is useful for diagnostics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">dvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s1">&#39;dp_dpa_power&#39;</span><span class="p">)</span>
@@ -976,6 +1094,13 @@
 <span class="sd">        the current power parameters, then slice that with self.par_idxs to</span>
 <span class="sd">        generate the predicted power (based on the parameter specifying state</span>
 <span class="sd">        power) at each time step.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">power_parvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">par</span><span class="o">.</span><span class="n">val</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_pars</span><span class="p">])</span>
         <span class="n">powers</span> <span class="o">=</span> <span class="n">power_parvals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">par_idxs</span><span class="p">]</span>
@@ -1017,8 +1142,7 @@
         <span class="k">return</span> <span class="s1">&#39;prop_heat__</span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PropHeater.get_dvals_tlm"><a class="viewcode-back" href="../../../api.html#xija.component.heat.PropHeater.get_dvals_tlm">[docs]</a>    <span class="k">def</span> <span class="nf">get_dvals_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return an array of zeros =&gt; no activation of the heater.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">times</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1041,8 +1165,7 @@
 
 
 <div class="viewcode-block" id="ThermostatHeater"><a class="viewcode-back" href="../../../api.html#xija.component.heat.ThermostatHeater">[docs]</a><span class="k">class</span> <span class="nc">ThermostatHeater</span><span class="p">(</span><span class="n">ActiveHeatPower</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Thermostat heater (no deadband): heat = P for T &lt; T_set).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Thermostat heater (no deadband): heat = P for T &lt; T_set).&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">node_control</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">T_set</span><span class="o">=</span><span class="mf">20.0</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ThermostatHeater</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_comp</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
@@ -1056,8 +1179,7 @@
         <span class="k">return</span> <span class="s1">&#39;thermostat_heat__</span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ThermostatHeater.get_dvals_tlm"><a class="viewcode-back" href="../../../api.html#xija.component.heat.ThermostatHeater.get_dvals_tlm">[docs]</a>    <span class="k">def</span> <span class="nf">get_dvals_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return an array of zeros =&gt; no activation of the heater.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">times</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1080,16 +1202,26 @@
 
 
 <div class="viewcode-block" id="StepFunctionPower"><a class="viewcode-back" href="../../../api.html#xija.component.heat.StepFunctionPower">[docs]</a><span class="k">class</span> <span class="nc">StepFunctionPower</span><span class="p">(</span><span class="n">PrecomputedHeatPower</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class that applies a constant heat power shift only</span>
+    <span class="sd">&quot;&quot;&quot;A class that applies a constant heat power shift only</span>
 <span class="sd">    after a certain point in time.  The shift is 0.0 before</span>
 <span class="sd">    ``time`` and ``P`` after ``time``.</span>
 
-<span class="sd">    :param model: parent model object</span>
-<span class="sd">    :param node: node name or object for which to apply shift</span>
-<span class="sd">    :param time: time of step function shift</span>
-<span class="sd">    :param P: size of shift in heat power (default=0.0)</span>
-<span class="sd">    :param id: str, identifier to allow multiple steps (default=&#39;&#39;)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model :</span>
+<span class="sd">        parent model object</span>
+<span class="sd">    node :</span>
+<span class="sd">        node name or object for which to apply shift</span>
+<span class="sd">    time :</span>
+<span class="sd">        time of step function shift</span>
+<span class="sd">    P :</span>
+<span class="sd">        size of shift in heat power (default=0.0)</span>
+<span class="sd">    id :</span>
+<span class="sd">        str, identifier to allow multiple steps (default=&#39;&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">StepFunctionPower</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
@@ -1103,13 +1235,11 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;step_power</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">__</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="si">}</span><span class="s1">&#39;</span>
 
 <div class="viewcode-block" id="StepFunctionPower.get_dvals_tlm"><a class="viewcode-back" href="../../../api.html#xija.component.heat.StepFunctionPower.get_dvals_tlm">[docs]</a>    <span class="k">def</span> <span class="nf">get_dvals_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return an array of zeros =&gt; no activation of the heater.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">times</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StepFunctionPower.update"><a class="viewcode-back" href="../../../api.html#xija.component.heat.StepFunctionPower.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update the model prediction as a precomputed heat.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Update the model prediction as a precomputed heat.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="n">idx0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:</span><span class="n">idx0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -1132,7 +1262,19 @@
 
 <div class="viewcode-block" id="quat_to_transform_transpose"><a class="viewcode-back" href="../../../api.html#xija.component.heat.quat_to_transform_transpose">[docs]</a><span class="nd">@jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">quat_to_transform_transpose</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return transpose of transform matrix for Quat q&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    q :</span>
+<span class="sd">        </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    type</span>
+<span class="sd">        </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">q</span>
     <span class="n">xx2</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
     <span class="n">yy2</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span>

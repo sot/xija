@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API docs &#8212; xija 4.19.1.dev19+gea88e09 documentation</title>
+    <title>API docs &#8212; xija 4.20.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -54,7 +54,7 @@
 	
       </li>
       <li>
-	<a href="index.html">xija 4.19.1.dev19+gea88e09 documentation</a>
+	<a href="index.html">xija 4.20.0 documentation</a>
 	 &#187;
       </li>
       
@@ -105,24 +105,42 @@ as a full RK2 step, and optionally allows for RK4 if <code class="docutils liter
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> – model name</p></li>
-<li><p><strong>start</strong> – model start time (any DateTime format)</p></li>
-<li><p><strong>stop</strong> – model stop time (any DateTime format)</p></li>
-<li><p><strong>dt</strong> – delta time step (default=328 sec)</p></li>
-<li><p><strong>model_spec</strong> – model specification (None | filename | dict)</p></li>
-<li><p><strong>cmd_states</strong> – commanded states input (None | structured array)</p></li>
-<li><p><strong>evolve_method</strong> – choose method to evolve ODE (None | 1 or 2, default 1)</p></li>
-<li><p><strong>rk4</strong> – use 4th-order Runge-Kutta to evolve ODE, only works with
-evolve_method == 2 (None | 0 or 1, default 0)</p></li>
-<li><p><strong>limits</strong> – dict of limit values (None | dict)</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name :</strong></dt><dd><p>model name</p>
+</dd>
+<dt><strong>start :</strong></dt><dd><p>model start time (any DateTime format)</p>
+</dd>
+<dt><strong>stop :</strong></dt><dd><p>model stop time (any DateTime format)</p>
+</dd>
+<dt><strong>dt :</strong></dt><dd><p>delta time step (default=328 sec)</p>
+</dd>
+<dt><strong>model_spec :</strong></dt><dd><p>model specification (None | filename | dict)</p>
+</dd>
+<dt><strong>cmd_states :</strong></dt><dd><p>commanded states input (None | structured array)</p>
+</dd>
+<dt><strong>evolve_method :</strong></dt><dd><p>choose method to evolve ODE (None | 1 or 2, default 1)</p>
+</dd>
+<dt><strong>rk4 :</strong></dt><dd><p>use 4th-order Runge-Kutta to evolve ODE, only works with
+evolve_method == 2 (None | 0 or 1, default 0)</p>
+</dd>
+<dt><strong>limits :</strong></dt><dd><p>dict of limit values (None | dict)</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="xija.model.XijaModel.add">
 <code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ComponentClass</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.add" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a new component to the model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ComponentClass :</strong></dt><dd></dd>
+<dt><strong>*args :</strong></dt><dd></dd>
+<dt><strong>**kwargs :</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -141,6 +159,13 @@ evolve_method == 2 (None | 0 or 1, default 0)</p></li>
 <dt id="xija.model.XijaModel.calc_staterror">
 <code class="sig-name descname">calc_staterror</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.calc_staterror"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.calc_staterror" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate model fit statistic error (dummy array for Sherpa use)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data :</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -174,13 +199,23 @@ load once by setting/returning a class attribute.</p>
 <dl class="py method">
 <dt id="xija.model.XijaModel.date_range">
 <em class="property">property </em><code class="sig-name descname">date_range</code><a class="headerlink" href="#xija.model.XijaModel.date_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return formatted date range string</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="xija.model.XijaModel.fetch">
 <code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msid</span></em>, <em class="sig-param"><span class="n">attr</span><span class="o">=</span><span class="default_value">'vals'</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'linear'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.fetch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get data from the Chandra engineering archive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>msid :</strong></dt><dd></dd>
+<dt><strong>attr :</strong></dt><dd><p>(Default value = ‘vals’)</p>
+</dd>
+<dt><strong>method :</strong></dt><dd><p>(Default value = ‘linear’)</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -188,6 +223,13 @@ load once by setting/returning a class attribute.</p>
 <code class="sig-name descname">get_comp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.get_comp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.get_comp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a model component.  Works with either a string or a component
 object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name :</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -198,7 +240,10 @@ object</p>
 modify existing models while retaining good parameter values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>string of Python code</p>
+<dd class="field-odd"><dl class="simple">
+<dt>type</dt><dd><p>string of Python code</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -209,6 +254,13 @@ modify existing models while retaining good parameter values.</p>
 <dd><p>Inherit parameter values from any like-named parameters within the
 inherit_spec model specification.  This is useful for making a new
 variation of an existing model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>inherit_spec :</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -221,6 +273,16 @@ then <code class="docutils literal notranslate"><span class="pre">data</span></c
 <code class="docutils literal notranslate"><span class="pre">times</span></code>.  If 2-d then <code class="docutils literal notranslate"><span class="pre">data</span></code> is interpreted as a set of binned
 state values with <code class="docutils literal notranslate"><span class="pre">tstarts</span> <span class="pre">=</span> <span class="pre">times[0,</span> <span class="pre">:]</span></code> and
 <code class="docutils literal notranslate"><span class="pre">tstops</span> <span class="pre">=</span> <span class="pre">times[1,</span> <span class="pre">:]</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data :</strong></dt><dd></dd>
+<dt><strong>times :</strong></dt><dd></dd>
+<dt><strong>comp :</strong></dt><dd><p>(Default value = None)</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -258,14 +320,12 @@ model</p>
 <dl class="py method">
 <dt id="xija.model.XijaModel.parnames">
 <em class="property">property </em><code class="sig-name descname">parnames</code><a class="headerlink" href="#xija.model.XijaModel.parnames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a tuple of all model parameter names</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="xija.model.XijaModel.parvals">
 <em class="property">property </em><code class="sig-name descname">parvals</code><a class="headerlink" href="#xija.model.XijaModel.parvals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a (read-only) tuple of parameter values.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="xija.model.XijaModel.write">
@@ -276,10 +336,12 @@ code to create the model (using <code class="docutils literal notranslate"><span
 the JSON model specification will be written.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> – output filename</p></li>
-<li><p><strong>model_spec</strong> – model spec structure (optional)</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename :</strong></dt><dd><p>output filename</p>
+</dd>
+<dt><strong>model_spec :</strong></dt><dd><p>model spec structure (optional) (Default value = None)</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -292,6 +354,13 @@ ascii table file.  Some component have neither (couplings), some have
 just dvals (TelemData), others have both (Node, AcisDpaPower).
 Everything is guaranteed to be time synced, so write a single time
 column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename :</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -367,16 +436,24 @@ using a sigma of 10% of the data standard deviation.  If <code class="docutils l
 is set to 0 then the fit statistic is set to 0.0 for this node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – parent model</p></li>
-<li><p><strong>msid</strong> – MSID for telemetry data</p></li>
-<li><p><strong>name</strong> – component name (default=``msid``)</p></li>
-<li><p><strong>sigma</strong> – sigma value used in chi^2 fit statistic</p></li>
-<li><p><strong>quant</strong> – use quantized stats (not currently implemented)</p></li>
-<li><p><strong>predict</strong> – compute prediction for this node (default=True)</p></li>
-<li><p><strong>mask</strong> – Mask component for masking values from fit statistic</p></li>
-<li><p><strong>data</strong> – Node data (None or a single value)</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model</p>
+</dd>
+<dt><strong>msid :</strong></dt><dd><p>MSID for telemetry data</p>
+</dd>
+<dt><strong>name :</strong></dt><dd><p>component name (default=``msid``)</p>
+</dd>
+<dt><strong>sigma :</strong></dt><dd><p>sigma value used in chi^2 fit statistic</p>
+</dd>
+<dt><strong>quant :</strong></dt><dd><p>use quantized stats (not currently implemented)</p>
+</dd>
+<dt><strong>predict :</strong></dt><dd><p>compute prediction for this node (default=True)</p>
+</dd>
+<dt><strong>mask :</strong></dt><dd><p>Mask component for masking values from fit statistic</p>
+</dd>
+<dt><strong>data :</strong></dt><dd><p>Node data (None or a single value)</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
@@ -517,8 +594,7 @@ file if possible.</p>
 <dl class="py method">
 <dt id="xija.component.heat.PropHeater.get_dvals_tlm">
 <code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#PropHeater.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.PropHeater.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an array of zeros =&gt; no activation of the heater.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -528,20 +604,32 @@ file if possible.</p>
 <dd><p>Solar heating (pitch dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – parent model</p></li>
-<li><p><strong>node</strong> – node which is coupled to solar heat</p></li>
-<li><p><strong>pitch_comp</strong> – solar Pitch component</p></li>
-<li><p><strong>eclipse_comp</strong> – Eclipse component (optional)</p></li>
-<li><p><strong>P_pitches</strong> – list of pitch values (default=[45, 65, 90, 130, 180])</p></li>
-<li><p><strong>Ps</strong> – list of solar heating values (default=[1.0, …])</p></li>
-<li><p><strong>dPs</strong> – list of delta heating values (default=[0.0, …])</p></li>
-<li><p><strong>var_func</strong> – variability function (‘exp’ | ‘linear’)</p></li>
-<li><p><strong>tau</strong> – variability timescale (days)</p></li>
-<li><p><strong>ampl</strong> – ampl of annual sinusoidal heating variation</p></li>
-<li><p><strong>bias</strong> – constant offset to all solar heating values</p></li>
-<li><p><strong>epoch</strong> – reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model</p>
+</dd>
+<dt><strong>node :</strong></dt><dd><p>node which is coupled to solar heat</p>
+</dd>
+<dt><strong>pitch_comp :</strong></dt><dd><p>solar Pitch component</p>
+</dd>
+<dt><strong>eclipse_comp :</strong></dt><dd><p>Eclipse component (optional)</p>
+</dd>
+<dt><strong>P_pitches :</strong></dt><dd><p>list of pitch values (default=[45, 65, 90, 130, 180])</p>
+</dd>
+<dt><strong>Ps :</strong></dt><dd><p>list of solar heating values (default=[1.0, …])</p>
+</dd>
+<dt><strong>dPs :</strong></dt><dd><p>list of delta heating values (default=[0.0, …])</p>
+</dd>
+<dt><strong>var_func :</strong></dt><dd><p>variability function (‘exp’ | ‘linear’)</p>
+</dd>
+<dt><strong>tau :</strong></dt><dd><p>variability timescale (days)</p>
+</dd>
+<dt><strong>ampl :</strong></dt><dd><p>ampl of annual sinusoidal heating variation</p>
+</dd>
+<dt><strong>bias :</strong></dt><dd><p>constant offset to all solar heating values</p>
+</dd>
+<dt><strong>epoch :</strong></dt><dd><p>reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
@@ -558,23 +646,38 @@ file if possible.</p>
 <dd><p>Solar heating (pitch and SIM-Z dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – parent model</p></li>
-<li><p><strong>node</strong> – node which is coupled to solar heat</p></li>
-<li><p><strong>simz_comp</strong> – SimZ component</p></li>
-<li><p><strong>pitch_comp</strong> – solar Pitch component</p></li>
-<li><p><strong>eclipse_comp</strong> – Eclipse component (optional)</p></li>
-<li><p><strong>P_pitches</strong> – list of pitch values (default=[45, 65, 90, 130, 180])</p></li>
-<li><p><strong>Ps</strong> – list of solar heating values (default=[1.0, …])</p></li>
-<li><p><strong>dPs</strong> – list of delta heating values (default=[0.0, …])</p></li>
-<li><p><strong>var_func</strong> – variability function (‘exp’ | ‘linear’)</p></li>
-<li><p><strong>tau</strong> – variability timescale (days)</p></li>
-<li><p><strong>ampl</strong> – ampl of annual sinusoidal heating variation</p></li>
-<li><p><strong>bias</strong> – constant offset to all solar heating values</p></li>
-<li><p><strong>epoch</strong> – reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p></li>
-<li><p><strong>dh_heater_comp</strong> – detector housing heater status (True = On)</p></li>
-<li><p><strong>dh_heater_bias</strong> – bias power when DH heater is on</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model</p>
+</dd>
+<dt><strong>node :</strong></dt><dd><p>node which is coupled to solar heat</p>
+</dd>
+<dt><strong>simz_comp :</strong></dt><dd><p>SimZ component</p>
+</dd>
+<dt><strong>pitch_comp :</strong></dt><dd><p>solar Pitch component</p>
+</dd>
+<dt><strong>eclipse_comp :</strong></dt><dd><p>Eclipse component (optional)</p>
+</dd>
+<dt><strong>P_pitches :</strong></dt><dd><p>list of pitch values (default=[45, 65, 90, 130, 180])</p>
+</dd>
+<dt><strong>Ps :</strong></dt><dd><p>list of solar heating values (default=[1.0, …])</p>
+</dd>
+<dt><strong>dPs :</strong></dt><dd><p>list of delta heating values (default=[0.0, …])</p>
+</dd>
+<dt><strong>var_func :</strong></dt><dd><p>variability function (‘exp’ | ‘linear’)</p>
+</dd>
+<dt><strong>tau :</strong></dt><dd><p>variability timescale (days)</p>
+</dd>
+<dt><strong>ampl :</strong></dt><dd><p>ampl of annual sinusoidal heating variation</p>
+</dd>
+<dt><strong>bias :</strong></dt><dd><p>constant offset to all solar heating values</p>
+</dd>
+<dt><strong>epoch :</strong></dt><dd><p>reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p>
+</dd>
+<dt><strong>dh_heater_comp :</strong></dt><dd><p>detector housing heater status (True = On)</p>
+</dd>
+<dt><strong>dh_heater_bias :</strong></dt><dd><p>bias power when DH heater is on</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
@@ -591,22 +694,36 @@ file if possible.</p>
 <dd><p>Solar heating (pitch and SIM-Z dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – parent model</p></li>
-<li><p><strong>node</strong> – node which is coupled to solar heat</p></li>
-<li><p><strong>simz_comp</strong> – SimZ component</p></li>
-<li><p><strong>pitch_comp</strong> – solar Pitch component</p></li>
-<li><p><strong>eclipse_comp</strong> – Eclipse component (optional)</p></li>
-<li><p><strong>P_pitches</strong> – list of pitch values (default=[45, 65, 90, 130, 180])</p></li>
-<li><p><strong>Ps</strong> – list of solar heating values (default=[1.0, …])</p></li>
-<li><p><strong>dPs</strong> – list of delta heating values (default=[0.0, …])</p></li>
-<li><p><strong>var_func</strong> – variability function (‘exp’ | ‘linear’)</p></li>
-<li><p><strong>tau</strong> – variability timescale (days)</p></li>
-<li><p><strong>ampl</strong> – ampl of annual sinusoidal heating variation</p></li>
-<li><p><strong>bias</strong> – constant offset to all solar heating values</p></li>
-<li><p><strong>epoch</strong> – reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p></li>
-<li><p><strong>hrc_bias</strong> – solar heating bias when SIM-Z &lt; 0 (HRC)</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model</p>
+</dd>
+<dt><strong>node :</strong></dt><dd><p>node which is coupled to solar heat</p>
+</dd>
+<dt><strong>simz_comp :</strong></dt><dd><p>SimZ component</p>
+</dd>
+<dt><strong>pitch_comp :</strong></dt><dd><p>solar Pitch component</p>
+</dd>
+<dt><strong>eclipse_comp :</strong></dt><dd><p>Eclipse component (optional)</p>
+</dd>
+<dt><strong>P_pitches :</strong></dt><dd><p>list of pitch values (default=[45, 65, 90, 130, 180])</p>
+</dd>
+<dt><strong>Ps :</strong></dt><dd><p>list of solar heating values (default=[1.0, …])</p>
+</dd>
+<dt><strong>dPs :</strong></dt><dd><p>list of delta heating values (default=[0.0, …])</p>
+</dd>
+<dt><strong>var_func :</strong></dt><dd><p>variability function (‘exp’ | ‘linear’)</p>
+</dd>
+<dt><strong>tau :</strong></dt><dd><p>variability timescale (days)</p>
+</dd>
+<dt><strong>ampl :</strong></dt><dd><p>ampl of annual sinusoidal heating variation</p>
+</dd>
+<dt><strong>bias :</strong></dt><dd><p>constant offset to all solar heating values</p>
+</dd>
+<dt><strong>epoch :</strong></dt><dd><p>reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p>
+</dd>
+<dt><strong>hrc_bias :</strong></dt><dd><p>solar heating bias when SIM-Z &lt; 0 (HRC)</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
@@ -629,23 +746,38 @@ file if possible.</p>
 HRC-I and HRC-S)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – parent model</p></li>
-<li><p><strong>node</strong> – node which is coupled to solar heat</p></li>
-<li><p><strong>simz_comp</strong> – SimZ component</p></li>
-<li><p><strong>pitch_comp</strong> – solar Pitch component</p></li>
-<li><p><strong>eclipse_comp</strong> – Eclipse component (optional)</p></li>
-<li><p><strong>P_pitches</strong> – list of pitch values (default=[45, 65, 90, 130, 180])</p></li>
-<li><p><strong>Ps</strong> – list of solar heating values (default=[1.0, …])</p></li>
-<li><p><strong>dPs</strong> – list of delta heating values (default=[0.0, …])</p></li>
-<li><p><strong>var_func</strong> – variability function (‘exp’ | ‘linear’)</p></li>
-<li><p><strong>tau</strong> – variability timescale (days)</p></li>
-<li><p><strong>ampl</strong> – ampl of annual sinusoidal heating variation</p></li>
-<li><p><strong>bias</strong> – constant offset to all solar heating values</p></li>
-<li><p><strong>epoch</strong> – reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p></li>
-<li><p><strong>hrci_bias</strong> – solar heating bias when HRC-I is in the focal plane.</p></li>
-<li><p><strong>hrcs_bias</strong> – solar heating bias when HRC-S is in the focal plane.</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model</p>
+</dd>
+<dt><strong>node :</strong></dt><dd><p>node which is coupled to solar heat</p>
+</dd>
+<dt><strong>simz_comp :</strong></dt><dd><p>SimZ component</p>
+</dd>
+<dt><strong>pitch_comp :</strong></dt><dd><p>solar Pitch component</p>
+</dd>
+<dt><strong>eclipse_comp :</strong></dt><dd><p>Eclipse component (optional)</p>
+</dd>
+<dt><strong>P_pitches :</strong></dt><dd><p>list of pitch values (default=[45, 65, 90, 130, 180])</p>
+</dd>
+<dt><strong>Ps :</strong></dt><dd><p>list of solar heating values (default=[1.0, …])</p>
+</dd>
+<dt><strong>dPs :</strong></dt><dd><p>list of delta heating values (default=[0.0, …])</p>
+</dd>
+<dt><strong>var_func :</strong></dt><dd><p>variability function (‘exp’ | ‘linear’)</p>
+</dd>
+<dt><strong>tau :</strong></dt><dd><p>variability timescale (days)</p>
+</dd>
+<dt><strong>ampl :</strong></dt><dd><p>ampl of annual sinusoidal heating variation</p>
+</dd>
+<dt><strong>bias :</strong></dt><dd><p>constant offset to all solar heating values</p>
+</dd>
+<dt><strong>epoch :</strong></dt><dd><p>reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p>
+</dd>
+<dt><strong>hrci_bias :</strong></dt><dd><p>solar heating bias when HRC-I is in the focal plane.</p>
+</dd>
+<dt><strong>hrcs_bias :</strong></dt><dd><p>solar heating bias when HRC-S is in the focal plane.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
@@ -684,20 +816,24 @@ after a certain point in time.  The shift is 0.0 before
 <code class="docutils literal notranslate"><span class="pre">time</span></code> and <code class="docutils literal notranslate"><span class="pre">P</span></code> after <code class="docutils literal notranslate"><span class="pre">time</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – parent model object</p></li>
-<li><p><strong>node</strong> – node name or object for which to apply shift</p></li>
-<li><p><strong>time</strong> – time of step function shift</p></li>
-<li><p><strong>P</strong> – size of shift in heat power (default=0.0)</p></li>
-<li><p><strong>id</strong> – str, identifier to allow multiple steps (default=’’)</p></li>
-</ul>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model object</p>
+</dd>
+<dt><strong>node :</strong></dt><dd><p>node name or object for which to apply shift</p>
+</dd>
+<dt><strong>time :</strong></dt><dd><p>time of step function shift</p>
+</dd>
+<dt><strong>P :</strong></dt><dd><p>size of shift in heat power (default=0.0)</p>
+</dd>
+<dt><strong>id :</strong></dt><dd><p>str, identifier to allow multiple steps (default=’’)</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="xija.component.heat.StepFunctionPower.get_dvals_tlm">
 <code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#StepFunctionPower.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.StepFunctionPower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an array of zeros =&gt; no activation of the heater.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="xija.component.heat.StepFunctionPower.update">
@@ -714,15 +850,25 @@ after a certain point in time.  The shift is 0.0 before
 <dl class="py method">
 <dt id="xija.component.heat.ThermostatHeater.get_dvals_tlm">
 <code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#ThermostatHeater.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.ThermostatHeater.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an array of zeros =&gt; no activation of the heater.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt id="xija.component.heat.quat_to_transform_transpose">
 <code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">quat_to_transform_transpose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#quat_to_transform_transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.quat_to_transform_transpose" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return transpose of transform matrix for Quat q</p>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q :</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>type</dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -747,11 +893,16 @@ after a certain point in time.  The shift is 0.0 before
 <dl class="py class">
 <dt id="xija.component.mask.MaskBox">
 <em class="property">class </em><code class="sig-prename descclassname">xija.component.mask.</code><code class="sig-name descname">MaskBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">val0</span></em>, <em class="sig-param"><span class="n">val1</span></em>, <em class="sig-param"><span class="n">min_</span><span class="o">=</span><span class="default_value">- 1000</span></em>, <em class="sig-param"><span class="n">max_</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/mask.html#MaskBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.mask.MaskBox" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create object with a <code class="docutils literal notranslate"><span class="pre">mask</span></code> attribute corresponding to
-val0 &lt; node.dvals &lt; val1</p>
+<dd><dl class="simple">
+<dt>Create object with a <code class="docutils literal notranslate"><span class="pre">mask</span></code> attribute corresponding to</dt><dd><p>val0 &lt; node.dvals &lt; val1</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
+</div>
+<div class="section" id="get-model-spec">
+<h2>Get model spec<a class="headerlink" href="#get-model-spec" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -771,6 +922,7 @@ val0 &lt; node.dvals &lt; val1</p>
 <li><a class="reference internal" href="#module-xija.component.mask">Mask classes</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#get-model-spec">Get model spec</a></li>
 </ul>
 </li>
 </ul>
