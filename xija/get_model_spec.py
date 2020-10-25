@@ -206,7 +206,7 @@ def get_github_version(url: str = CHANDRA_MODELS_URL,
     """
     try:
         req = requests.get(url, timeout=timeout)
-    except requests.ConnectTimeout:
+    except (requests.ConnectTimeout, requests.ReadTimeout):
         return None
 
     if req.status_code != requests.codes.ok:
