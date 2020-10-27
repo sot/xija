@@ -4,6 +4,9 @@ Get Chandra model specifications
 """
 import json
 import tempfile
+import contextlib
+import shutil
+import platform
 import os
 import re
 import warnings
@@ -24,6 +27,19 @@ CHANDRA_MODELS_URL = 'https://api.github.com/repos/sot/chandra_models/releases'
 
 def _models_path(repo_path=REPO_PATH) -> Path:
     return Path(repo_path) / 'chandra_models' / 'xija'
+
+
+@contextlib.contextmanager
+def temp_directory():
+    """Get name of a temporary directory that is deleted at the end.
+
+    Like tempfile.TemporaryDirectory but without the bug that it fails to
+    remove read-only files within the temp dir. Git repos can have read-only
+    files.  https://bugs.python.org/issue26660.
+    """
+    tmpdir = tempfile.mkdtemp()
+    yield tmpdir
+    shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
@@ -79,7 +95,7 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
     dict, str
         Xija model specification dict, chandra_models version
     """
-    with tempfile.TemporaryDirectory() as repo_path_local:
+    with temp_directory() as repo_path_local:
         repo = git.Repo.clone_from(repo_path, repo_path_local)
         if version is not None:
             repo.git.checkout(version)
@@ -172,15 +188,19 @@ def get_repo_version(repo_path: Path = REPO_PATH) -> str:
     str
         Version (most recent tag) of models repository
     """
-    repo = git.Repo(repo_path)
+    with temp_directory() as repo_path_local:
+        if platform.system() == 'Windows':
+            repo = git.Repo.clone_from(repo_path, repo_path_local)
+        else:
+            repo = git.Repo(repo_path)
 
-    if repo.is_dirty():
-        raise ValueError('repo is dirty')
+        if repo.is_dirty():
+            raise ValueError('repo is dirty')
 
-    tags = sorted(repo.tags, key=lambda tag: tag.commit.committed_datetime)
-    tag_repo = tags[-1]
-    if tag_repo.commit != repo.head.commit:
-        raise ValueError(f'repo tip is not at tag {tag_repo}')
+        tags = sorted(repo.tags, key=lambda tag: tag.commit.committed_datetime)
+        tag_repo = tags[-1]
+        if tag_repo.commit != repo.head.commit:
+            raise ValueError(f'repo tip is not at tag {tag_repo}')
 
     return tag_repo.name
 
