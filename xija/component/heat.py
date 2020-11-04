@@ -1119,13 +1119,11 @@ class MsidStatePower(PrecomputedHeatPower):
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
-        if lines:
-            lines[0].set_data(self.model_plotdate, self.mvals)
-        else:
-            plot_cxctime(self.model.times, self.mvals, '#386cb0', fig=fig, ax=ax)
+        if not lines:
+            plot_cxctime(self.model.times, self.dvals, '#386cb0', fig=fig, ax=ax)
             ax.grid()
-            ax.set_title(f'{self.name}: data (blue)')
-            ax.set_ylabel('MSID State Power')
+            ax.set_title(f'{self.name}: state match dvals (blue)')
+            ax.set_ylabel(f'{self.state_msid.upper()} == {repr(self.state_val)}')
 
 
 @jit(nopython=True)
