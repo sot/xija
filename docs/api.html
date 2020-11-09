@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API docs &#8212; xija 4.20.1 documentation</title>
+    <title>API docs &#8212; xija 4.21.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -54,7 +54,7 @@
 	
       </li>
       <li>
-	<a href="index.html">xija 4.20.1 documentation</a>
+	<a href="index.html">xija 4.21.0 documentation</a>
 	 &#187;
       </li>
       
@@ -577,6 +577,42 @@ current or past computed model values</p>
 <code class="sig-name descname">get_cached</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#EarthHeat.get_cached"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.EarthHeat.get_cached" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find a cached version of the Earth solid angle values from
 file if possible.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="xija.component.heat.MsidStatePower">
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">MsidStatePower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">state_msid</span></em>, <em class="sig-param"><span class="n">state_val</span></em>, <em class="sig-param"><span class="n">P</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#MsidStatePower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.MsidStatePower" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class that applies a constant heat power shift only when the state of an
+MSID, <code class="docutils literal notranslate"><span class="pre">state_msid</span></code>, matches a specified value, <code class="docutils literal notranslate"><span class="pre">state_val</span></code>.  The shift
+is <code class="docutils literal notranslate"><span class="pre">P</span></code> when the <code class="docutils literal notranslate"><span class="pre">state_val</span></code> for <code class="docutils literal notranslate"><span class="pre">state_msid</span></code> is matched, otherwise it
+is 0.0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – parent model object</p></li>
+<li><p><strong>node</strong> – node name or object for which to apply shift</p></li>
+<li><p><strong>state_msid</strong> – state MSID name</p></li>
+<li><p><strong>state_val</strong> – value of <code class="docutils literal notranslate"><span class="pre">state_msid</span></code> to be matched</p></li>
+<li><p><strong>P</strong> – size of shift in heat power (default=0.0)</p></li>
+</ul>
+</dd>
+</dl>
+<p>The name of this component is constructed by concatenating the state msid name
+and the state msid value with an underscore. For example, if the <code class="docutils literal notranslate"><span class="pre">MsidStatePower</span></code>
+component defines a power value for when the COSSRBX values match the string,
+“ON “, the name of this component is <code class="docutils literal notranslate"><span class="pre">cossrbx_on</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">dvals</span></code> data stored for this component are a boolean type. To initialize
+this component, one would use the following syntax:</p>
+<blockquote>
+<div><p>model.comp[‘cossrbx_on’].set_data(True)</p>
+</div></blockquote>
+<dl class="py method">
+<dt id="xija.component.heat.MsidStatePower.get_dvals_tlm">
+<code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#MsidStatePower.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.MsidStatePower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an array of power values where the power is <code class="docutils literal notranslate"><span class="pre">P</span></code> when the
+<code class="docutils literal notranslate"><span class="pre">state_val</span></code> for <code class="docutils literal notranslate"><span class="pre">state_msid</span></code> is matched, otherwise it is 0.0.</p>
 </dd></dl>
 
 </dd></dl>
