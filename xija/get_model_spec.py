@@ -22,7 +22,7 @@ __all__ = ['get_xija_model_spec', 'get_xija_model_names', 'get_repo_version',
 
 REPO_PATH = Path(os.environ['SKA'], 'data', 'chandra_models')
 MODELS_PATH = REPO_PATH / 'chandra_models' / 'xija'
-CHANDRA_MODELS_URL = 'https://api.github.com/repos/sot/chandra_models/releases'
+CHANDRA_MODELS_LATEST_URL = 'https://api.github.com/repos/sot/chandra_models/releases/latest'
 
 
 def _models_path(repo_path=REPO_PATH) -> Path:
@@ -205,7 +205,7 @@ def get_repo_version(repo_path: Path = REPO_PATH) -> str:
     return tag_repo.name
 
 
-def get_github_version(url: str = CHANDRA_MODELS_URL,
+def get_github_version(url: str = CHANDRA_MODELS_LATEST_URL,
                        timeout: Union[int, float] = 5) -> Optional[bool]:
     """Get latest chandra_models GitHub repo release tag (version).
 
@@ -214,7 +214,7 @@ def get_github_version(url: str = CHANDRA_MODELS_URL,
     Parameters
     ----------
     url : str
-        URL for chandra_models releases on GitHub API
+        URL for latest chandra_models release on GitHub API
     timeout : int, float
         Request timeout (sec, default=5)
 
@@ -232,7 +232,6 @@ def get_github_version(url: str = CHANDRA_MODELS_URL,
     if req.status_code != requests.codes.ok:
         req.raise_for_status()
 
-    tags_gh = sorted(req.json(), key=lambda tag: tag['published_at'])
-    tag_gh_name = tags_gh[-1]['tag_name']
+    page_json = req.json()
+    return page_json['tag_name']
 
-    return tag_gh_name
