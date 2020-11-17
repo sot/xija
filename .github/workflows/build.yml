@@ -56,7 +56,7 @@ jobs:
         repository: sot/skare3_tools
         ref: master
         path: skare3_tools
-    - uses: sot/setup-miniconda@v1
+    - uses: sot/setup-miniconda@v2
       with:
         miniconda-version: "py38_4.8.3"
         python-version: "3.8"
