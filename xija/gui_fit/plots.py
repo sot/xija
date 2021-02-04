@@ -241,10 +241,10 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.box.addLayout(toolbar_box)
         self.box.addLayout(check_boxes)
 
-        self.fig = canvas.fig
         self.canvas = canvas
+        self.ax1 = self.canvas.fig.add_subplot(121)
+        self.ax2 = self.canvas.fig.add_subplot(122)
         self.make_plots()
-        self.canvas.show()
 
     def close_window(self, *args):
         self.close()
@@ -287,11 +287,11 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.make_plots()
 
     def make_plots(self):
-        self.fig.clf()
 
         msid_name = self.hist_msids[self.which_msid]
 
-        ax1 = self.fig.add_subplot(121)
+        self.ax1.clear()
+        self.ax2.clear()
 
         mask = np.ones_like(self.comp.resids, dtype='bool')
         if self.comp.mask:
@@ -314,66 +314,60 @@ class HistogramWindow(QtWidgets.QMainWindow):
         else:
             quantstats = calcquantstats(dvals, resids)
 
-        ax1.plot(resids, dvals + randx, 'o', color='#386cb0',
+        self.ax1.plot(resids, dvals + randx, 'o', color='#386cb0',
                  alpha=1, markersize=1, markeredgecolor='#386cb0')
-        ax1.grid()
-        ax1.set_title('{}: data vs. residuals (data - model)'.format(msid_name))
-        ax1.set_xlabel('Error')
-        ax1.set_ylabel('Temperature')
+        self.ax1.grid()
+        self.ax1.set_title('{}: data vs. residuals (data - model)'.format(msid_name))
+        self.ax1.set_xlabel('Error')
+        self.ax1.set_ylabel('Temperature')
         Epoints01, Tpoints01 = getQuantPlotPoints(quantstats, 'q01')
         Epoints99, Tpoints99 = getQuantPlotPoints(quantstats, 'q99')
         Epoints50, Tpoints50 = getQuantPlotPoints(quantstats, 'q50')
-        ax1.plot(Epoints01, Tpoints01, color='k', linewidth=4)
-        ax1.plot(Epoints99, Tpoints99, color='k', linewidth=4)
-        ax1.plot(Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)
-        ax1.plot(Epoints01, Tpoints01, 'k', linewidth=2)
-        ax1.plot(Epoints99, Tpoints99, 'k', linewidth=2)
-        ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
+        self.ax1.plot(Epoints01, Tpoints01, color='k', linewidth=4)
+        self.ax1.plot(Epoints99, Tpoints99, color='k', linewidth=4)
+        self.ax1.plot(Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)
+        self.ax1.plot(Epoints01, Tpoints01, 'k', linewidth=2)
+        self.ax1.plot(Epoints99, Tpoints99, 'k', linewidth=2)
+        self.ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
 
         if self.show_limits:
-            self.model.annotate_limits(ax1)
-
-        self.ax1 = ax1
-
-        ax2 = self.fig.add_subplot(122)
+            self.model.annotate_limits(self.ax1)
 
         hist, bins = np.histogram(resids, 40)
         hist = hist*100.0/self.comp.mvals.size
         hist[hist == 0.0] = np.nan
         bin_mid = 0.5*(bins[1:]+bins[:-1])
-        ax2.step(bin_mid, hist, '#386cb0', where='mid')
-        ax2.set_title('{}: residual histogram'.format(msid_name), y=1.0)
-        ax2.set_ylim(0.0, None)
-        ylim2 = ax2.get_ylim()
-        ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(stats['q99'], color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(np.nanmin(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(np.nanmax(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.set_xlabel('Error')
-        ax2.set_ylabel('% of data')
-        ax2.fill_between(bin_mid, hist, step="mid", color='#386cb0')
+        self.ax2.step(bin_mid, hist, '#386cb0', where='mid')
+        self.ax2.set_title('{}: residual histogram'.format(msid_name), y=1.0)
+        self.ax2.set_ylim(0.0, None)
+        ylim2 = self.ax2.get_ylim()
+        self.ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)
+        self.ax2.axvline(stats['q99'], color='k', linestyle='--', linewidth=1.5, alpha=1)
+        self.ax2.axvline(np.nanmin(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
+        self.ax2.axvline(np.nanmax(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
+        self.ax2.set_xlabel('Error')
+        self.ax2.set_ylabel('% of data')
+        self.ax2.fill_between(bin_mid, hist, step="mid", color='#386cb0')
 
         # Print labels for statistical boundaries.
         ystart = (ylim2[1] + ylim2[0]) * 0.5
-        xoffset = -(.2 / 25) * np.abs(np.diff(ax2.get_xlim()))
-        ax2.text(stats['q01'] + xoffset * 1.1, ystart, '1% Quantile', ha="right",
+        xoffset = -(.2 / 25) * np.abs(np.diff(self.ax2.get_xlim()))
+        self.ax2.text(stats['q01'] + xoffset * 1.1, ystart, '1% Quantile', ha="right",
                  va="center", rotation=90)
 
-        if np.min(resids) > ax2.get_xlim()[0]:
-            ax2.text(np.min(resids) + xoffset * 1.1, ystart,
+        if np.min(resids) > self.ax2.get_xlim()[0]:
+            self.ax2.text(np.min(resids) + xoffset * 1.1, ystart,
                      'Minimum Error', ha="right", va="center",
                      rotation=90)
-        ax2.text(stats['q99'] - xoffset * 0.9, ystart, '99% Quantile', ha="left",
+        self.ax2.text(stats['q99'] - xoffset * 0.9, ystart, '99% Quantile', ha="left",
                  va="center", rotation=90)
 
-        if np.max(resids) < ax2.get_xlim()[1]:
-            ax2.text(np.max(resids) - xoffset * 0.9, ystart,
+        if np.max(resids) < self.ax2.get_xlim()[1]:
+            self.ax2.text(np.max(resids) - xoffset * 0.9, ystart,
                      'Maximum Error', ha="left",
                      va="center", rotation=90)
-
-        self.ax2 = ax2
-
-        self.canvas.draw()
+        
+        self.canvas.draw_idle()
 
 
 class PlotBox(QtWidgets.QVBoxLayout):
@@ -495,7 +489,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 elif self.plot_method.endswith("data__time"):
                     pb.model.annotate_limits(self.ax)
 
-        self.canvas.draw()
+        self.canvas.draw_idle()
 
 
 class PlotsBox(QtWidgets.QVBoxLayout):
