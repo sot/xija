@@ -247,6 +247,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.make_plots()
 
     def close_window(self, *args):
+        self.fig.clear()
         self.close()
 
     _rz_mask = None
@@ -366,7 +367,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
             self.ax2.text(np.max(resids) - xoffset * 0.9, ystart,
                      'Maximum Error', ha="left",
                      va="center", rotation=90)
-        
+
         self.canvas.draw_idle()
 
 
