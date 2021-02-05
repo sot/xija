@@ -18,10 +18,7 @@ from cxotime import CxoTime
 
 import pyyaks.context as pyc
 
-try:
-    import acis_taco as taco
-except ImportError:
-    import Chandra.taco as taco
+import acis_taco as taco
 import xija
 
 from xija.component.base import Node, TelemData
