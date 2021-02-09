@@ -170,9 +170,6 @@ class MplCanvas(FigureCanvas):
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
         self.updateGeometry()
-
-    #def draw_idle(self):
-    #    QtCore.QTimer.singleShot(1000, super().draw_idle)
         
 
 class HistogramWindow(QtWidgets.QMainWindow):
@@ -278,11 +275,11 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
     def mask_fmt1(self, state):
         self.fmt1_masked = state == QtCore.Qt.Checked
-        QtCore.QTimer.singleShot(0, self.update_plots)
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def mask_radzones(self, state):
         self.rz_masked = state == QtCore.Qt.Checked
-        QtCore.QTimer.singleShot(0, self.update_plots)
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def plot_limits(self, state):
         if state == QtCore.Qt.Checked:
@@ -297,7 +294,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.comp = self.model.comp[self.hist_msids[self.which_msid]]
         msid_name = self.hist_msids[self.which_msid]
         self.ax1.set_title(f'{msid_name}: data vs. residuals (data - model)')
-        QtCore.QTimer.singleShot(0, self.update_plots)
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def make_plots(self):
         msid_name = self.hist_msids[self.which_msid]
