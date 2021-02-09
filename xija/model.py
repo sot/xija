@@ -793,7 +793,7 @@ class XijaModel(object):
         if len(self.limits) == 0:
             return []
         lines = []
-        draw_line = getattr(ax, 'ax{}line'.format(dir))
+        draw_line = getattr(ax, f'ax{dir}line')
         if 'acisi_data_quality' in self.limits:
             lines.append(
                 draw_line(self.limits['acisi_data_quality'], 
