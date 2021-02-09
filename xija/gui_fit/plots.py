@@ -419,7 +419,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def select(self, event):
         grab = event.inaxes and self.main_window.show_line and \
-               self.canvas.toolbar._active is None
+               not self.ax.get_navigate_mode()
         if grab:
             self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
             self.plots_box.xline = event.xdata
