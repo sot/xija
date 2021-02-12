@@ -789,54 +789,55 @@ class XijaModel(object):
         self.mask_times_indices = self.bad_times_indices.copy()
         self.mask_time_secs = date2secs(self.mask_times)
 
-    def annotate_limits(self, ax, dir='h'):
-        if len(self.limits) == 0:
+    def annotate_limits(self, msid, ax, dir='h'):
+        limits = self.limits[msid]
+        if len(limits) == 0:
             return []
         lines = []
         draw_line = getattr(ax, f'ax{dir}line')
-        if 'acisi_data_quality' in self.limits:
+        if 'acisi_data_quality' in limits:
             lines.append(
-                draw_line(self.limits['acisi_data_quality'], 
+                draw_line(limits['acisi_data_quality'], 
                           ls='-.', color='blue')
             )
-        if 'aciss_data_quality' in self.limits:
+        if 'aciss_data_quality' in limits:
             lines.append(
-                draw_line(self.limits['aciss_data_quality'], 
+                draw_line(limits['aciss_data_quality'], 
                           ls='-.', color='purple')
             )
-        if 'planning_caution_high' in self.limits:
+        if 'planning_caution_high' in limits:
             lines.append(
-                draw_line(self.limits['planning_caution_high'], 
+                draw_line(limits['planning_caution_high'], 
                           ls='-.', color='gray')
             )
-        if 'planning_warning_low' in self.limits:
+        if 'planning_warning_low' in limits:
             lines.append(
-                draw_line(self.limits['planning_warning_low'], 
+                draw_line(limits['planning_warning_low'], 
                           ls='-', color='green')
             )
-        if 'planning_warning_high' in self.limits:
+        if 'planning_warning_high' in limits:
             lines.append(
-                draw_line(self.limits['planning_warning_high'], 
+                draw_line(limits['planning_warning_high'], 
                           ls='-', color='green')
             )
-        if 'odb_caution_low' in self.limits:
+        if 'odb_caution_low' in limits:
             lines.append(
-                draw_line(self.limits['odb_caution_low'], 
+                draw_line(limits['odb_caution_low'], 
                           ls='-', color='gold')
             )
-        if 'odb_caution_high' in self.limits:
+        if 'odb_caution_high' in limits:
             lines.append(
-                draw_line(self.limits['odb_caution_high'], 
+                draw_line(limits['odb_caution_high'], 
                           ls='-', color='gold')
             )
-        if 'odb_warning_low' in self.limits:
+        if 'odb_warning_low' in limits:
             lines.append(
-                draw_line(self.limits['odb_warning_low'], 
+                draw_line(limits['odb_warning_low'], 
                           ls='-', color='red')
             )
-        if 'odb_warning_high' in self.limits:
+        if 'odb_warning_high' in limits:
             lines.append(
-                draw_line(self.limits['odb_warning_high'], 
+                draw_line(limits['odb_warning_high'], 
                           ls='-', color='red')
             )
         return lines
