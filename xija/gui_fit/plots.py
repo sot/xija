@@ -420,6 +420,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         
         self.canvas.draw_idle()
 
+
 class PlotBox(QtWidgets.QVBoxLayout):
     def __init__(self, plot_name, plots_box):
         super(PlotBox, self).__init__()
@@ -448,16 +449,15 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
         # First such plot has sharex=None, subsequent ones use the first axis.
-        try:
-            xaxis_type = plot_method.split('__')[1]
-        except IndexError:
+        xaxis = plot_method.split('__')
+        if len(xaxis) == 1 or not plot_method.endswith("time"): 
             self.ax = self.fig.add_subplot(111)
         else:
-            sharex = plots_box.sharex.get(xaxis_type)
+            sharex = plots_box.sharex.get(xaxis[1])
             self.ax = self.fig.add_subplot(111, sharex=sharex)
             if sharex is not None:
                 self.ax.autoscale(enable=False, axis='x')
-            plots_box.sharex.setdefault(xaxis_type, self.ax)
+            plots_box.sharex.setdefault(xaxis[1], self.ax)
 
         self.canvas = canvas
         self.canvas.show()
@@ -465,6 +465,11 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.main_window = self.plots_box.main_window
         self.selecter = self.canvas.mpl_connect("button_press_event", self.select)
         self.releaser = self.canvas.mpl_connect("button_release_event", self.release)
+
+        self.ly = None
+        self.limits = None
+        self.rzlines = None
+        self.ignores = None
 
     def select(self, event):
         grab = event.inaxes and self.main_window.show_line and \
@@ -488,57 +493,77 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.canvas.mpl_disconnect(self.mover)
 
     def update_xline(self):
-        if self.plot_name.endswith("time"):
+        if self.plot_name.endswith("time") and self.ly is not None:
             self.ly.set_xdata(self.plots_box.xline)
             self.canvas.draw_idle()
 
-    def update(self, redraw=False, first=False):
+    def add_annotation(self, atype):
+        if atype == "limits" and self.comp_name in self.plots_box.model.limits:
+            if self.plot_method.endswith("resid__data"):
+                which_dir = 'v'
+            elif self.plot_method.endswith("data__time"):
+                which_dir = 'h'
+            self.limits = self.plots_box.model.annotate_limits(
+                self.comp_name, self.ax, dir=which_dir)
+        elif atype == "radzones" and self.plot_method.endswith("time"):
+            rad_zones = get_radzones(self.plots_box.model)
+            self.rzlines = []
+            for rz in rad_zones:
+                t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
+                self.rzlines += [
+                    self.ax.axvline(t0, color='g', ls='--'),
+                    self.ax.axvline(t1, color='g', ls='--')
+                ]
+        elif atype == "line" and self.plot_method.endswith("time"):
+            self.ly = self.ax.axvline(self.plots_box.xline, color='maroon')
+
+    def remove_annotation(self, atype):
+        if atype == "limits" and self.comp_name in self.plots_box.model.limits:
+            [line.remove() for line in self.limits]
+            self.limits = None
+        elif atype == "radzones" and self.plot_method.endswith("time"):
+            [line.remove() for line in self.rzlines]
+            self.rzlines = None
+        elif atype == "line":
+            self.ly.remove()
+            self.ly = None
+    
+    def add_ignore(self, t0, t1):
+        times = self.plots_box.model.times
+        pd_times = self.plots_box.pd_times
+        ybot, ytop = self.ax.get_ylim()
+        where = (times >= t0) & (times <= t1)
+        fill = self.ax.fill_between(pd_times,
+            ybot, ytop, where=where, color='r', alpha=0.5)
+        return fill
+
+    def add_ignores(self):
+        if len(self.plots_box.model.mask_time_secs) == 0:
+            return
+        self.ignores = []
+        for t0, t1 in self.plots_box.model.mask_time_secs:
+            self.ignores.append(self.add_ignore(t0, t1))
+
+    def remove_ignores(self):
+        [fill.remove() for fill in self.ignores]
+        self.ignores = None
+
+    def update(self, first=False):
         pb = self.plots_box
         mw = self.main_window
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
-        if redraw:
-            xmin, xmax = self.ax.get_xlim()
-            ymin, ymax = self.ax.get_ylim()
-            self.fig.delaxes(self.ax)
-            try:
-                xaxis_type = self.plot_method.split('__')[1]
-            except IndexError:
-                self.ax = self.fig.add_subplot(111)
-            else:
-                sharex = pb.sharex.get(xaxis_type)
-                self.ax = self.fig.add_subplot(111, sharex=sharex)
-                if sharex is not None:
-                    self.ax.autoscale(enable=False, axis='x')
-                pb.sharex.setdefault(xaxis_type, self.ax)
-            self.ax.set_xlim(xmin, xmax)
-            self.ax.set_ylim(ymin, ymax)
-
         plot_func(fig=self.fig, ax=self.ax)
-        self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
-
-        if redraw or first:
-            times = pb.model.times
-            tplot = pb.pd_times
+        if self.plot_method.endswith("time"):
+            self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
+        if first:
             if self.plot_method.endswith("time"):
-                ybot, ytop = self.ax.get_ylim()
-                for t0, t1 in pb.model.mask_time_secs:
-                    where = (times >= t0) & (times <= t1)
-                    self.ax.fill_between(tplot, ybot, ytop, where=where,
-                                         color='r', alpha=0.5)
-                if mw.show_radzones:
-                    rad_zones = get_radzones(pb.model)
-                    for rz in rad_zones:
-                        t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
-                        self.ax.axvline(t0, color='g', ls='--')
-                        self.ax.axvline(t1, color='g', ls='--')
-                if mw.show_line:
-                    self.ly = self.ax.axvline(pb.xline, color='maroon')
+                self.add_ignores()
+            if mw.show_radzones:
+                self.add_annotation("radzones")
+            if mw.show_line:
+                self.add_annotation("line")
             if mw.show_limits:
-                if self.plot_method.endswith("resid__data"):
-                    pb.model.annotate_limits(self.ax, dir='v')
-                elif self.plot_method.endswith("data__time"):
-                    pb.model.annotate_limits(self.ax)
-
+                self.add_annotation("limits")
         self.canvas.draw_idle()
 
 
@@ -568,22 +593,43 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     def delete_plot_box(self, plot_name):
         for plot_box in self.findChildren(PlotBox):
             if plot_box.plot_name == plot_name:
+                plot_box.fig.clear()
                 self.removeItem(plot_box)
                 clearLayout(plot_box)
         self.update()
         self.update_plot_boxes()
 
-    def update_plots(self, redraw=False):
+    def update_plots(self):
         mw = self.main_window
         cbp = mw.cbp
         cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.plot_boxes:
-            plot_box.update(redraw=redraw)
+            plot_box.update()
         cbp.update_status.setText('')
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
         mw.set_title()
+
+    def add_annotations(self, atype):
+        for pb in self.plot_boxes:
+            pb.add_annotation(atype)
+            pb.canvas.draw_idle()
+
+    def remove_annotations(self, atype):
+        for pb in self.plot_boxes:
+            pb.remove_annotation(atype)
+            pb.canvas.draw_idle()
+
+    def add_ignore(self, t0, t1):
+        for pb in self.plot_boxes:
+            pb.add_ignore(t0, t1)
+            pb.canvas.draw_idle()
+
+    def remove_ignores(self):
+        for pb in self.plot_boxes:
+            pb.remove_ignores()
+            pb.canvas.draw_idle()
 
     def update_plot_boxes(self):
         self.plot_boxes = []

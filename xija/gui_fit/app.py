@@ -432,7 +432,7 @@ class PanelText(QtWidgets.QLineEdit):
         if msg is not None:
             print(msg)
         self.slider.update_slider_val(val, self.attr)
-        self.params_panel.plots_panel.update_plots(redraw=True)
+        self.params_panel.plots_panel.update_plots()
 
     def __repr__(self):
         return getattr(self.par, self.attr).__repr__()
@@ -715,6 +715,7 @@ class MainWindow(object):
 
         self.main_left_panel = MainLeftPanel(model, self)
         mlp = self.main_left_panel
+        self.plots_box = self.main_left_panel.plots_box
 
         self.main_right_panel = MainRightPanel(model, mlp.plots_box)
 
@@ -933,21 +934,29 @@ class MainWindow(object):
 
     def plot_limits(self, state):
         self.show_limits = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True)
+        if self.show_limits:
+            self.plots_box.add_annotations("limits")
+        else:
+            self.plots_box.remove_annotations("limits")
 
     def plot_line(self, state):
         self.show_line = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True)
+        self.main_left_panel.plots_box.update_plots()
         if self.show_line:
             self.line_data_window = LineDataWindow(self.model, self,
                                                    self.main_left_panel.plots_box)
+            self.plots_box.add_annotations("line")
             self.line_data_window.show()
         else:
+            self.plots_box.remove_annotations("line")
             self.line_data_window.close()
 
     def plot_radzones(self, state):
         self.show_radzones = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True)
+        if self.show_radzones:
+            self.plots_box.add_annotations("radzones")
+        else:
+            self.plots_box.remove_annotations("radzones")
 
     def add_plot(self, plotname):
         pp = self.main_left_panel.plots_box
@@ -973,7 +982,7 @@ class MainWindow(object):
             # params table widget.
             self.fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update()
-            self.main_left_panel.plots_box.update_plots(redraw=fit_stopped)
+            self.main_left_panel.plots_box.update_plots()
             if self.show_line:
                 self.line_data_window.update_data()
 
@@ -1034,17 +1043,19 @@ class MainWindow(object):
                     lim = CxoTime(vals[1:]).date
                 except (IndexError, ValueError):
                     if len(vals) == 3:
-                        print("Invalid input for ignore: {} {}".format(vals[1], vals[2]))
+                        print(f"Invalid input for ignore: {vals[1]} {vals[2]}")
                     else:
                         print("Ignore requires two arguments, the start time and the stop time.")
                     return
+                t0, t1 = CxoTime(lim).secs
+                self.plots_box.add_ignore(t0, t1)
                 self.model.append_mask_times(lim)
             elif cmd == "notice":
                 if len(vals) > 1:
                     print("Invalid input for notice: {}".format(vals[1:]))
                     return
                 self.model.reset_mask_times()
-            self.main_left_panel.plots_box.update_plots(redraw=True)
+                self.plots_box.remove_ignores()
 
     def set_title(self):
         title_str = gui_config['filename']
