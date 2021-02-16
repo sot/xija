@@ -283,7 +283,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
     def plot_limits(self, state):
         if state == QtCore.Qt.Checked:
-            self.limit_lines = self.model.annotate_limits(self.ax1)
+            self.limit_lines = self.model.annotate_limits(
+                self.hist_msids[self.which_msid], self.ax1)
         else:
             [line.remove() for line in self.limit_lines]
             self.limit_lines = []
@@ -499,12 +500,12 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def add_annotation(self, atype):
         if atype == "limits" and self.comp_name in self.plots_box.model.limits:
-            if self.plot_method.endswith("resid__data"):
-                which_dir = 'v'
-            elif self.plot_method.endswith("data__time"):
-                which_dir = 'h'
-            self.limits = self.plots_box.model.annotate_limits(
-                self.comp_name, self.ax, dir=which_dir)
+            if "resid__data" in self.plot_name:
+                self.limits = self.plots_box.model.annotate_limits(
+                    self.comp_name, self.ax, dir='v')
+            elif "data__time" in self.plot_name:
+                self.limits = self.plots_box.model.annotate_limits(
+                    self.comp_name, self.ax, dir='h')
         elif atype == "radzones" and self.plot_method.endswith("time"):
             rad_zones = get_radzones(self.plots_box.model)
             self.rzlines = []
