@@ -160,6 +160,59 @@ def clearLayout(layout):
                 clearLayout(item.layout())
 
 
+def annotate_limits(limits, ax, dir='h'):
+    if len(limits) == 0:
+        return []
+    lines = []
+    draw_line = getattr(ax, f'ax{dir}line')
+    if 'acisi_data_quality' in limits:
+        lines.append(
+            draw_line(limits['acisi_data_quality'],
+                      ls='-.', color='blue')
+        )
+    if 'aciss_data_quality' in limits:
+        lines.append(
+            draw_line(limits['aciss_data_quality'],
+                      ls='-.', color='purple')
+        )
+    if 'planning_caution_high' in limits:
+        lines.append(
+            draw_line(limits['planning_caution_high'],
+                      ls='-.', color='gray')
+        )
+    if 'planning_warning_low' in limits:
+        lines.append(
+            draw_line(limits['planning_warning_low'],
+                      ls='-', color='green')
+        )
+    if 'planning_warning_high' in limits:
+        lines.append(
+            draw_line(limits['planning_warning_high'],
+                      ls='-', color='green')
+        )
+    if 'odb_caution_low' in limits:
+        lines.append(
+            draw_line(limits['odb_caution_low'],
+                      ls='-', color='gold')
+        )
+    if 'odb_caution_high' in limits:
+        lines.append(
+            draw_line(limits['odb_caution_high'],
+                      ls='-', color='gold')
+        )
+    if 'odb_warning_low' in limits:
+        lines.append(
+            draw_line(limits['odb_warning_low'],
+                      ls='-', color='red')
+        )
+    if 'odb_warning_high' in limits:
+        lines.append(
+            draw_line(limits['odb_warning_high'],
+                      ls='-', color='red')
+        )
+    return lines
+
+
 class MplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
     def __init__(self, parent=None):
@@ -283,8 +336,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
     def plot_limits(self, state):
         if state == QtCore.Qt.Checked:
-            self.limit_lines = self.model.annotate_limits(
-                self.hist_msids[self.which_msid], self.ax1)
+            limits = self.model.limits[self.hist_msids[self.which_msid]]
+            self.limit_lines = annotate_limits(limits, self.ax1)
         else:
             [line.remove() for line in self.limit_lines]
             self.limit_lines = []
@@ -500,12 +553,11 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def add_annotation(self, atype):
         if atype == "limits" and self.comp_name in self.plots_box.model.limits:
+            limits = self.plots_box.model.limits[self.comp_name]
             if "resid__data" in self.plot_name:
-                self.limits = self.plots_box.model.annotate_limits(
-                    self.comp_name, self.ax, dir='v')
+                self.limits = annotate_limits(limits, self.ax, dir='v')
             elif "data__time" in self.plot_name:
-                self.limits = self.plots_box.model.annotate_limits(
-                    self.comp_name, self.ax, dir='h')
+                self.limits = annotate_limits(limits, self.ax, dir='h')
         elif atype == "radzones" and self.plot_method.endswith("time"):
             rad_zones = get_radzones(self.plots_box.model)
             self.rzlines = []
