@@ -1192,7 +1192,7 @@ def main():
     gui_config['filename'] = os.path.abspath(opt.filename)
     gui_config['set_data_vals'] = set_data_vals
 
-    fit_worker = FitWorker(model, opt.maxiter)
+    fit_worker = FitWorker(model, opt.maxiter, method=opt.fit_method)
 
     model.calc()
 
