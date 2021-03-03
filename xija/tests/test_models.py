@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import print_function
-
 import os
 import tempfile
 import numpy as np
@@ -8,6 +6,7 @@ import pytest
 from pathlib import Path
 
 from xija import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
+import xija
 from numpy import sin, cos, abs
 
 try:
@@ -296,3 +295,58 @@ def test_multi_solar_heat_values():
     assert mvals2[0] == 30.0
     assert abs(mvals2[500] - 15.8338) < 0.001
     assert abs(mvals2[1049] - 11.4947) < 0.001
+
+
+def _get_model_for_dP_pitches(solar_class, msid, dP_pitches, dPs):
+    model = xija.XijaModel(msid, start='2021:001', stop='2021:005')
+    model.add(xija.Node, msid)
+    model.add(xija.Pitch)
+    model.add(xija.Eclipse)
+    model.add(xija.SimZ)
+    model.add(xija.Roll)
+    model.add(xija.DetectorHousingHeater)
+    model.add(solar_class,
+              P_pitches=[45, 90, 135, 180],
+              dP_pitches=dP_pitches,
+              Ps=[0.0, 1.0, 1.0, 0.0],
+              dPs=dPs,
+              ampl=0.0,
+              eclipse_comp='eclipse',
+              epoch='2020:001',
+              node=msid,
+              pitch_comp='pitch',
+              )
+    model.add(xija.HeatSink,
+              T=-20.0,
+              node=msid,
+              tau=30.0,
+              )
+    model.add(xija.StepFunctionPower,
+              P=0.1,
+              id='_1iru',
+              node=msid,
+              time='2021:003'
+              )
+    return model
+
+
+@pytest.mark.parametrize('solar_class', [xija.SolarHeat,
+                                         xija.SolarHeatAcisCameraBody,
+                                         xija.SolarHeatHrc,
+                                         xija.SolarHeatHrcMult,
+                                         xija.SolarHeatHrcOpts,
+                                         xija.SolarHeatMulplicative])
+def test_fewer_dP_pitches(solar_class):
+    """Test providing fewer dP_pitches than P_pitches for SolarHeat model
+    """
+    msid = '4hfspat'
+    model1 = _get_model_for_dP_pitches(solar_class, msid, None, [0.0, 1.0, 2.0, 3.0])
+    model2 = _get_model_for_dP_pitches(solar_class, msid, [45, 180], [0.0, 3.0])
+
+    model1.make()
+    model2.make()
+
+    model1.calc()
+    model2.calc()
+
+    assert np.allclose(model1.comp[msid].mvals, model2.comp[msid].mvals)
