@@ -196,7 +196,7 @@ class CmdStatesData(TelemData):
 
 class Node(TelemData):
     """Time-series dataset for prediction.
-    
+
     If the ``sigma`` value is negative then sigma is computed from the
     node data values as the specified percent of the data standard
     deviation.  The default ``sigma`` value is -10, so this implies
@@ -334,7 +334,7 @@ class Coupling(ModelComponent):
     """\
     First-order coupling between Nodes `node1` and `node2`
     ::
-    
+
       dy1/dt = -(y1 - y2) / tau
 
     Parameters
@@ -361,6 +361,23 @@ class Coupling(ModelComponent):
         return 'coupling__{0}__{1}'.format(self.node1, self.node2)
 
 
+class Delay(ModelComponent):
+    """Delay mval from ``node`` by ``delay`` ksec
+
+    See the example in examples/delay/. For a positive delay, the computed model
+    value (``node.mval``) will be constant at the initial value for the first
+    ``delay`` ksec. Conversely for a negative delay the values at the end will
+    be constant for ``delay`` ksec.
+    """
+    def __init__(self, model, node, delay=0):
+        super().__init__(model)
+        self.node = self.model.get_comp(node)
+        self.add_par('delay', delay, min=-40, max=40)
+
+    def __str__(self):
+        return f'delay__{self.node}'
+
+
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
     def __init__(self, model, node, T=0.0, tau=20.0):
@@ -384,13 +401,13 @@ class HeatSinkRef(ModelComponent):
     tau does not affect the mean model temperature.  This requires an extra
     non-fitted parameter T_ref which corresponds to a reference temperature for
     the node.::
-    
+
       dT/dt = U * (Te - T)
             = P + U* (T_ref - T)   # reparameterization
-    
+
       P = U * (Te - T_ref)
       Te = P / U + T_ref
-    
+
     In code below, "T" corresponds to "Te" above.  The "T" above is node.dvals.
 
     Parameters

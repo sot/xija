@@ -696,6 +696,14 @@ class XijaModel(object):
         # hackish fix to ensure last value is computed
         self.mvals[:, -1] = self.mvals[:, -2]
 
+        # Apply Delay components after the model calculation
+        for comp in self.comps:
+            if isinstance(comp, component.Delay) and comp.delay != 0.0:
+                # Note: starting from index 0 creates an instability in xija_gui_fit,
+                # so just copy from index 1.
+                comp.node.mvals[1:] = np.interp(x=self.times - comp.delay * 1000,
+                                                xp=self.times, fp=comp.node.mvals)[1:]
+
     def calc_stat(self):
         """Calculate model fit statistic as the sum of component fit stats"""
         self.calc()            # parvals already set with dummy_calc
