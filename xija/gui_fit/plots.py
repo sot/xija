@@ -165,49 +165,49 @@ def annotate_limits(limits, ax, dir='h'):
         return []
     lines = []
     draw_line = getattr(ax, f'ax{dir}line')
-    if 'acisi_data_quality' in limits:
+    if 'planning.data_quality.high.acisi' in limits:
         lines.append(
-            draw_line(limits['acisi_data_quality'],
+            draw_line(limits['planning.data_quality.high.acisi'],
                       ls='-.', color='blue')
         )
-    if 'aciss_data_quality' in limits:
+    if 'planning.data_quality.high.aciss' in limits:
         lines.append(
-            draw_line(limits['aciss_data_quality'],
+            draw_line(limits['planning.data_quality.high.aciss'],
                       ls='-.', color='purple')
         )
-    if 'planning_caution_high' in limits:
+    if 'planning.penalty.high' in limits:
         lines.append(
-            draw_line(limits['planning_caution_high'],
+            draw_line(limits['planning.penalty.high'],
                       ls='-.', color='gray')
         )
-    if 'planning_warning_low' in limits:
+    if 'planning.warning.low' in limits:
         lines.append(
-            draw_line(limits['planning_warning_low'],
+            draw_line(limits['planning.warning.low'],
                       ls='-', color='green')
         )
-    if 'planning_warning_high' in limits:
+    if 'planning.warning.high' in limits:
         lines.append(
-            draw_line(limits['planning_warning_high'],
+            draw_line(limits['planning.warning.high'],
                       ls='-', color='green')
         )
-    if 'odb_caution_low' in limits:
+    if 'odb.caution.low' in limits:
         lines.append(
-            draw_line(limits['odb_caution_low'],
+            draw_line(limits['odb.caution.low'],
                       ls='-', color='gold')
         )
-    if 'odb_caution_high' in limits:
+    if 'odb.caution.high' in limits:
         lines.append(
-            draw_line(limits['odb_caution_high'],
+            draw_line(limits['odb.caution.high'],
                       ls='-', color='gold')
         )
-    if 'odb_warning_low' in limits:
+    if 'odb.warning.low' in limits:
         lines.append(
-            draw_line(limits['odb_warning_low'],
+            draw_line(limits['odb.warning.low'],
                       ls='-', color='red')
         )
-    if 'odb_warning_high' in limits:
+    if 'odb.warning.high' in limits:
         lines.append(
-            draw_line(limits['odb_warning_high'],
+            draw_line(limits['odb.warning.high'],
                       ls='-', color='red')
         )
     return lines
