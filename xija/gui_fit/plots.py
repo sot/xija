@@ -165,51 +165,22 @@ def annotate_limits(limits, ax, dir='h'):
         return []
     lines = []
     draw_line = getattr(ax, f'ax{dir}line')
-    if 'planning.data_quality.high.acisi' in limits:
-        lines.append(
-            draw_line(limits['planning.data_quality.high.acisi'],
-                      ls='-.', color='blue')
-        )
-    if 'planning.data_quality.high.aciss' in limits:
-        lines.append(
-            draw_line(limits['planning.data_quality.high.aciss'],
-                      ls='-.', color='purple')
-        )
-    if 'planning.penalty.high' in limits:
-        lines.append(
-            draw_line(limits['planning.penalty.high'],
-                      ls='-.', color='gray')
-        )
-    if 'planning.warning.low' in limits:
-        lines.append(
-            draw_line(limits['planning.warning.low'],
-                      ls='-', color='green')
-        )
-    if 'planning.warning.high' in limits:
-        lines.append(
-            draw_line(limits['planning.warning.high'],
-                      ls='-', color='green')
-        )
-    if 'odb.caution.low' in limits:
-        lines.append(
-            draw_line(limits['odb.caution.low'],
-                      ls='-', color='gold')
-        )
-    if 'odb.caution.high' in limits:
-        lines.append(
-            draw_line(limits['odb.caution.high'],
-                      ls='-', color='gold')
-        )
-    if 'odb.warning.low' in limits:
-        lines.append(
-            draw_line(limits['odb.warning.low'],
-                      ls='-', color='red')
-        )
-    if 'odb.warning.high' in limits:
-        lines.append(
-            draw_line(limits['odb.warning.high'],
-                      ls='-', color='red')
-        )
+    opts = [
+        ('planning.data_quality.high.acisi', '-.', 'blue'),
+        ('planning.data_quality.high.aciss', '-.', 'purple'),
+        ('planning.penalty.high', '-.', 'gray'),
+        ('planning.warning.low', '-', 'green'),
+        ('planning.warning.high', '-', 'green'),
+        ('odb.caution.low', '-', 'gold'),
+        ('odb.caution.high', '-', 'gold'),
+        ('odb.warning.low', '-', 'red'),
+        ('odb.warning.high', '-', 'red')
+    ]
+    for (limit_name, ls, color) in opts:
+        if limit_name in limits:
+            lines.append(
+                draw_line(limits[limit_name], ls=ls, color=color)
+            )
     return lines
 
 
@@ -223,7 +194,7 @@ class MplCanvas(FigureCanvas):
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
         self.updateGeometry()
-        
+
 
 class HistogramWindow(QtWidgets.QMainWindow):
     def __init__(self, model, hist_msids):
@@ -297,8 +268,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.limit_lines = []
 
         self.canvas = canvas
-        self.ax1 = self.canvas.fig.add_subplot(121)
-        self.ax2 = self.canvas.fig.add_subplot(122)
+        self.ax1 = self.canvas.fig.add_subplot(1, 2, 1)
+        self.ax2 = self.canvas.fig.add_subplot(1, 2, 2)
         self.plot_dict = {}
         self.make_plots()
 
