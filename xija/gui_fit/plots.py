@@ -412,7 +412,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.plot_dict["fill"] = self.ax2.fill_between(
             bin_mid, hist, step="mid", color='#386cb0')
 
-        self.ax2.set_ylim(0.0, None)
+        self.ax2.set_ylim(0.0, hist.max()+1)
 
         # Print labels for statistical boundaries.
         ylim2 = self.ax2.get_ylim()
