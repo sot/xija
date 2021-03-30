@@ -5,7 +5,6 @@ import re
 from itertools import count
 import glob
 import os
-from six.moves import zip
 from pathlib import Path
 
 from numba import jit
@@ -65,9 +64,9 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
     from -1 to 1).  There are two parameters ``P_plus_y`` and ``P_minus_y``.  For sun on
     the +Y side the ``P_plus_y`` parameter is used, and likewise for sun on -Y.  For
     example for +Y sun::
-    
+
        heat = P_plus_y * sun_body_y
-    
+
     The following reference has useful diagrams concerning off-nominal roll and
     projections: http://occweb.cfa.harvard.edu/twiki/pub/Aspect/WebHome/ROLLDEV3.pdf.
 
@@ -79,7 +78,7 @@ class SolarHeatOffNomRoll(PrecomputedHeatPower):
 
     """
 
-    def __init__(self, model, node, pitch_comp, roll_comp, eclipse_comp=None,
+    def __init__(self, model, node, pitch_comp='pitch', roll_comp='roll', eclipse_comp=None,
                  P_plus_y=0.0, P_minus_y=0.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
@@ -142,14 +141,17 @@ class SolarHeat(PrecomputedHeatPower):
         constant offset to all solar heating values
     epoch :
         reference date at which ``Ps`` values apply
+    dP_pitches :
+        list of pitch values for dP (default=``P_pitches``)
 
     Returns
     -------
 
     """
-    def __init__(self, model, node, pitch_comp, eclipse_comp=None,
+    def __init__(self, model, node, pitch_comp='pitch', eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00'):
+                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
+                 dP_pitches=None):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.pitch_comp = self.model.get_comp(pitch_comp)
@@ -160,12 +162,20 @@ class SolarHeat(PrecomputedHeatPower):
         self.P_pitches = np.array(P_pitches, dtype=np.float)
         self.n_pitches = len(self.P_pitches)
 
+        if dP_pitches is None:
+            dP_pitches = self.P_pitches
+        self.dP_pitches = np.array(dP_pitches, dtype=np.float)
+
+        if (self.dP_pitches[0] != self.P_pitches[0]
+                or self.dP_pitches[-1] != self.P_pitches[-1]):
+            raise ValueError('P_pitches and dP_pitches must span the same pitch range')
+
         if Ps is None:
             Ps = np.ones_like(self.P_pitches)
         self.Ps = np.array(Ps, dtype=np.float)
 
         if dPs is None:
-            dPs = np.zeros_like(self.P_pitches)
+            dPs = np.zeros_like(self.dP_pitches)
         self.dPs = np.array(dPs, dtype=np.float)
 
         self.epoch = epoch
@@ -173,7 +183,7 @@ class SolarHeat(PrecomputedHeatPower):
         for pitch, power in zip(self.P_pitches, self.Ps):
             self.add_par('P_{0:.0f}'.format(float(pitch)), power, min=-10.0,
                          max=10.0)
-        for pitch, dpower in zip(self.P_pitches, self.dPs):
+        for pitch, dpower in zip(self.dP_pitches, self.dPs):
             self.add_par('dP_{0:.0f}'.format(float(pitch)), dpower, min=-1.0,
                          max=1.0)
         self.add_par('tau', tau, min=1000., max=3000.)
@@ -220,8 +230,10 @@ class SolarHeat(PrecomputedHeatPower):
             # setting the array size whereas the self.pars vals are the actual values
             # taken from the model spec file and used in fitting.
             Ps = self.parvals[0:self.n_pitches]
-            dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
-            Ps += dPs * days / self.tau
+            dPs = self.parvals[self.n_pitches:self.n_pitches + len(self.dP_pitches)]
+            dPs_interp = np.interpolate(x=self.P_pitches, xp=self.dP_pitches, fp=dPs)
+
+            Ps += dPs_interp * days / self.tau
             for par, P in zip(self.pars, Ps):
                 par.val = P
                 if P > par.max:
@@ -248,7 +260,7 @@ class SolarHeat(PrecomputedHeatPower):
 
     def _compute_dvals(self):
         vf = self.var_func(self.t_days, self.tau)
-        return (self.P_vals + self.dP_vals*vf +
+        return (self.P_vals + self.dP_vals * vf +
                 self.ampl * np.cos(self.t_phase)).reshape(-1)
 
     @property
@@ -260,10 +272,11 @@ class SolarHeat(PrecomputedHeatPower):
                            - DateTime(self.epoch).secs) / 86400.0
 
         Ps = self.parvals[0:self.n_pitches] + self.bias
-        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
+        dPs = self.parvals[self.n_pitches:self.n_pitches + len(self.dP_pitches)]
+
         Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
                                                kind='linear')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
+        dPs_interp = scipy.interpolate.interp1d(self.dP_pitches, dPs,
                                                 kind='linear')
         self.P_vals = Ps_interp(self.pitches)
         self.dP_vals = dPs_interp(self.pitches)
@@ -287,8 +300,8 @@ class SolarHeat(PrecomputedHeatPower):
         Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
                                                kind='linear')
 
-        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
+        dPs = self.parvals[self.n_pitches:self.n_pitches + len(self.dP_pitches)]
+        dPs_interp = scipy.interpolate.interp1d(self.dP_pitches, dPs,
                                                 kind='linear')
 
         pitches = np.linspace(self.P_pitches[0], self.P_pitches[-1], 100)
@@ -299,12 +312,10 @@ class SolarHeat(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.P_pitches, Ps)
             lines[1].set_data(pitches, P_vals)
-            lines[2].set_data(self.P_pitches, dPs + Ps)
-            lines[3].set_data(pitches, dP_vals + P_vals)
+            lines[2].set_data(pitches, dP_vals + P_vals)
         else:
             ax.plot(self.P_pitches, Ps, 'or', markersize=3)
             ax.plot(pitches, P_vals, '-b')
-            ax.plot(self.P_pitches, dPs + Ps, 'om', markersize=3)
             ax.plot(pitches, dP_vals + P_vals, '-m')
             ax.set_title('{} solar heat input'.format(self.node.name))
             ax.set_xlim(40, 180)
@@ -312,18 +323,21 @@ class SolarHeat(PrecomputedHeatPower):
 
 
 class SolarHeatMulplicative(SolarHeat):
-    def __init__(self, model, node, pitch_comp, eclipse_comp=None,
+    __doc__ = SolarHeat.__doc__
+
+    def __init__(self, model, node, pitch_comp='pitch', eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001:12:00:00'):
-        super(SolarHeatMulplicative, self).__init__(
-            model, node, pitch_comp, eclipse_comp=eclipse_comp,
+                 tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001:12:00:00',
+                 dP_pitches=None):
+        super().__init__(
+            model, node, pitch_comp=pitch_comp, eclipse_comp=eclipse_comp,
             P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func,
-            tau=tau, ampl=ampl, bias=bias, epoch=epoch)
+            tau=tau, ampl=ampl, bias=bias, epoch=epoch, dP_pitches=dP_pitches)
 
     def _compute_dvals(self):
         vf = self.var_func(self.t_days, self.tau)
-        yv = (1.0 + self.ampl*np.cos(self.t_phase))
-        return ((self.P_vals+self.dP_vals*vf)*yv).reshape(-1)
+        yv = (1.0 + self.ampl * np.cos(self.t_phase))
+        return ((self.P_vals + self.dP_vals * vf) * yv).reshape(-1)
 
 
 class SolarHeatAcisCameraBody(SolarHeat):
@@ -361,20 +375,18 @@ class SolarHeatAcisCameraBody(SolarHeat):
         detector housing heater status (True = On)
     dh_heater_bias :
         bias power when DH heater is on
-
-    Returns
-    -------
-
+    dP_pitches :
+        list of pitch values for dP (default=``P_pitches``)
     """
-    def __init__(self, model, node, pitch_comp, eclipse_comp=None,
+    def __init__(self, model, node, pitch_comp='pitch', eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
-                 dh_heater_comp=None, dh_heater_bias=0.0):
+                 dh_heater_comp='dh_heater', dh_heater_bias=0.0, dP_pitches=None):
 
-        super(SolarHeatAcisCameraBody, self).__init__(
-            model, node, pitch_comp, eclipse_comp=eclipse_comp,
+        super().__init__(
+            model, node, pitch_comp=pitch_comp, eclipse_comp=eclipse_comp,
             P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func,
-            tau=tau, ampl=ampl, bias=bias, epoch=epoch)
+            tau=tau, ampl=ampl, bias=bias, epoch=epoch, dP_pitches=dP_pitches)
 
         self.dh_heater_comp = model.get_comp(dh_heater_comp)
         self.add_par('dh_heater_bias', dh_heater_bias, min=-1.0, max=1.0)
@@ -417,18 +429,22 @@ class SolarHeatHrc(SolarHeat):
         reference date at which ``Ps`` values apply
     hrc_bias :
         solar heating bias when SIM-Z < 0 (HRC)
+    dP_pitches :
+        list of pitch values for dP (default=``P_pitches``)
 
     Returns
     -------
 
     """
-    def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
+    def __init__(self, model, node, simz_comp='sim_z', pitch_comp='pitch', eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
-                 hrc_bias=0.0):
-        SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
-                           P_pitches, Ps, dPs, var_func, tau, ampl, bias,
-                           epoch)
+                 hrc_bias=0.0, dP_pitches=None):
+        super().__init__(
+            model, node, pitch_comp=pitch_comp, eclipse_comp=eclipse_comp,
+            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func,
+            tau=tau, ampl=ampl, bias=bias, epoch=epoch, dP_pitches=dP_pitches)
+
         self.simz_comp = model.get_comp(simz_comp)
         self.add_par('hrc_bias', hrc_bias, min=-1.0, max=1.0)
 
@@ -475,18 +491,18 @@ class SolarHeatHrcOpts(SolarHeat):
         solar heating bias when HRC-I is in the focal plane.
     hrcs_bias :
         solar heating bias when HRC-S is in the focal plane.
-
-    Returns
-    -------
-
+    dP_pitches :
+        list of pitch values for dP (default=``P_pitches``)
     """
-    def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
+    def __init__(self, model, node, simz_comp='sim_z', pitch_comp='pitch', eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
-                 hrci_bias=0.0, hrcs_bias=0.0):
-        SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
-                           P_pitches, Ps, dPs, var_func, tau, ampl, bias,
-                           epoch)
+                 hrci_bias=0.0, hrcs_bias=0.0, dP_pitches=None):
+        super().__init__(
+            model, node, pitch_comp=pitch_comp, eclipse_comp=eclipse_comp,
+            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func,
+            tau=tau, ampl=ampl, bias=bias, epoch=epoch, dP_pitches=dP_pitches)
+
         self.simz_comp = model.get_comp(simz_comp)
         self.add_par('hrci_bias', hrci_bias, min=-1.0, max=1.0)
         self.add_par('hrcs_bias', hrcs_bias, min=-1.0, max=1.0)
@@ -503,15 +519,18 @@ class SolarHeatHrcOpts(SolarHeat):
 
 
 class SolarHeatHrcMult(SolarHeatHrcOpts, SolarHeatMulplicative):
-    def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
+    __doc__ = SolarHeatHrcOpts.__doc__
+
+    def __init__(self, model, node, simz_comp='sim_z', pitch_comp='pitch', eclipse_comp=None,
                  P_pitches=None, Ps=None, dPs=None, var_func='exp',
                  tau=1732.0, ampl=0.0334, bias=0.0, epoch='2010:001:12:00:00',
-                 hrci_bias=0.0, hrcs_bias=0.0):
-        super(SolarHeatHrcMult, self).__init__(
-            model, node, simz_comp, pitch_comp, eclipse_comp=eclipse_comp,
+                 hrci_bias=0.0, hrcs_bias=0.0, dP_pitches=None):
+        super().__init__(
+            model, node, simz_comp=simz_comp, pitch_comp=pitch_comp, eclipse_comp=eclipse_comp,
             P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func, tau=tau,
             ampl=ampl, bias=bias, epoch=epoch, hrci_bias=hrci_bias,
-            hrcs_bias=hrcs_bias)
+            hrcs_bias=hrcs_bias, dP_pitches=dP_pitches)
+
 
 # For back compatibility prior to Xija 0.2
 DpaSolarHeat = SolarHeatHrc
@@ -706,7 +725,8 @@ class DetectorHousingHeater(TelemData):
 
 class AcisPsmcSolarHeat(PrecomputedHeatPower):
     """Solar heating of PSMC box.  This is dependent on SIM-Z"""
-    def __init__(self, model, node, pitch_comp, simz_comp, dh_heater_comp, P_pitches=None,
+    def __init__(self, model, node, pitch_comp='pitch', simz_comp='sim_z',
+                 dh_heater_comp='dh_heater', P_pitches=None,
                  P_vals=None, dPs=None, var_func='linear',
                  tau=1732.0, ampl=0.05, epoch='2013:001:12:00:00', dh_heater=0.05):
         ModelComponent.__init__(self, model)
@@ -1263,12 +1283,12 @@ def quat_to_transform_transpose(q):
     Parameters
     ----------
     q :
-        
+
 
     Returns
     -------
     type
-        
+
 
     """
     x, y, z, w = q
