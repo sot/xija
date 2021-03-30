@@ -1,0 +1,340 @@
+{
+    "bad_times": [],
+    "comps": [
+        {
+            "class_name": "Node",
+            "init_args": [
+                "4hfspat"
+            ],
+            "init_kwargs": {},
+            "name": "4hfspat"
+        },
+        {
+            "class_name": "Delay",
+            "init_args": [
+                "4hfspat"
+            ],
+            "init_kwargs": {
+                "delay": 0
+            },
+            "name": "delay__4hfspat"
+        },
+        {
+            "class_name": "Pitch",
+            "init_args": [],
+            "init_kwargs": {},
+            "name": "pitch"
+        },
+        {
+            "class_name": "Eclipse",
+            "init_args": [],
+            "init_kwargs": {},
+            "name": "eclipse"
+        },
+        {
+            "class_name": "SolarHeat",
+            "init_args": [],
+            "init_kwargs": {
+                "P_pitches": [
+                    45,
+                    70,
+                    90,
+                    115,
+                    140,
+                    160,
+                    180
+                ],
+                "Ps": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "ampl": 0.0,
+                "eclipse_comp": "eclipse",
+                "epoch": "2021:001",
+                "node": "4hfspat",
+                "pitch_comp": "pitch"
+            },
+            "name": "solarheat__4hfspat"
+        },
+        {
+            "class_name": "HeatSink",
+            "init_args": [],
+            "init_kwargs": {
+                "T": -16.0,
+                "node": "4hfspat",
+                "tau": 30.0
+            },
+            "name": "heatsink__4hfspat"
+        },
+        {
+            "class_name": "StepFunctionPower",
+            "init_args": [],
+            "init_kwargs": {
+                "P": 0.07,
+                "id": "_2iru",
+                "node": "4hfspat",
+                "time": "2018:283:14:00:00"
+            },
+            "name": "step_power_2iru__4hfspat"
+        },
+        {
+            "class_name": "StepFunctionPower",
+            "init_args": [],
+            "init_kwargs": {
+                "P": -0.07,
+                "id": "_1iru",
+                "node": "4hfspat",
+                "time": "2020:213:04:25:12"
+            },
+            "name": "step_power_1iru__4hfspat"
+        }
+    ],
+    "datestart": "2017:301:00:01:50.816",
+    "datestop": "2021:039:23:53:18.816",
+    "dt": 328.0,
+    "evolve_method": 1,
+    "gui_config": {
+        "filename": "/Users/aldcroft/git/xija/4hfspat_delay.json",
+        "plot_names": [
+            "4hfspat data__time",
+            "solarheat__4hfspat solar_heat__pitch"
+        ],
+        "set_data_vals": {},
+        "size": [
+            1556,
+            800
+        ]
+    },
+    "limits": {},
+    "mval_names": [],
+    "name": "4hfspat",
+    "pars": [
+        {
+            "comp_name": "delay__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "delay__4hfspat__delay",
+            "max": 40,
+            "min": -40,
+            "name": "delay",
+            "val": 13.499999999999996
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__P_45",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P_45",
+            "val": 0.17233635027684308
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__P_70",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P_70",
+            "val": 0.23062326409902983
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__P_90",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P_90",
+            "val": 0.24228417253874154
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__P_115",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P_115",
+            "val": 0.23496721731515693
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__P_140",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P_140",
+            "val": 0.1984902466681594
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__P_160",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P_160",
+            "val": 0.155
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__P_180",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P_180",
+            "val": 0.08412094201747869
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__dP_45",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "dP_45",
+            "val": 0.020381767596966242
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__dP_70",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "dP_70",
+            "val": 0.02
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__dP_90",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "dP_90",
+            "val": 0.020901514422723914
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": false,
+            "full_name": "solarheat__4hfspat__dP_115",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "dP_115",
+            "val": 0.018624230162238496
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": false,
+            "full_name": "solarheat__4hfspat__dP_140",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "dP_140",
+            "val": 0.01915172892676302
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": false,
+            "full_name": "solarheat__4hfspat__dP_160",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "dP_160",
+            "val": 0.02154387208115857
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": false,
+            "full_name": "solarheat__4hfspat__dP_180",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "dP_180",
+            "val": 0.02
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__tau",
+            "max": 3000.0,
+            "min": 1000.0,
+            "name": "tau",
+            "val": 1732.0
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__ampl",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "ampl",
+            "val": 0.00439453125
+        },
+        {
+            "comp_name": "solarheat__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "solarheat__4hfspat__bias",
+            "max": 1.0,
+            "min": -1.0,
+            "name": "bias",
+            "val": 0.0
+        },
+        {
+            "comp_name": "heatsink__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "heatsink__4hfspat__T",
+            "max": 100.0,
+            "min": -100.0,
+            "name": "T",
+            "val": -17.38862456311714
+        },
+        {
+            "comp_name": "heatsink__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "heatsink__4hfspat__tau",
+            "max": 300.0,
+            "min": 2.0,
+            "name": "tau",
+            "val": 224.16634713698585
+        },
+        {
+            "comp_name": "step_power_2iru__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "step_power_2iru__4hfspat__P",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P",
+            "val": 0.011488201458560068
+        },
+        {
+            "comp_name": "step_power_1iru__4hfspat",
+            "fmt": "{:.4g}",
+            "frozen": true,
+            "full_name": "step_power_1iru__4hfspat__P",
+            "max": 10.0,
+            "min": -10.0,
+            "name": "P",
+            "val": -0.010011660309755826
+        }
+    ],
+    "rk4": 0,
+    "tlm_code": null
+}
