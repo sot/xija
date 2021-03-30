@@ -174,7 +174,8 @@ def annotate_limits(limits, ax, dir='h'):
         ('odb.caution.low', '-', 'gold'),
         ('odb.caution.high', '-', 'gold'),
         ('odb.warning.low', '-', 'red'),
-        ('odb.warning.high', '-', 'red')
+        ('odb.warning.high', '-', 'red'),
+        ('planning.zero_feps.low', '--', 'dodgerblue')
     ]
     for (limit_name, ls, color) in opts:
         if limit_name in limits:
