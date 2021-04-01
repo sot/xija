@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import sys
 import os
 import ast
@@ -16,15 +14,11 @@ import json
 import logging
 import numpy as np
 
-from Chandra.Time import DateTime, ChandraTimeError, \
-    secs2date
+from cxotime import CxoTime
 
 import pyyaks.context as pyc
 
-try:
-    import acis_taco as taco
-except ImportError:
-    import Chandra.taco as taco
+import acis_taco as taco
 import xija
 
 from xija.component.base import Node, TelemData
@@ -67,7 +61,7 @@ class FormattedTelemData:
     @property
     def dates(self):
         if self._dates is None:
-            self._dates = secs2date(self.times)
+            self._dates = CxoTime(self.times).date
         return self._dates
 
     def __getitem__(self, item):
@@ -199,7 +193,7 @@ class WriteTableWindow(QtWidgets.QMainWindow):
                     if box.isChecked():
                         checked.append(i)
                 t = Table()
-                ts = DateTime([self.start_date, self.stop_date]).secs
+                ts = CxoTime([self.start_date, self.stop_date]).secs
                 ts[-1] += 1.0 # a buffer to make sure we grab the last point
                 istart, istop = np.searchsorted(self.ftd.times, ts)
                 c = Column(self.ftd.dates[istart:istop], name="date", format="{0}")
@@ -438,7 +432,7 @@ class PanelText(QtWidgets.QLineEdit):
         if msg is not None:
             print(msg)
         self.slider.update_slider_val(val, self.attr)
-        self.params_panel.plots_panel.update_plots(redraw=True)
+        self.params_panel.plots_panel.update_plots()
 
     def __repr__(self):
         return getattr(self.par, self.attr).__repr__()
@@ -721,6 +715,7 @@ class MainWindow(object):
 
         self.main_left_panel = MainLeftPanel(model, self)
         mlp = self.main_left_panel
+        self.plots_box = self.main_left_panel.plots_box
 
         self.main_right_panel = MainRightPanel(model, mlp.plots_box)
 
@@ -744,7 +739,7 @@ class MainWindow(object):
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
         self.cbp.command_entry.returnPressed.connect(self.command_activated)
 
-        self.dates = secs2date(self.model.times)
+        self.dates = CxoTime(self.model.times).date
 
         self.telem_data = {k: v for k, v in self.model.comp.items()
                            if isinstance(v, TelemData)}
@@ -939,21 +934,29 @@ class MainWindow(object):
 
     def plot_limits(self, state):
         self.show_limits = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True)
+        if self.show_limits:
+            self.plots_box.add_annotations("limits")
+        else:
+            self.plots_box.remove_annotations("limits")
 
     def plot_line(self, state):
         self.show_line = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True)
+        self.main_left_panel.plots_box.update_plots()
         if self.show_line:
             self.line_data_window = LineDataWindow(self.model, self,
                                                    self.main_left_panel.plots_box)
+            self.plots_box.add_annotations("line")
             self.line_data_window.show()
         else:
+            self.plots_box.remove_annotations("line")
             self.line_data_window.close()
 
     def plot_radzones(self, state):
         self.show_radzones = state == QtCore.Qt.Checked
-        self.main_left_panel.plots_box.update_plots(redraw=True)
+        if self.show_radzones:
+            self.plots_box.add_annotations("radzones")
+        else:
+            self.plots_box.remove_annotations("radzones")
 
     def add_plot(self, plotname):
         pp = self.main_left_panel.plots_box
@@ -979,7 +982,7 @@ class MainWindow(object):
             # params table widget.
             self.fit_worker.model.parvals = msg['parvals']
             self.main_right_panel.params_panel.update()
-            self.main_left_panel.plots_box.update_plots(redraw=fit_stopped)
+            self.main_left_panel.plots_box.update_plots()
             if self.show_line:
                 self.line_data_window.update_data()
 
@@ -1037,20 +1040,22 @@ class MainWindow(object):
                         vals[1] = self.model.datestart
                     if vals[2] == "*":
                         vals[2] = self.model.datestop
-                    lim = DateTime(vals[1:]).date
-                except (IndexError, ChandraTimeError):
+                    lim = CxoTime(vals[1:]).date
+                except (IndexError, ValueError):
                     if len(vals) == 3:
-                        print("Invalid input for ignore: {} {}".format(vals[1], vals[2]))
+                        print(f"Invalid input for ignore: {vals[1]} {vals[2]}")
                     else:
                         print("Ignore requires two arguments, the start time and the stop time.")
                     return
+                t0, t1 = CxoTime(lim).secs
+                self.plots_box.add_ignore(t0, t1)
                 self.model.append_mask_times(lim)
             elif cmd == "notice":
                 if len(vals) > 1:
                     print("Invalid input for notice: {}".format(vals[1:]))
                     return
                 self.model.reset_mask_times()
-            self.main_left_panel.plots_box.update_plots(redraw=True)
+                self.plots_box.remove_ignores()
 
     def set_title(self):
         title_str = gui_config['filename']
@@ -1099,7 +1104,7 @@ def get_options():
                         default=15,  # Fix this
                         help="Number of days in fit interval (default=90")
     parser.add_argument("--stop",
-                        default=DateTime() - 10,  # remove this
+                        default=CxoTime() - 10,  # remove this
                         help="Stop time of fit interval (default=model values)")
     parser.add_argument("--maxiter",
                         default=1000,
@@ -1148,7 +1153,7 @@ def main():
 
     # Use supplied stop time and days OR use model_spec values if stop not supplied
     if opt.stop:
-        start = DateTime(DateTime(opt.stop).secs - opt.days * 86400).date[:8]
+        start = CxoTime(CxoTime(opt.stop).secs - opt.days * 86400).date[:8]
         stop = opt.stop
     else:
         start = model_spec['datestart']
@@ -1187,7 +1192,7 @@ def main():
     gui_config['filename'] = os.path.abspath(opt.filename)
     gui_config['set_data_vals'] = set_data_vals
 
-    fit_worker = FitWorker(model, opt.maxiter)
+    fit_worker = FitWorker(model, opt.maxiter, method=opt.fit_method)
 
     model.calc()
 

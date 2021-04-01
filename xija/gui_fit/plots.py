@@ -160,6 +160,31 @@ def clearLayout(layout):
                 clearLayout(item.layout())
 
 
+def annotate_limits(limits, ax, dir='h'):
+    if len(limits) == 0:
+        return []
+    lines = []
+    draw_line = getattr(ax, f'ax{dir}line')
+    opts = [
+        ('planning.data_quality.high.acisi', '-.', 'blue'),
+        ('planning.data_quality.high.aciss', '-.', 'purple'),
+        ('planning.penalty.high', '-.', 'gray'),
+        ('planning.warning.low', '-', 'green'),
+        ('planning.warning.high', '-', 'green'),
+        ('odb.caution.low', '-', 'gold'),
+        ('odb.caution.high', '-', 'gold'),
+        ('odb.warning.low', '-', 'red'),
+        ('odb.warning.high', '-', 'red'),
+        ('planning.zero_feps.low', '--', 'dodgerblue')
+    ]
+    for (limit_name, ls, color) in opts:
+        if limit_name in limits:
+            lines.append(
+                draw_line(limits[limit_name], ls=ls, color=color)
+            )
+    return lines
+
+
 class MplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
     def __init__(self, parent=None):
@@ -201,7 +226,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         msid_select.activated[str].connect(self.change_msid)
 
         redraw_button = QtWidgets.QPushButton('Redraw')
-        redraw_button.clicked.connect(self.make_plots)
+        redraw_button.clicked.connect(self.update_plots)
 
         close_button = QtWidgets.QPushButton('Close')
         close_button.clicked.connect(self.close_window)
@@ -241,12 +266,16 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.box.addLayout(toolbar_box)
         self.box.addLayout(check_boxes)
 
-        self.fig = canvas.fig
+        self.limit_lines = []
+
         self.canvas = canvas
+        self.ax1 = self.canvas.fig.add_subplot(1, 2, 1)
+        self.ax2 = self.canvas.fig.add_subplot(1, 2, 2)
+        self.plot_dict = {}
         self.make_plots()
-        self.canvas.show()
 
     def close_window(self, *args):
+        self.canvas.fig.clear()
         self.close()
 
     _rz_mask = None
@@ -271,28 +300,42 @@ class HistogramWindow(QtWidgets.QMainWindow):
 
     def mask_fmt1(self, state):
         self.fmt1_masked = state == QtCore.Qt.Checked
-        self.make_plots()
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def mask_radzones(self, state):
         self.rz_masked = state == QtCore.Qt.Checked
-        self.make_plots()
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def plot_limits(self, state):
-        self.show_limits = state == QtCore.Qt.Checked
-        self.make_plots()
+        if state == QtCore.Qt.Checked:
+            limits = self.model.limits[self.hist_msids[self.which_msid]]
+            self.limit_lines = annotate_limits(limits, self.ax1)
+        else:
+            [line.remove() for line in self.limit_lines]
+            self.limit_lines = []
+        self.canvas.draw_idle()
 
     def change_msid(self, msid):
         self.which_msid = self.hist_msids.index(msid)
         self.comp = self.model.comp[self.hist_msids[self.which_msid]]
-        self.make_plots()
+        msid_name = self.hist_msids[self.which_msid]
+        self.ax1.set_title(f'{msid_name}: data vs. residuals (data - model)')
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def make_plots(self):
-        self.fig.clf()
-
         msid_name = self.hist_msids[self.which_msid]
+        self.ax1.grid(True)
+        self.ax1.set_xlabel('Error')
+        self.ax1.set_ylabel('Temperature')
+        self.ax1.set_title(f'{msid_name}: data vs. residuals (data - model)')
 
-        ax1 = self.fig.add_subplot(121)
+        self.ax2.set_title(f'{msid_name}: residual histogram', y=1.0)
+        self.ax2.set_xlabel('Error')
+        self.ax2.set_ylabel('% of data')
 
+        self.update_plots()
+
+    def update_plots(self):
         mask = np.ones_like(self.comp.resids, dtype='bool')
         if self.comp.mask:
             mask &= self.comp.mask.mask
@@ -314,66 +357,94 @@ class HistogramWindow(QtWidgets.QMainWindow):
         else:
             quantstats = calcquantstats(dvals, resids)
 
-        ax1.plot(resids, dvals + randx, 'o', color='#386cb0',
-                 alpha=1, markersize=1, markeredgecolor='#386cb0')
-        ax1.grid()
-        ax1.set_title('{}: data vs. residuals (data - model)'.format(msid_name))
-        ax1.set_xlabel('Error')
-        ax1.set_ylabel('Temperature')
         Epoints01, Tpoints01 = getQuantPlotPoints(quantstats, 'q01')
         Epoints99, Tpoints99 = getQuantPlotPoints(quantstats, 'q99')
         Epoints50, Tpoints50 = getQuantPlotPoints(quantstats, 'q50')
-        ax1.plot(Epoints01, Tpoints01, color='k', linewidth=4)
-        ax1.plot(Epoints99, Tpoints99, color='k', linewidth=4)
-        ax1.plot(Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)
-        ax1.plot(Epoints01, Tpoints01, 'k', linewidth=2)
-        ax1.plot(Epoints99, Tpoints99, 'k', linewidth=2)
-        ax1.plot(Epoints50, Tpoints50, 'k', linewidth=1.5)
-
-        if self.show_limits:
-            self.model.annotate_limits(ax1)
-
-        self.ax1 = ax1
-
-        ax2 = self.fig.add_subplot(122)
 
         hist, bins = np.histogram(resids, 40)
         hist = hist*100.0/self.comp.mvals.size
         hist[hist == 0.0] = np.nan
         bin_mid = 0.5*(bins[1:]+bins[:-1])
-        ax2.step(bin_mid, hist, '#386cb0', where='mid')
-        ax2.set_title('{}: residual histogram'.format(msid_name), y=1.0)
-        ax2.set_ylim(0.0, None)
-        ylim2 = ax2.get_ylim()
-        ax2.axvline(stats['q01'], color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(stats['q99'], color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(np.nanmin(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.axvline(np.nanmax(resids), color='k', linestyle='--', linewidth=1.5, alpha=1)
-        ax2.set_xlabel('Error')
-        ax2.set_ylabel('% of data')
-        ax2.fill_between(bin_mid, hist, step="mid", color='#386cb0')
+
+        min_resid = np.nanmin(resids)
+        max_resid = np.nanmax(resids)
+
+        if len(self.plot_dict) == 0:
+            self.plot_dict['resids'] = self.ax1.plot(
+                resids, dvals + randx, 'o', color='#386cb0',
+                alpha=1, markersize=1, markeredgecolor='#386cb0')[0]
+            self.plot_dict["01"] = self.ax1.plot(
+                Epoints01, Tpoints01, color='k', linewidth=4)[0]
+            self.plot_dict["99"] = self.ax1.plot(
+                Epoints99, Tpoints99, color='k', linewidth=4)[0]
+            self.plot_dict["50"] = self.ax1.plot(
+                Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)[0]
+            self.plot_dict["50_2"] = self.ax1.plot(
+                Epoints50, Tpoints50, 'k', linewidth=1.5)[0]
+
+            self.plot_dict["step"] = self.ax2.step(
+                bin_mid, hist, '#386cb0', where='mid')[0]
+            self.plot_dict["q01"] = self.ax2.axvline(
+                stats['q01'], color='k', linestyle='--', 
+                linewidth=1.5, alpha=1)
+            self.plot_dict["q99"] = self.ax2.axvline(
+                stats['q99'], color='k', linestyle='--', 
+                linewidth=1.5, alpha=1)
+            self.plot_dict["min_hist"] = self.ax2.axvline(
+                min_resid, color='k', linestyle='--', 
+                linewidth=1.5, alpha=1)
+            self.plot_dict["max_hist"] = self.ax2.axvline(
+                max_resid, color='k', linestyle='--', 
+                linewidth=1.5, alpha=1)
+        else:
+            self.plot_dict['resids'].set_data(resids, dvals + randx)
+            self.plot_dict['01'].set_data(Epoints01, Tpoints01)
+            self.plot_dict['99'].set_data(Epoints99, Tpoints99)
+            self.plot_dict['50'].set_data(Epoints50, Tpoints50)
+            self.plot_dict['50_2'].set_data(Epoints50, Tpoints50)
+
+            self.plot_dict['step'].set_data(bin_mid, hist)
+            self.plot_dict['q01'].set_xdata(stats['q01'])
+            self.plot_dict['q99'].set_xdata(stats['q99'])
+            self.plot_dict['min_hist'].set_xdata(min_resid)
+            self.plot_dict['max_hist'].set_xdata(max_resid)
+            self.plot_dict['fill'].remove()
+
+        self.plot_dict["fill"] = self.ax2.fill_between(
+            bin_mid, hist, step="mid", color='#386cb0')
+
+        self.ax2.set_ylim(0.0, np.nanmax(hist)+1)
 
         # Print labels for statistical boundaries.
+        ylim2 = self.ax2.get_ylim()
         ystart = (ylim2[1] + ylim2[0]) * 0.5
-        xoffset = -(.2 / 25) * np.abs(np.diff(ax2.get_xlim()))
-        ax2.text(stats['q01'] + xoffset * 1.1, ystart, '1% Quantile', ha="right",
-                 va="center", rotation=90)
+        xoffset = -(.2 / 25) * (max_resid - min_resid)
+        self.ax2.set_xlim(min_resid-1.0, max_resid+1.0)
 
-        if np.min(resids) > ax2.get_xlim()[0]:
-            ax2.text(np.min(resids) + xoffset * 1.1, ystart,
-                     'Minimum Error', ha="right", va="center",
-                     rotation=90)
-        ax2.text(stats['q99'] - xoffset * 0.9, ystart, '99% Quantile', ha="left",
-                 va="center", rotation=90)
-
-        if np.max(resids) < ax2.get_xlim()[1]:
-            ax2.text(np.max(resids) - xoffset * 0.9, ystart,
-                     'Maximum Error', ha="left",
-                     va="center", rotation=90)
-
-        self.ax2 = ax2
-
-        self.canvas.draw()
+        xpos_q01 = stats['q01'] + xoffset*1.1
+        xpos_q99 = stats['q99'] - xoffset*0.9
+        xpos_min = min_resid + xoffset*1.1
+        xpos_max = max_resid - xoffset*0.9
+        if "q01_text" in self.plot_dict:
+            self.plot_dict["q01_text"].set_position((xpos_q01, ystart))
+            self.plot_dict["q99_text"].set_position((xpos_q99, ystart))
+            self.plot_dict["min_text"].set_position((xpos_min, ystart))
+            self.plot_dict["max_text"].set_position((xpos_max, ystart))
+        else:
+            self.plot_dict["q01_text"] = self.ax2.text(
+                xpos_q01, ystart, '1% Quantile', 
+                ha="right", va="center", rotation=90)
+            self.plot_dict["q99_text"] = self.ax2.text(
+                xpos_q99, ystart, '99% Quantile', 
+                ha="left", va="center", rotation=90)
+            self.plot_dict["min_text"] = self.ax2.text(
+                xpos_min, ystart, 'Minimum Error', 
+                ha="right", va="center", rotation=90)
+            self.plot_dict["max_text"] = self.ax2.text(
+                xpos_max, ystart, 'Maximum Error', 
+                ha="left", va="center", rotation=90)
+        
+        self.canvas.draw_idle()
 
 
 class PlotBox(QtWidgets.QVBoxLayout):
@@ -404,16 +475,15 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
         # First such plot has sharex=None, subsequent ones use the first axis.
-        try:
-            xaxis_type = plot_method.split('__')[1]
-        except IndexError:
+        xaxis = plot_method.split('__')
+        if len(xaxis) == 1 or not plot_method.endswith("time"): 
             self.ax = self.fig.add_subplot(111)
         else:
-            sharex = plots_box.sharex.get(xaxis_type)
+            sharex = plots_box.sharex.get(xaxis[1])
             self.ax = self.fig.add_subplot(111, sharex=sharex)
             if sharex is not None:
                 self.ax.autoscale(enable=False, axis='x')
-            plots_box.sharex.setdefault(xaxis_type, self.ax)
+            plots_box.sharex.setdefault(xaxis[1], self.ax)
 
         self.canvas = canvas
         self.canvas.show()
@@ -422,9 +492,14 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.selecter = self.canvas.mpl_connect("button_press_event", self.select)
         self.releaser = self.canvas.mpl_connect("button_release_event", self.release)
 
+        self.ly = None
+        self.limits = None
+        self.rzlines = None
+        self.ignores = None
+
     def select(self, event):
         grab = event.inaxes and self.main_window.show_line and \
-               self.canvas.toolbar._active is None
+               not self.ax.get_navigate_mode()
         if grab:
             self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
             self.plots_box.xline = event.xdata
@@ -444,58 +519,77 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.canvas.mpl_disconnect(self.mover)
 
     def update_xline(self):
-        if self.plot_name.endswith("time"):
+        if self.plot_name.endswith("time") and self.ly is not None:
             self.ly.set_xdata(self.plots_box.xline)
             self.canvas.draw_idle()
 
-    def update(self, redraw=False, first=False):
+    def add_annotation(self, atype):
+        if atype == "limits" and self.comp_name in self.plots_box.model.limits:
+            limits = self.plots_box.model.limits[self.comp_name]
+            if "resid__data" in self.plot_name:
+                self.limits = annotate_limits(limits, self.ax, dir='v')
+            elif "data__time" in self.plot_name:
+                self.limits = annotate_limits(limits, self.ax, dir='h')
+        elif atype == "radzones" and self.plot_method.endswith("time"):
+            rad_zones = get_radzones(self.plots_box.model)
+            self.rzlines = []
+            for rz in rad_zones:
+                t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
+                self.rzlines += [
+                    self.ax.axvline(t0, color='g', ls='--'),
+                    self.ax.axvline(t1, color='g', ls='--')
+                ]
+        elif atype == "line" and self.plot_method.endswith("time"):
+            self.ly = self.ax.axvline(self.plots_box.xline, color='maroon')
+
+    def remove_annotation(self, atype):
+        if atype == "limits" and self.comp_name in self.plots_box.model.limits:
+            [line.remove() for line in self.limits]
+            self.limits = None
+        elif atype == "radzones" and self.plot_method.endswith("time"):
+            [line.remove() for line in self.rzlines]
+            self.rzlines = None
+        elif atype == "line":
+            self.ly.remove()
+            self.ly = None
+    
+    def add_ignore(self, t0, t1):
+        times = self.plots_box.model.times
+        pd_times = self.plots_box.pd_times
+        ybot, ytop = self.ax.get_ylim()
+        where = (times >= t0) & (times <= t1)
+        fill = self.ax.fill_between(pd_times,
+            ybot, ytop, where=where, color='r', alpha=0.5)
+        return fill
+
+    def add_ignores(self):
+        if len(self.plots_box.model.mask_time_secs) == 0:
+            return
+        self.ignores = []
+        for t0, t1 in self.plots_box.model.mask_time_secs:
+            self.ignores.append(self.add_ignore(t0, t1))
+
+    def remove_ignores(self):
+        [fill.remove() for fill in self.ignores]
+        self.ignores = None
+
+    def update(self, first=False):
         pb = self.plots_box
         mw = self.main_window
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
-        if redraw:
-            xmin, xmax = self.ax.get_xlim()
-            ymin, ymax = self.ax.get_ylim()
-            self.fig.delaxes(self.ax)
-            try:
-                xaxis_type = self.plot_method.split('__')[1]
-            except IndexError:
-                self.ax = self.fig.add_subplot(111)
-            else:
-                sharex = pb.sharex.get(xaxis_type)
-                self.ax = self.fig.add_subplot(111, sharex=sharex)
-                if sharex is not None:
-                    self.ax.autoscale(enable=False, axis='x')
-                pb.sharex.setdefault(xaxis_type, self.ax)
-            self.ax.set_xlim(xmin, xmax)
-            self.ax.set_ylim(ymin, ymax)
-
         plot_func(fig=self.fig, ax=self.ax)
-        self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
-
-        if redraw or first:
-            times = pb.model.times
-            tplot = pb.pd_times
+        if self.plot_method.endswith("time"):
+            self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
+        if first:
             if self.plot_method.endswith("time"):
-                ybot, ytop = self.ax.get_ylim()
-                for t0, t1 in pb.model.mask_time_secs:
-                    where = (times >= t0) & (times <= t1)
-                    self.ax.fill_between(tplot, ybot, ytop, where=where,
-                                         color='r', alpha=0.5)
-                if mw.show_radzones:
-                    rad_zones = get_radzones(pb.model)
-                    for rz in rad_zones:
-                        t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
-                        self.ax.axvline(t0, color='g', ls='--')
-                        self.ax.axvline(t1, color='g', ls='--')
-                if mw.show_line:
-                    self.ly = self.ax.axvline(pb.xline, color='maroon')
-            if mw.show_limits and self.comp_name == pb.model.limits['name']:
-                if self.plot_method.endswith("resid__data"):
-                    pb.model.annotate_limits(self.ax, dir='v')
-                elif self.plot_method.endswith("data__time"):
-                    pb.model.annotate_limits(self.ax)
-
-        self.canvas.draw()
+                self.add_ignores()
+            if mw.show_radzones:
+                self.add_annotation("radzones")
+            if mw.show_line:
+                self.add_annotation("line")
+            if mw.show_limits:
+                self.add_annotation("limits")
+        self.canvas.draw_idle()
 
 
 class PlotsBox(QtWidgets.QVBoxLayout):
@@ -524,22 +618,43 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     def delete_plot_box(self, plot_name):
         for plot_box in self.findChildren(PlotBox):
             if plot_box.plot_name == plot_name:
+                plot_box.fig.clear()
                 self.removeItem(plot_box)
                 clearLayout(plot_box)
         self.update()
         self.update_plot_boxes()
 
-    def update_plots(self, redraw=False):
+    def update_plots(self):
         mw = self.main_window
         cbp = mw.cbp
         cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.plot_boxes:
-            plot_box.update(redraw=redraw)
+            plot_box.update()
         cbp.update_status.setText('')
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
         mw.set_title()
+
+    def add_annotations(self, atype):
+        for pb in self.plot_boxes:
+            pb.add_annotation(atype)
+            pb.canvas.draw_idle()
+
+    def remove_annotations(self, atype):
+        for pb in self.plot_boxes:
+            pb.remove_annotation(atype)
+            pb.canvas.draw_idle()
+
+    def add_ignore(self, t0, t1):
+        for pb in self.plot_boxes:
+            pb.add_ignore(t0, t1)
+            pb.canvas.draw_idle()
+
+    def remove_ignores(self):
+        for pb in self.plot_boxes:
+            pb.remove_ignores()
+            pb.canvas.draw_idle()
 
     def update_plot_boxes(self):
         self.plot_boxes = []

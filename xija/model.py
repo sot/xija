@@ -797,27 +797,5 @@ class XijaModel(object):
         self.mask_times_indices = self.bad_times_indices.copy()
         self.mask_time_secs = date2secs(self.mask_times)
 
-    def annotate_limits(self, ax, dir='h'):
-        if len(self.limits) == 0:
-            return
-        draw_line = getattr(ax, 'ax{}line'.format(dir))
-        if 'acisi_data_quality' in self.limits:
-            draw_line(self.limits['acisi_data_quality'], ls='-.', color='blue')
-        if 'aciss_data_quality' in self.limits:
-            draw_line(self.limits['aciss_data_quality'], ls='-.', color='purple')
-        if 'planning_caution_high' in self.limits:
-            draw_line(self.limits['planning_caution_high'], ls='-.', color='gray')
-        if 'planning_warning_low' in self.limits:
-            draw_line(self.limits['planning_warning_low'], ls='-', color='green')
-        if 'planning_warning_high' in self.limits:
-            draw_line(self.limits['planning_warning_high'], ls='-', color='green')
-        if 'odb_caution_low' in self.limits:
-            draw_line(self.limits['odb_caution_low'], ls='-', color='gold')
-        if 'odb_caution_high' in self.limits:
-            draw_line(self.limits['odb_caution_high'], ls='-', color='gold')
-        if 'odb_warning_low' in self.limits:
-            draw_line(self.limits['odb_warning_low'], ls='-', color='red')
-        if 'odb_warning_high' in self.limits:
-            draw_line(self.limits['odb_warning_high'], ls='-', color='red')
 
 ThermalModel = XijaModel
