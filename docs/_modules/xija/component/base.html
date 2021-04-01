@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xija.component.base &#8212; xija 4.21.1 documentation</title>
+    <title>xija.component.base &#8212; xija 4.22.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">xija 4.21.1 documentation</a>
+	<a href="../../../index.html">xija 4.22.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -261,7 +261,7 @@
 
 <div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../../api.html#xija.component.base.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Time-series dataset for prediction.</span>
-<span class="sd">    </span>
+
 <span class="sd">    If the ``sigma`` value is negative then sigma is computed from the</span>
 <span class="sd">    node data values as the specified percent of the data standard</span>
 <span class="sd">    deviation.  The default ``sigma`` value is -10, so this implies</span>
@@ -399,7 +399,7 @@
     <span class="sd">&quot;&quot;&quot;\</span>
 <span class="sd">    First-order coupling between Nodes `node1` and `node2`</span>
 <span class="sd">    ::</span>
-<span class="sd">    </span>
+
 <span class="sd">      dy1/dt = -(y1 - y2) / tau</span>
 
 <span class="sd">    Parameters</span>
@@ -426,6 +426,23 @@
         <span class="k">return</span> <span class="s1">&#39;coupling__</span><span class="si">{0}</span><span class="s1">__</span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node2</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="Delay"><a class="viewcode-back" href="../../../api.html#xija.component.base.Delay">[docs]</a><span class="k">class</span> <span class="nc">Delay</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Delay mval from ``node`` by ``delay`` ksec</span>
+
+<span class="sd">    See the example in examples/delay/. For a positive delay, the computed model</span>
+<span class="sd">    value (``node.mval``) will be constant at the initial value for the first</span>
+<span class="sd">    ``delay`` ksec. Conversely for a negative delay the values at the end will</span>
+<span class="sd">    be constant for ``delay`` ksec.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_comp</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_par</span><span class="p">(</span><span class="s1">&#39;delay&#39;</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">40</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;delay__</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="si">}</span><span class="s1">&#39;</span></div>
+
+
 <div class="viewcode-block" id="HeatSink"><a class="viewcode-back" href="../../../api.html#xija.component.base.HeatSink">[docs]</a><span class="k">class</span> <span class="nc">HeatSink</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Fixed temperature external heat bath&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">20.0</span><span class="p">):</span>
@@ -449,13 +466,13 @@
 <span class="sd">    tau does not affect the mean model temperature.  This requires an extra</span>
 <span class="sd">    non-fitted parameter T_ref which corresponds to a reference temperature for</span>
 <span class="sd">    the node.::</span>
-<span class="sd">    </span>
+
 <span class="sd">      dT/dt = U * (Te - T)</span>
 <span class="sd">            = P + U* (T_ref - T)   # reparameterization</span>
-<span class="sd">    </span>
+
 <span class="sd">      P = U * (Te - T_ref)</span>
 <span class="sd">      Te = P / U + T_ref</span>
-<span class="sd">    </span>
+
 <span class="sd">    In code below, &quot;T&quot; corresponds to &quot;Te&quot; above.  The &quot;T&quot; above is node.dvals.</span>
 
 <span class="sd">    Parameters</span>

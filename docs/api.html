@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API docs &#8212; xija 4.21.1 documentation</title>
+    <title>API docs &#8212; xija 4.22.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -54,7 +54,7 @@
 	
       </li>
       <li>
-	<a href="index.html">xija 4.21.1 documentation</a>
+	<a href="index.html">xija 4.22.0 documentation</a>
 	 &#187;
       </li>
       
@@ -392,6 +392,16 @@ the eng_archive in K instead of C.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt id="xija.component.base.Delay">
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Delay</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">delay</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Delay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delay mval from <code class="docutils literal notranslate"><span class="pre">node</span></code> by <code class="docutils literal notranslate"><span class="pre">delay</span></code> ksec</p>
+<p>See the example in examples/delay/. For a positive delay, the computed model
+value (<code class="docutils literal notranslate"><span class="pre">node.mval</span></code>) will be constant at the initial value for the first
+<code class="docutils literal notranslate"><span class="pre">delay</span></code> ksec. Conversely for a negative delay the values at the end will
+be constant for <code class="docutils literal notranslate"><span class="pre">delay</span></code> ksec.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt id="xija.component.base.Eclipse">
 <em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Eclipse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Eclipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Eclipse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -546,7 +556,7 @@ power) at each time step.</p>
 
 <dl class="py class">
 <dt id="xija.component.heat.AcisPsmcSolarHeat">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">AcisPsmcSolarHeat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">simz_comp</span></em>, <em class="sig-param"><span class="n">dh_heater_comp</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_vals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'linear'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2013:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dh_heater</span><span class="o">=</span><span class="default_value">0.05</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisPsmcSolarHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisPsmcSolarHeat" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">AcisPsmcSolarHeat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">dh_heater_comp</span><span class="o">=</span><span class="default_value">'dh_heater'</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_vals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'linear'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2013:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dh_heater</span><span class="o">=</span><span class="default_value">0.05</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisPsmcSolarHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisPsmcSolarHeat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating of PSMC box.  This is dependent on SIM-Z</p>
 </dd></dl>
 
@@ -636,7 +646,7 @@ this component, one would use the following syntax:</p>
 
 <dl class="py class">
 <dt id="xija.component.heat.SolarHeat">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeat" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -665,6 +675,8 @@ this component, one would use the following syntax:</p>
 </dd>
 <dt><strong>epoch :</strong></dt><dd><p>reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p>
 </dd>
+<dt><strong>dP_pitches :</strong></dt><dd><p>list of pitch values for dP (default=``P_pitches``)</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -678,7 +690,7 @@ this component, one would use the following syntax:</p>
 
 <dl class="py class">
 <dt id="xija.component.heat.SolarHeatAcisCameraBody">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatAcisCameraBody</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dh_heater_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dh_heater_bias</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatAcisCameraBody"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatAcisCameraBody" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatAcisCameraBody</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dh_heater_comp</span><span class="o">=</span><span class="default_value">'dh_heater'</span></em>, <em class="sig-param"><span class="n">dh_heater_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatAcisCameraBody"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatAcisCameraBody" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch and SIM-Z dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -713,6 +725,8 @@ this component, one would use the following syntax:</p>
 </dd>
 <dt><strong>dh_heater_bias :</strong></dt><dd><p>bias power when DH heater is on</p>
 </dd>
+<dt><strong>dP_pitches :</strong></dt><dd><p>list of pitch values for dP (default=``P_pitches``)</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -726,7 +740,7 @@ this component, one would use the following syntax:</p>
 
 <dl class="py class">
 <dt id="xija.component.heat.SolarHeatHrc">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrc_bias</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrc" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrc_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch and SIM-Z dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -759,6 +773,8 @@ this component, one would use the following syntax:</p>
 </dd>
 <dt><strong>hrc_bias :</strong></dt><dd><p>solar heating bias when SIM-Z &lt; 0 (HRC)</p>
 </dd>
+<dt><strong>dP_pitches :</strong></dt><dd><p>list of pitch values for dP (default=``P_pitches``)</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -772,12 +788,7 @@ this component, one would use the following syntax:</p>
 
 <dl class="py class">
 <dt id="xija.component.heat.SolarHeatHrcMult">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrcMult</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.0334</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrci_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">hrcs_bias</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcMult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcMult" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py class">
-<dt id="xija.component.heat.SolarHeatHrcOpts">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrcOpts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrci_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">hrcs_bias</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcOpts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcOpts" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrcMult</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.0334</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrci_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">hrcs_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcMult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcMult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch and SIM-Z dependent, two parameters for
 HRC-I and HRC-S)</p>
 <dl class="field-list simple">
@@ -813,6 +824,53 @@ HRC-I and HRC-S)</p>
 </dd>
 <dt><strong>hrcs_bias :</strong></dt><dd><p>solar heating bias when HRC-S is in the focal plane.</p>
 </dd>
+<dt><strong>dP_pitches :</strong></dt><dd><p>list of pitch values for dP (default=``P_pitches``)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="xija.component.heat.SolarHeatHrcOpts">
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrcOpts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrci_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">hrcs_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcOpts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcOpts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solar heating (pitch and SIM-Z dependent, two parameters for
+HRC-I and HRC-S)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model</p>
+</dd>
+<dt><strong>node :</strong></dt><dd><p>node which is coupled to solar heat</p>
+</dd>
+<dt><strong>simz_comp :</strong></dt><dd><p>SimZ component</p>
+</dd>
+<dt><strong>pitch_comp :</strong></dt><dd><p>solar Pitch component</p>
+</dd>
+<dt><strong>eclipse_comp :</strong></dt><dd><p>Eclipse component (optional)</p>
+</dd>
+<dt><strong>P_pitches :</strong></dt><dd><p>list of pitch values (default=[45, 65, 90, 130, 180])</p>
+</dd>
+<dt><strong>Ps :</strong></dt><dd><p>list of solar heating values (default=[1.0, …])</p>
+</dd>
+<dt><strong>dPs :</strong></dt><dd><p>list of delta heating values (default=[0.0, …])</p>
+</dd>
+<dt><strong>var_func :</strong></dt><dd><p>variability function (‘exp’ | ‘linear’)</p>
+</dd>
+<dt><strong>tau :</strong></dt><dd><p>variability timescale (days)</p>
+</dd>
+<dt><strong>ampl :</strong></dt><dd><p>ampl of annual sinusoidal heating variation</p>
+</dd>
+<dt><strong>bias :</strong></dt><dd><p>constant offset to all solar heating values</p>
+</dd>
+<dt><strong>epoch :</strong></dt><dd><p>reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p>
+</dd>
+<dt><strong>hrci_bias :</strong></dt><dd><p>solar heating bias when HRC-I is in the focal plane.</p>
+</dd>
+<dt><strong>hrcs_bias :</strong></dt><dd><p>solar heating bias when HRC-S is in the focal plane.</p>
+</dd>
+<dt><strong>dP_pitches :</strong></dt><dd><p>list of pitch values for dP (default=``P_pitches``)</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -826,12 +884,45 @@ HRC-I and HRC-S)</p>
 
 <dl class="py class">
 <dt id="xija.component.heat.SolarHeatMulplicative">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatMulplicative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.0334</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatMulplicative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatMulplicative" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatMulplicative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.0334</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatMulplicative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatMulplicative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solar heating (pitch dependent)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model :</strong></dt><dd><p>parent model</p>
+</dd>
+<dt><strong>node :</strong></dt><dd><p>node which is coupled to solar heat</p>
+</dd>
+<dt><strong>pitch_comp :</strong></dt><dd><p>solar Pitch component</p>
+</dd>
+<dt><strong>eclipse_comp :</strong></dt><dd><p>Eclipse component (optional)</p>
+</dd>
+<dt><strong>P_pitches :</strong></dt><dd><p>list of pitch values (default=[45, 65, 90, 130, 180])</p>
+</dd>
+<dt><strong>Ps :</strong></dt><dd><p>list of solar heating values (default=[1.0, …])</p>
+</dd>
+<dt><strong>dPs :</strong></dt><dd><p>list of delta heating values (default=[0.0, …])</p>
+</dd>
+<dt><strong>var_func :</strong></dt><dd><p>variability function (‘exp’ | ‘linear’)</p>
+</dd>
+<dt><strong>tau :</strong></dt><dd><p>variability timescale (days)</p>
+</dd>
+<dt><strong>ampl :</strong></dt><dd><p>ampl of annual sinusoidal heating variation</p>
+</dd>
+<dt><strong>bias :</strong></dt><dd><p>constant offset to all solar heating values</p>
+</dd>
+<dt><strong>epoch :</strong></dt><dd><p>reference date at which <code class="docutils literal notranslate"><span class="pre">Ps</span></code> values apply</p>
+</dd>
+<dt><strong>dP_pitches :</strong></dt><dd><p>list of pitch values for dP (default=``P_pitches``)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py class">
 <dt id="xija.component.heat.SolarHeatOffNomRoll">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatOffNomRoll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span></em>, <em class="sig-param"><span class="n">roll_comp</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_plus_y</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">P_minus_y</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatOffNomRoll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatOffNomRoll" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatOffNomRoll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">roll_comp</span><span class="o">=</span><span class="default_value">'roll'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_plus_y</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">P_minus_y</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatOffNomRoll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatOffNomRoll" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
 heating is proportional to the projection of the sun on body +Y axis (which is a value
 from -1 to 1).  There are two parameters <code class="docutils literal notranslate"><span class="pre">P_plus_y</span></code> and <code class="docutils literal notranslate"><span class="pre">P_minus_y</span></code>.  For sun on

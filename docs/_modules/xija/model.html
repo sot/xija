@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xija.model &#8212; xija 4.21.1 documentation</title>
+    <title>xija.model &#8212; xija 4.22.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.21.1 documentation</a>
+	<a href="../../index.html">xija 4.22.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -759,7 +759,15 @@
                                      <span class="n">tmal_ints</span><span class="p">,</span> <span class="n">tmal_floats</span><span class="p">)</span>
 
         <span class="c1"># hackish fix to ensure last value is computed</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="c1"># Apply Delay components after the model calculation</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">comp</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">Delay</span><span class="p">)</span> <span class="ow">and</span> <span class="n">comp</span><span class="o">.</span><span class="n">delay</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="c1"># Note: starting from index 0 creates an instability in xija_gui_fit,</span>
+                <span class="c1"># so just copy from index 1.</span>
+                <span class="n">comp</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">mvals</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">-</span> <span class="n">comp</span><span class="o">.</span><span class="n">delay</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">,</span>
+                                                <span class="n">xp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">mvals</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span></div>
 
 <div class="viewcode-block" id="XijaModel.calc_stat"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_stat">[docs]</a>    <span class="k">def</span> <span class="nf">calc_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calculate model fit statistic as the sum of component fit stats&quot;&quot;&quot;</span>
