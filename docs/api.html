@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API docs &#8212; xija 4.23.0 documentation</title>
+    <title>API docs &#8212; xija 0.1.dev1+g49f1cb2 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -54,7 +54,7 @@
 	
       </li>
       <li>
-	<a href="index.html">xija 4.23.0 documentation</a>
+	<a href="index.html">xija 0.1.dev1+g49f1cb2 documentation</a>
 	 &#187;
       </li>
       
@@ -1028,8 +1028,142 @@ after a certain point in time.  The shift is 0.0 before
 
 </div>
 </div>
-<div class="section" id="get-model-spec">
-<h2>Get model spec<a class="headerlink" href="#get-model-spec" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-xija.get_model_spec">
+<span id="get-model-spec"></span><h2>Get model spec<a class="headerlink" href="#module-xija.get_model_spec" title="Permalink to this headline">¶</a></h2>
+<p>Get Chandra model specifications</p>
+<dl class="py function">
+<dt id="xija.get_model_spec.get_github_version">
+<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_github_version</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">'https://api.github.com/repos/sot/chandra_models/releases/latest'</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a><span class="p">]</span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_github_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_github_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get latest chandra_models GitHub repo release tag (version).</p>
+<p>This queries GitHub for the latest release of chandra_models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>url</strong><span class="classifier">str</span></dt><dd><p>URL for latest chandra_models release on GitHub API</p>
+</dd>
+<dt><strong>timeout</strong><span class="classifier">int, float</span></dt><dd><p>Request timeout (sec, default=5)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>str, None</dt><dd><p>Tag name (str) of latest chandra_models release on GitHub.
+None if the request timed out, indicating indeterminate answer.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="xija.get_model_spec.get_repo_version">
+<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_repo_version</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">repo_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.9)">pathlib.Path</a></span> <span class="o">=</span> <span class="default_value">PosixPath('/proj/sot/ska/data/chandra_models')</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><a class="reference internal" href="_modules/xija/get_model_spec.html#get_repo_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_repo_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return version (most recent tag) of models repository.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>str</dt><dd><p>Version (most recent tag) of models repository</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="xija.get_model_spec.get_xija_model_names">
+<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_xija_model_names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">repo_path</span><span class="o">=</span><span class="default_value">PosixPath('/proj/sot/ska/data/chandra_models')</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">]</span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of available xija model names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>repo_path</strong><span class="classifier">str, Path</span></dt><dd><p>Path to directory containing chandra_models repository (default is
+$SKA/data/chandra_models)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>list</dt><dd><p>List of available xija model names</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xija.get_model_spec</span> <span class="kn">import</span> <span class="n">get_xija_model_names</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">names</span> <span class="o">=</span> <span class="n">get_xija_model_names</span><span class="p">()</span>
+<span class="go">[&#39;aca&#39;,</span>
+<span class="go"> &#39;acisfp&#39;,</span>
+<span class="go"> &#39;dea&#39;,</span>
+<span class="go"> &#39;dpa&#39;,</span>
+<span class="go"> &#39;4rt700t&#39;,</span>
+<span class="go"> &#39;minusyz&#39;,</span>
+<span class="go"> &#39;pm1thv2t&#39;,</span>
+<span class="go"> &#39;pm2thv1t&#39;,</span>
+<span class="go"> &#39;pm2thv2t&#39;,</span>
+<span class="go"> &#39;pftank2t&#39;,</span>
+<span class="go"> &#39;pline03t_model&#39;,</span>
+<span class="go"> &#39;pline04t_model&#39;,</span>
+<span class="go"> &#39;psmc&#39;,</span>
+<span class="go"> &#39;tcylaft6&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="xija.get_model_spec.get_xija_model_spec">
+<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_xija_model_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_name</span></em>, <em class="sig-param"><span class="n">version</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">repo_path</span><span class="o">=</span><span class="default_value">PosixPath('/proj/sot/ska/data/chandra_models')</span></em>, <em class="sig-param"><span class="n">check_version</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get Xija model specification for the specified <code class="docutils literal notranslate"><span class="pre">model_name</span></code>.</p>
+<p>Supported model names include (but are not limited to): <code class="docutils literal notranslate"><span class="pre">'aca'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'acisfp'</span></code>, <code class="docutils literal notranslate"><span class="pre">'dea'</span></code>, <code class="docutils literal notranslate"><span class="pre">'dpa'</span></code>, <code class="docutils literal notranslate"><span class="pre">'psmc'</span></code>, <code class="docutils literal notranslate"><span class="pre">'minusyz'</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">'pftank2t'</span></code>.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">get_xija_model_names()</span></code> for the full list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model_name</strong><span class="classifier">str</span></dt><dd><p>Name of model</p>
+</dd>
+<dt><strong>version</strong><span class="classifier">str</span></dt><dd><p>Tag, branch or commit of chandra_models to use (default=latest tag from
+repo)</p>
+</dd>
+<dt><strong>repo_path</strong><span class="classifier">str, Path</span></dt><dd><p>Path to directory or URL containing chandra_models repository (default
+is $SKA/data/chandra_models)</p>
+</dd>
+<dt><strong>check_version</strong><span class="classifier">bool</span></dt><dd><p>Check that <code class="docutils literal notranslate"><span class="pre">version</span></code> matches the latest release on GitHub</p>
+</dd>
+<dt><strong>timeout</strong><span class="classifier">int, float</span></dt><dd><p>Timeout (sec) for querying GitHub for the expected chandra_models version.
+Default = 5 sec.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>dict, str</dt><dd><p>Xija model specification dict, chandra_models version</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Get the latest version of the <code class="docutils literal notranslate"><span class="pre">acisfp</span></code> model spec from the local Ska data
+directory <code class="docutils literal notranslate"><span class="pre">$SKA/data/chandra_models</span></code>, checking that the version matches
+the latest release tag on GitHub.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">xija</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">xija.get_model_spec</span> <span class="kn">import</span> <span class="n">get_xija_model_spec</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_spec</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="n">get_xija_model_spec</span><span class="p">(</span><span class="s1">&#39;acisfp&#39;</span><span class="p">,</span> <span class="n">check_version</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">xija</span><span class="o">.</span><span class="n">XijaModel</span><span class="p">(</span><span class="s1">&#39;acisfp&#39;</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="n">model_spec</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">start</span><span class="o">=</span><span class="s1">&#39;2020:001&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s1">&#39;2020:010&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">make</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Get the <code class="docutils literal notranslate"><span class="pre">aca</span></code> model spec from release version 3.30 of chandra_models from
+GitHub.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">repo_path</span> <span class="o">=</span> <span class="s1">&#39;https://github.com/sot/chandra_models.git&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_spec</span><span class="p">,</span> <span class="n">version</span> <span class="o">=</span> <span class="n">get_xija_model_spec</span><span class="p">(</span><span class="s1">&#39;aca&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s1">&#39;3.30&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                                          <span class="n">repo_path</span><span class="o">=</span><span class="n">repo_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 </div>
 
@@ -1049,7 +1183,7 @@ after a certain point in time.  The shift is 0.0 before
 <li><a class="reference internal" href="#module-xija.component.mask">Mask classes</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#get-model-spec">Get model spec</a></li>
+<li><a class="reference internal" href="#module-xija.get_model_spec">Get model spec</a></li>
 </ul>
 </li>
 </ul>
