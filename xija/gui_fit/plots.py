@@ -544,12 +544,14 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def remove_annotation(self, atype):
         if atype == "limits" and self.comp_name in self.plots_box.model.limits:
-            [line.remove() for line in self.limits]
-            self.limits = None
+            if self.limits is not None:
+                [line.remove() for line in self.limits]
+                self.limits = None
         elif atype == "radzones" and self.plot_method.endswith("time"):
-            [line.remove() for line in self.rzlines]
-            self.rzlines = None
-        elif atype == "line":
+            if self.rzlines is not None:
+                [line.remove() for line in self.rzlines]
+                self.rzlines = None
+        elif atype == "line" and self.ly is not None:
             self.ly.remove()
             self.ly = None
     
