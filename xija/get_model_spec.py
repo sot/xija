@@ -42,8 +42,8 @@ def temp_directory():
     shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
-                        check_version=False, timeout=5) -> dict:
+def get_xija_model_spec(model_name, version=None, repo_path=None,
+                        check_version=False, timeout=5) -> tuple:
     """
     Get Xija model specification for the specified ``model_name``.
 
@@ -92,16 +92,20 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
 
     Returns
     -------
-    dict, str
-        Xija model specification dict, chandra_models version
+    tuple of dict, str, str
+        Xija model specification dict, chandra_models version, path to model spec
+        file used
     """
+    if repo_path is None:
+        repo_path = REPO_PATH
     with temp_directory() as repo_path_local:
         repo = git.Repo.clone_from(repo_path, repo_path_local)
         if version is not None:
             repo.git.checkout(version)
-        model_spec, version = _get_xija_model_spec(model_name, version, repo_path_local,
-                                                   check_version, timeout)
-    return model_spec, version
+        model_spec, version, model_spec_path = _get_xija_model_spec(
+            model_name, version, repo_path_local, check_version, timeout)
+
+    return model_spec, version, model_spec_path
 
 
 def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
@@ -136,7 +140,7 @@ def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
             raise ValueError(f'version mismatch: local repo {version} vs '
                              f'github {gh_version}')
 
-    return model_spec, version
+    return model_spec, version, file_name
 
 
 def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:
