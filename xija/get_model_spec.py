@@ -92,7 +92,7 @@ def get_xija_model_spec(model_name, version=None, repo_path=None,
 
     Returns
     -------
-    tuple of dict, str, str
+    tuple of dict, str
         Xija model specification dict, chandra_models version
     """
     if repo_path is None:
