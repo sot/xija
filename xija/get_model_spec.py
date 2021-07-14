@@ -93,8 +93,7 @@ def get_xija_model_spec(model_name, version=None, repo_path=None,
     Returns
     -------
     tuple of dict, str, str
-        Xija model specification dict, chandra_models version, path to model spec
-        file used
+        Xija model specification dict, chandra_models version
     """
     if repo_path is None:
         repo_path = REPO_PATH
@@ -102,10 +101,9 @@ def get_xija_model_spec(model_name, version=None, repo_path=None,
         repo = git.Repo.clone_from(repo_path, repo_path_local)
         if version is not None:
             repo.git.checkout(version)
-        model_spec, version, model_spec_path = _get_xija_model_spec(
-            model_name, version, repo_path_local, check_version, timeout)
-
-    return model_spec, version, model_spec_path
+        model_spec, version = _get_xija_model_spec(model_name, version, repo_path_local,
+                                                   check_version, timeout)
+    return model_spec, version
 
 
 def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
@@ -140,7 +138,7 @@ def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
             raise ValueError(f'version mismatch: local repo {version} vs '
                              f'github {gh_version}')
 
-    return model_spec, version, file_name
+    return model_spec, version
 
 
 def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:
