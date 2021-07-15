@@ -42,8 +42,8 @@ def temp_directory():
     shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
-                        check_version=False, timeout=5) -> dict:
+def get_xija_model_spec(model_name, version=None, repo_path=None,
+                        check_version=False, timeout=5) -> tuple:
     """
     Get Xija model specification for the specified ``model_name``.
 
@@ -92,9 +92,11 @@ def get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
 
     Returns
     -------
-    dict, str
+    tuple of dict, str
         Xija model specification dict, chandra_models version
     """
+    if repo_path is None:
+        repo_path = REPO_PATH
     with temp_directory() as repo_path_local:
         repo = git.Repo.clone_from(repo_path, repo_path_local)
         if version is not None:
