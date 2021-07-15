@@ -58,7 +58,7 @@ jobs:
         path: skare3_tools
     - name: Select XCode Version
       run: sudo xcode-select -s "/Applications/Xcode_11.7.app"
-      if: ${{ matrix.os == "macos" }}
+      if: ${{ matrix.os == 'macos' }}
     - uses: sot/setup-miniconda@v2
       with:
         miniconda-version: "py38_4.8.3"
