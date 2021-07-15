@@ -117,7 +117,7 @@ def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
         # get_globfiles() default requires exactly one file match and returns a list
         file_name = get_globfiles(file_glob)[0]
     except ValueError:
-        names = get_xija_model_names()
+        names = get_xija_model_names(repo_path)
         raise ValueError(f'no models matched {model_name}. Available models are: '
                          f'{", ".join(names)}')
 
