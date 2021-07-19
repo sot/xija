@@ -161,27 +161,17 @@ def clearLayout(layout):
 
 
 def annotate_limits(limits, ax, dir='h'):
+    from xija.limits import get_limit_color
     if len(limits) == 0:
         return []
     lines = []
     draw_line = getattr(ax, f'ax{dir}line')
-    opts = [
-        ('planning.data_quality.high.acisi', '-.', 'blue'),
-        ('planning.data_quality.high.aciss', '-.', 'purple'),
-        ('planning.penalty.high', '-.', 'gray'),
-        ('planning.warning.low', '-', 'green'),
-        ('planning.warning.high', '-', 'green'),
-        ('odb.caution.low', '-', 'gold'),
-        ('odb.caution.high', '-', 'gold'),
-        ('odb.warning.low', '-', 'red'),
-        ('odb.warning.high', '-', 'red'),
-        ('planning.zero_feps.low', '--', 'dodgerblue')
-    ]
-    for (limit_name, ls, color) in opts:
-        if limit_name in limits:
-            lines.append(
-                draw_line(limits[limit_name], ls=ls, color=color)
-            )
+    for limit in limits:
+        if limit == "unit":
+            continue
+        lines.append(
+            draw_line(limits[limit], color=get_limit_color(limit))
+        )
     return lines
 
 
