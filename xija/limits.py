@@ -1,13 +1,15 @@
 def get_limit_spec(limit):
     """
     Based on an input *limit* string of the form:
-    
-    <system>.<type>.<direction>.<qualifier>    
-    
+
+    <system>.<type>.<direction>.<qualifier>
+
     (where the "qualifier" element is optional) return the various pieces 
     into a dictionary for convenience.
     """
     words = limit.split(".")
+    if len(words) < 3:
+        raise RuntimeError(f"{limit} is not a valid limit string!")
     limit_spec = {
         "system": words[0],
         "type": words[1],
