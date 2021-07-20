@@ -368,9 +368,14 @@ class HistogramWindow(QtWidgets.QMainWindow):
         min_resid = np.nanmin(resids)
         max_resid = np.nanmax(resids)
 
+        dvalsr = dvals + randx
+        
+        min_dvals = np.nanmin(dvalsr)
+        max_dvals = np.nanmax(dvalsr)
+
         if len(self.plot_dict) == 0:
             self.plot_dict['resids'] = self.ax1.plot(
-                resids, dvals + randx, 'o', color='#386cb0',
+                resids, dvalsr, 'o', color='#386cb0',
                 alpha=1, markersize=1, markeredgecolor='#386cb0')[0]
             self.plot_dict["01"] = self.ax1.plot(
                 Epoints01, Tpoints01, color='k', linewidth=4)[0]
@@ -396,7 +401,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
                 max_resid, color='k', linestyle='--', 
                 linewidth=1.5, alpha=1)
         else:
-            self.plot_dict['resids'].set_data(resids, dvals + randx)
+            self.plot_dict['resids'].set_data(resids, dvalsr)
             self.plot_dict['01'].set_data(Epoints01, Tpoints01)
             self.plot_dict['99'].set_data(Epoints99, Tpoints99)
             self.plot_dict['50'].set_data(Epoints50, Tpoints50)
@@ -408,6 +413,9 @@ class HistogramWindow(QtWidgets.QMainWindow):
             self.plot_dict['min_hist'].set_xdata(min_resid)
             self.plot_dict['max_hist'].set_xdata(max_resid)
             self.plot_dict['fill'].remove()
+
+        self.ax1.set_xlim(min_resid-0.5, max_resid+0.5)
+        self.ax1.set_ylim(min_dvals-0.5, max_dvals+0.5)
 
         self.plot_dict["fill"] = self.ax2.fill_between(
             bin_mid, hist, step="mid", color='#386cb0')
