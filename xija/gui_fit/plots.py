@@ -238,6 +238,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         limits_check.stateChanged.connect(self.plot_limits)
         if len(self.model.limits) == 0:
             limits_check.setEnabled(False)
+        self.limits_check = limits_check
 
         toolbar_box.addWidget(msid_select)
         toolbar_box.addWidget(redraw_button)
@@ -296,21 +297,27 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.rz_masked = state == QtCore.Qt.Checked
         QtCore.QTimer.singleShot(200, self.update_plots)
 
+    def _clear_limits(self):
+        [line.remove() for line in self.limit_lines]
+        self.limit_lines = []
+
     def plot_limits(self, state):
         if state == QtCore.Qt.Checked:
-            limits = self.model.limits[self.hist_msids[self.which_msid]]
-            self.limit_lines = annotate_limits(limits, self.ax1)
+            limits = self.model.limits.get(self.hist_msids[self.which_msid], None)
+            if limits is not None:
+                self.limit_lines = annotate_limits(limits, self.ax1)
         else:
-            [line.remove() for line in self.limit_lines]
-            self.limit_lines = []
+            self._clear_limits()
         self.canvas.draw_idle()
 
     def change_msid(self, msid):
+        self._clear_limits()
         self.which_msid = self.hist_msids.index(msid)
         self.comp = self.model.comp[self.hist_msids[self.which_msid]]
         msid_name = self.hist_msids[self.which_msid]
         self.ax1.set_title(f'{msid_name}: data vs. residuals (data - model)')
         QtCore.QTimer.singleShot(200, self.update_plots)
+        self.plot_limits(self.limits_check.checkState())
 
     def make_plots(self):
         msid_name = self.hist_msids[self.which_msid]
@@ -433,7 +440,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
             self.plot_dict["max_text"] = self.ax2.text(
                 xpos_max, ystart, 'Maximum Error', 
                 ha="left", va="center", rotation=90)
-        
+
         self.canvas.draw_idle()
 
 
