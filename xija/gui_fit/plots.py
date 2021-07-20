@@ -340,6 +340,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
             mask &= self.rz_mask
         if self.fmt1_masked:
             mask &= self.fmt1_mask
+        for i0, i1 in self.model.bad_times_indices:
+            mask[i0:i1] = False
         resids = self.comp.resids[mask]
         dvals = self.comp.dvals[mask]
         randx = self.comp.randx[mask]
