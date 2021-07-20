@@ -369,7 +369,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         max_resid = np.nanmax(resids)
 
         dvalsr = dvals + randx
-        
+
         min_dvals = np.nanmin(dvalsr)
         max_dvals = np.nanmax(dvalsr)
 
