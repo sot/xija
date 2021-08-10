@@ -31,6 +31,7 @@ def get_limit_color(limit):
     (where the "qualifier" element is optional) return the color to
     be used for plotting.
     """
+    import warnings
     limit_spec = get_limit_spec(limit)
     if limit_spec["qualifier"] is not None:
         if limit_spec["qualifier"].startswith("acis") or \
@@ -56,5 +57,6 @@ def get_limit_color(limit):
             "penalty": "gray"
         }[limit_spec["type"]]
     else:
-        raise RuntimeError(f"limit \"{limit}\" is unknown!")
+        color = "C0"
+        warnings.warn(f"limit \"{limit}\" is unknown")
     return color
