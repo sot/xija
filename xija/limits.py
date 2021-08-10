@@ -9,7 +9,7 @@ def get_limit_spec(limit):
     """
     words = limit.split(".")
     if len(words) < 3:
-        raise RuntimeError(f"{limit} is not a valid limit string!")
+        raise RuntimeError(f"{limit} is not a valid limit string")
     limit_spec = {
         "system": words[0],
         "type": words[1],
