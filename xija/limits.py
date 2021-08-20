@@ -22,6 +22,21 @@ def get_limit_spec(limit):
     return limit_spec
 
 
+limit_colors = {
+    '.*.acisi': 'blue', 
+    '.*.aciss': 'purple',
+    '.*.aciss_hot': 'red',
+    '.*.cold_ecs': 'dodgerblue',
+    'odb.caution.*': 'gold',
+    'safety.caution.*': 'gold',
+    'odb.warning.*': 'red',
+    'safety.warning.*': 'red',
+    'planning.caution.*': 'dodgerblue',
+    'planning.warning.*': 'green',
+    'planning.penalty.*': 'gray'
+}
+
+
 def get_limit_color(limit):
     """
     Based on an input *limit* string of the form:
@@ -31,32 +46,9 @@ def get_limit_color(limit):
     (where the "qualifier" element is optional) return the color to
     be used for plotting.
     """
-    import warnings
-    limit_spec = get_limit_spec(limit)
-    if limit_spec["qualifier"] is not None:
-        if limit_spec["qualifier"].startswith("acis") or \
-            limit_spec["qualifier"] == "cold_ecs":
-            # ACIS FP limits have their own colors
-            color = {
-                "acisi": "blue",
-                "aciss": "purple",
-                "aciss_hot": "red",
-                "cold_ecs": "dodgerblue"
-            }[limit_spec["qualifier"]]
-    elif limit_spec["system"] in ["odb", "safety"]:
-        # ODB and safety limits are yellow/red
-        color = {
-            "caution": "gold",
-            "warning": "red"
-        }[limit_spec["type"]]
-    elif limit_spec["system"] == "planning":
-        # Planning limits are green, dodgerblue, or gray 
-        color = {
-            "caution": "dodgerblue",
-            "warning": "green",
-            "penalty": "gray"
-        }[limit_spec["type"]]
-    else:
-        color = "C0"
-        warnings.warn(f"limit \"{limit}\" is unknown")
+    import re
+    color = "black"
+    for k, v in limit_colors.items():
+       if re.search(k, limit) is not None:
+            color = v    
     return color
