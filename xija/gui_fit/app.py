@@ -29,6 +29,8 @@ from .utils import in_process_console
 
 from collections import OrderedDict
 
+from cheta.units import F_to_C
+
 gui_config = {}
 
 
@@ -252,8 +254,7 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
                     continue
                 limit_str = f"    {limit}: {val:.1f} {units}"
                 if units == "degF":
-                    valC = (val - 32.0)*5.0/9.0
-                    limit_str += f" ({valC:.1f} degC)"
+                    limit_str += f" ({F_to_C(val):.1f} degC)"
                 main_box.addWidget(QtWidgets.QLabel(limit_str))
         main_box.addStretch(1)
 
