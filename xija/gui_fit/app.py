@@ -247,14 +247,14 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
             limits = self.model.limits[msid]
             units = limits["unit"]
             main_box.addWidget(QtWidgets.QLabel(f"{msid.upper()} limits:"))
-        for limit, val in limits.items():
-            if limit == "unit":
-                continue
-            limit_str = f"    {limit}: {val:.1f} {units}"
-            if units == "degF":
-                valC = (val - 32.0)*5.0/9.0
-                limit_str += f" ({valC:.1f} degC)"
-            main_box.addWidget(QtWidgets.QLabel(limit_str))
+            for limit, val in limits.items():
+                if limit == "unit":
+                    continue
+                limit_str = f"    {limit}: {val:.1f} {units}"
+                if units == "degF":
+                    valC = (val - 32.0)*5.0/9.0
+                    limit_str += f" ({valC:.1f} degC)"
+                main_box.addWidget(QtWidgets.QLabel(limit_str))
         main_box.addStretch(1)
 
         close_button = QtWidgets.QPushButton('Close')
