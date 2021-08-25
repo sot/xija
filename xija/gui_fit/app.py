@@ -29,6 +29,8 @@ from .utils import in_process_console
 
 from collections import OrderedDict
 
+from cheta.units import F_to_C
+
 gui_config = {}
 
 
@@ -243,6 +245,17 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
         main_box.addWidget(QtWidgets.QLabel("Timestep: {:.1f} s".format(model.dt)))
         main_box.addWidget(QtWidgets.QLabel("Evolve Method: Core {}".format(model.evolve_method)))
         main_box.addWidget(QtWidgets.QLabel("Runge-Kutta Order: {}".format(4 if model.rk4 else 2)))
+        for msid in self.model.limits:
+            limits = self.model.limits[msid]
+            units = limits["unit"]
+            main_box.addWidget(QtWidgets.QLabel(f"{msid.upper()} limits:"))
+            for limit, val in limits.items():
+                if limit == "unit":
+                    continue
+                limit_str = f"    {limit}: {val:.1f} {units}"
+                if units == "degF":
+                    limit_str += f" ({F_to_C(val):.1f} degC)"
+                main_box.addWidget(QtWidgets.QLabel(limit_str))
         main_box.addStretch(1)
 
         close_button = QtWidgets.QPushButton('Close')

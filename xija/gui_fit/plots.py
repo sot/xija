@@ -11,6 +11,7 @@ import matplotlib.dates as mdates
 
 
 from xija.limits import get_limit_color
+from cheta.units import F_to_C
 
 
 def digitize_data(Ttelem, nbins=50):
@@ -188,9 +189,9 @@ def annotate_limits(limits, ax, dir='h'):
         return []
     lines = []
     draw_line = getattr(ax, f'ax{dir}line')
-    if limit['unit'] == "degF":
+    if limits['unit'] == "degF":
         # convert degF to degC
-        convert = lambda x: (x - 32.0)*5.0/9.0
+        convert = lambda x: F_to_C(x)
     else:
         # leave it alone
         convert = lambda x: x
