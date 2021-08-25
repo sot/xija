@@ -10,6 +10,9 @@ from matplotlib.figure import Figure
 import matplotlib.dates as mdates
 
 
+from xija.limits import get_limit_color
+
+
 def digitize_data(Ttelem, nbins=50):
     """Digitize telemetry.
 
@@ -161,7 +164,6 @@ def clearLayout(layout):
 
 
 def annotate_limits(limits, ax, dir='h'):
-    from xija.limits import get_limit_color
     if len(limits) == 0:
         return []
     lines = []

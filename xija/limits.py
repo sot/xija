@@ -1,3 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from fnmatch import fnmatch
+
+
 def get_limit_spec(limit):
     """
     Based on an input *limit* string of the form:
@@ -22,18 +27,19 @@ def get_limit_spec(limit):
     return limit_spec
 
 
-limit_colors = {
-    '.*.acisi': 'blue', 
-    '.*.aciss': 'purple',
-    '.*.aciss_hot': 'red',
-    '.*.cold_ecs': 'dodgerblue',
+LIMIT_COLORS = {
+    '*.acisi': 'blue', 
+    '*.aciss': 'purple',
+    '*.aciss_hot': 'red',
+    '*.cold_ecs': 'dodgerblue',
     'odb.caution.*': 'gold',
     'safety.caution.*': 'gold',
     'odb.warning.*': 'red',
     'safety.warning.*': 'red',
     'planning.caution.*': 'dodgerblue',
     'planning.warning.*': 'green',
-    'planning.penalty.*': 'gray'
+    'planning.penalty.*': 'gray',
+    '*': 'black'
 }
 
 
@@ -46,9 +52,8 @@ def get_limit_color(limit):
     (where the "qualifier" element is optional) return the color to
     be used for plotting.
     """
-    import re
-    color = "black"
-    for k, v in limit_colors.items():
-       if re.search(k, limit) is not None:
-            color = v    
+    for k, v in LIMIT_COLORS.items():
+       if fnmatch(k, limit):
+           color = v    
+           break
     return color
