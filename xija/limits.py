@@ -9,8 +9,19 @@ def get_limit_spec(limit):
 
     <system>.<type>.<direction>.<qualifier>
 
-    (where the "qualifier" element is optional) return the various pieces 
+    (where the "qualifier" element is optional) return the various pieces
     into a dictionary for convenience.
+    
+    Parameters
+    ----------
+    limit : str
+        The input limit string. 
+        
+    Returns
+    -------
+    dict
+        A dictionary specifying the names of the various pieces of the
+        limit string. 
     """
     words = limit.split(".")
     if len(words) < 3:
@@ -51,6 +62,16 @@ def get_limit_color(limit):
     
     (where the "qualifier" element is optional) return the color to
     be used for plotting.
+    
+    Parameters
+    ----------
+    limit : str
+        The input limit string. 
+        
+    Returns
+    -------
+    str
+        A string giving the color of the line. 
     """
     for k, v in LIMIT_COLORS.items():
        if fnmatch(k, limit):

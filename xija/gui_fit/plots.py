@@ -164,6 +164,26 @@ def clearLayout(layout):
 
 
 def annotate_limits(limits, ax, dir='h'):
+    """
+    Annotate limit lines on a plot.
+    
+    Parameters
+    ----------
+    limits : dict
+        Dictionary of limits obtained from the model
+        specification file. 
+    ax : Matplotlib Axes object
+        The Axes object on which the line is to be 
+        written. 
+    dir : str, optional
+        The direction of the line, "h" for horizontal
+        or "v" for vertical. Default: "h"
+        
+    Returns
+    ------- 
+    list
+        A list of matplotlib.lines.Line2D objects
+    """
     if len(limits) == 0:
         return []
     lines = []
