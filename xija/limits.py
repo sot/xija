@@ -74,7 +74,7 @@ def get_limit_color(limit):
         A string giving the color of the line. 
     """
     for k, v in LIMIT_COLORS.items():
-       if fnmatch(k, limit):
-           color = v    
-           break
+        if fnmatch(limit, k):
+            color = v    
+            break
     return color

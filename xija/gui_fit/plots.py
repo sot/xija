@@ -188,7 +188,7 @@ def annotate_limits(limits, ax, dir='h'):
         return []
     lines = []
     draw_line = getattr(ax, f'ax{dir}line')
-    if limit['unit'] == "degF":
+    if limits['unit'] == "degF":
         # convert degF to degC
         convert = lambda x: (x - 32.0)*5.0/9.0
     else:
