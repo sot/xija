@@ -10,6 +10,9 @@ from matplotlib.figure import Figure
 import matplotlib.dates as mdates
 
 
+from xija.limits import get_limit_color
+
+
 def digitize_data(Ttelem, nbins=50):
     """Digitize telemetry.
 
@@ -161,27 +164,42 @@ def clearLayout(layout):
 
 
 def annotate_limits(limits, ax, dir='h'):
+    """
+    Annotate limit lines on a plot.
+    
+    Parameters
+    ----------
+    limits : dict
+        Dictionary of limits obtained from the model
+        specification file. 
+    ax : Matplotlib Axes object
+        The Axes object on which the line is to be 
+        written. 
+    dir : str, optional
+        The direction of the line, "h" for horizontal
+        or "v" for vertical. Default: "h"
+        
+    Returns
+    ------- 
+    list
+        A list of matplotlib.lines.Line2D objects
+    """
     if len(limits) == 0:
         return []
     lines = []
     draw_line = getattr(ax, f'ax{dir}line')
-    opts = [
-        ('planning.data_quality.high.acisi', '-.', 'blue'),
-        ('planning.data_quality.high.aciss', '-.', 'purple'),
-        ('planning.penalty.high', '-.', 'gray'),
-        ('planning.warning.low', '-', 'green'),
-        ('planning.warning.high', '-', 'green'),
-        ('odb.caution.low', '-', 'gold'),
-        ('odb.caution.high', '-', 'gold'),
-        ('odb.warning.low', '-', 'red'),
-        ('odb.warning.high', '-', 'red'),
-        ('planning.zero_feps.low', '--', 'dodgerblue')
-    ]
-    for (limit_name, ls, color) in opts:
-        if limit_name in limits:
-            lines.append(
-                draw_line(limits[limit_name], ls=ls, color=color)
-            )
+    if limit['unit'] == "degF":
+        # convert degF to degC
+        convert = lambda x: (x - 32.0)*5.0/9.0
+    else:
+        # leave it alone
+        convert = lambda x: x
+    for limit in limits:
+        if limit == "unit":
+            continue
+        lines.append(
+            draw_line(convert(limits[limit]), color=get_limit_color(limit))
+        )
     return lines
 
 
@@ -248,6 +266,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
         limits_check.stateChanged.connect(self.plot_limits)
         if len(self.model.limits) == 0:
             limits_check.setEnabled(False)
+        self.limits_check = limits_check
 
         toolbar_box.addWidget(msid_select)
         toolbar_box.addWidget(redraw_button)
@@ -306,21 +325,27 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.rz_masked = state == QtCore.Qt.Checked
         QtCore.QTimer.singleShot(200, self.update_plots)
 
+    def _clear_limits(self):
+        [line.remove() for line in self.limit_lines]
+        self.limit_lines = []
+
     def plot_limits(self, state):
         if state == QtCore.Qt.Checked:
-            limits = self.model.limits[self.hist_msids[self.which_msid]]
-            self.limit_lines = annotate_limits(limits, self.ax1)
+            limits = self.model.limits.get(self.hist_msids[self.which_msid], None)
+            if limits is not None:
+                self.limit_lines = annotate_limits(limits, self.ax1)
         else:
-            [line.remove() for line in self.limit_lines]
-            self.limit_lines = []
+            self._clear_limits()
         self.canvas.draw_idle()
 
     def change_msid(self, msid):
+        self._clear_limits()
         self.which_msid = self.hist_msids.index(msid)
         self.comp = self.model.comp[self.hist_msids[self.which_msid]]
         msid_name = self.hist_msids[self.which_msid]
         self.ax1.set_title(f'{msid_name}: data vs. residuals (data - model)')
         QtCore.QTimer.singleShot(200, self.update_plots)
+        self.plot_limits(self.limits_check.checkState())
 
     def make_plots(self):
         msid_name = self.hist_msids[self.which_msid]
@@ -343,6 +368,8 @@ class HistogramWindow(QtWidgets.QMainWindow):
             mask &= self.rz_mask
         if self.fmt1_masked:
             mask &= self.fmt1_mask
+        for i0, i1 in self.model.bad_times_indices:
+            mask[i0:i1] = False
         resids = self.comp.resids[mask]
         dvals = self.comp.dvals[mask]
         randx = self.comp.randx[mask]
@@ -369,9 +396,14 @@ class HistogramWindow(QtWidgets.QMainWindow):
         min_resid = np.nanmin(resids)
         max_resid = np.nanmax(resids)
 
+        dvalsr = dvals + randx
+
+        min_dvals = np.nanmin(dvalsr)
+        max_dvals = np.nanmax(dvalsr)
+
         if len(self.plot_dict) == 0:
             self.plot_dict['resids'] = self.ax1.plot(
-                resids, dvals + randx, 'o', color='#386cb0',
+                resids, dvalsr, 'o', color='#386cb0',
                 alpha=1, markersize=1, markeredgecolor='#386cb0')[0]
             self.plot_dict["01"] = self.ax1.plot(
                 Epoints01, Tpoints01, color='k', linewidth=4)[0]
@@ -397,7 +429,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
                 max_resid, color='k', linestyle='--', 
                 linewidth=1.5, alpha=1)
         else:
-            self.plot_dict['resids'].set_data(resids, dvals + randx)
+            self.plot_dict['resids'].set_data(resids, dvalsr)
             self.plot_dict['01'].set_data(Epoints01, Tpoints01)
             self.plot_dict['99'].set_data(Epoints99, Tpoints99)
             self.plot_dict['50'].set_data(Epoints50, Tpoints50)
@@ -409,6 +441,9 @@ class HistogramWindow(QtWidgets.QMainWindow):
             self.plot_dict['min_hist'].set_xdata(min_resid)
             self.plot_dict['max_hist'].set_xdata(max_resid)
             self.plot_dict['fill'].remove()
+
+        self.ax1.set_xlim(min_resid-0.5, max_resid+0.5)
+        self.ax1.set_ylim(min_dvals-0.5, max_dvals+0.5)
 
         self.plot_dict["fill"] = self.ax2.fill_between(
             bin_mid, hist, step="mid", color='#386cb0')
@@ -443,7 +478,7 @@ class HistogramWindow(QtWidgets.QMainWindow):
             self.plot_dict["max_text"] = self.ax2.text(
                 xpos_max, ystart, 'Maximum Error', 
                 ha="left", va="center", rotation=90)
-        
+
         self.canvas.draw_idle()
 
 
