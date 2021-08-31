@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xija.get_model_spec &#8212; xija 4.23.1 documentation</title>
+    <title>xija.get_model_spec &#8212; xija 4.24.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.23.1 documentation</a>
+	<a href="../../index.html">xija 4.24.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -107,8 +107,8 @@
     <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_xija_model_spec"><a class="viewcode-back" href="../../api.html#xija.get_model_spec.get_xija_model_spec">[docs]</a><span class="k">def</span> <span class="nf">get_xija_model_spec</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repo_path</span><span class="o">=</span><span class="n">REPO_PATH</span><span class="p">,</span>
-                        <span class="n">check_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="get_xija_model_spec"><a class="viewcode-back" href="../../api.html#xija.get_model_spec.get_xija_model_spec">[docs]</a><span class="k">def</span> <span class="nf">get_xija_model_spec</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repo_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">check_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get Xija model specification for the specified ``model_name``.</span>
 
@@ -157,9 +157,11 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dict, str</span>
+<span class="sd">    tuple of dict, str</span>
 <span class="sd">        Xija model specification dict, chandra_models version</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">repo_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">repo_path</span> <span class="o">=</span> <span class="n">REPO_PATH</span>
     <span class="k">with</span> <span class="n">temp_directory</span><span class="p">()</span> <span class="k">as</span> <span class="n">repo_path_local</span><span class="p">:</span>
         <span class="n">repo</span> <span class="o">=</span> <span class="n">git</span><span class="o">.</span><span class="n">Repo</span><span class="o">.</span><span class="n">clone_from</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="n">repo_path_local</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -182,7 +184,7 @@
         <span class="c1"># get_globfiles() default requires exactly one file match and returns a list</span>
         <span class="n">file_name</span> <span class="o">=</span> <span class="n">get_globfiles</span><span class="p">(</span><span class="n">file_glob</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="n">get_xija_model_names</span><span class="p">()</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">get_xija_model_names</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no models matched </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1">. Available models are: &#39;</span>
                          <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 

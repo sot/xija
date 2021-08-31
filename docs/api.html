@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API docs &#8212; xija 4.23.1 documentation</title>
+    <title>API docs &#8212; xija 4.24.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -54,7 +54,7 @@
 	
       </li>
       <li>
-	<a href="index.html">xija 4.23.1 documentation</a>
+	<a href="index.html">xija 4.24.0 documentation</a>
 	 &#187;
       </li>
       
@@ -1111,7 +1111,7 @@ $SKA/data/chandra_models)</p>
 
 <dl class="py function">
 <dt id="xija.get_model_spec.get_xija_model_spec">
-<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_xija_model_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_name</span></em>, <em class="sig-param"><span class="n">version</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">repo_path</span><span class="o">=</span><span class="default_value">PosixPath('/proj/sot/ska/data/chandra_models')</span></em>, <em class="sig-param"><span class="n">check_version</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_spec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_xija_model_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_name</span></em>, <em class="sig-param"><span class="n">version</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">repo_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">check_version</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get Xija model specification for the specified <code class="docutils literal notranslate"><span class="pre">model_name</span></code>.</p>
 <p>Supported model names include (but are not limited to): <code class="docutils literal notranslate"><span class="pre">'aca'</span></code>,
 <code class="docutils literal notranslate"><span class="pre">'acisfp'</span></code>, <code class="docutils literal notranslate"><span class="pre">'dea'</span></code>, <code class="docutils literal notranslate"><span class="pre">'dpa'</span></code>, <code class="docutils literal notranslate"><span class="pre">'psmc'</span></code>, <code class="docutils literal notranslate"><span class="pre">'minusyz'</span></code>, and
@@ -1137,7 +1137,7 @@ Default = 5 sec.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>dict, str</dt><dd><p>Xija model specification dict, chandra_models version</p>
+<dt>tuple of dict, str</dt><dd><p>Xija model specification dict, chandra_models version</p>
 </dd>
 </dl>
 </dd>
