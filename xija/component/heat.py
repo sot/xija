@@ -159,12 +159,12 @@ class SolarHeat(PrecomputedHeatPower):
 
         if P_pitches is None:
             P_pitches = [45, 65, 90, 130, 180]
-        self.P_pitches = np.array(P_pitches, dtype=np.float)
+        self.P_pitches = np.array(P_pitches, dtype=np.float64)
         self.n_pitches = len(self.P_pitches)
 
         if dP_pitches is None:
             dP_pitches = self.P_pitches
-        self.dP_pitches = np.array(dP_pitches, dtype=np.float)
+        self.dP_pitches = np.array(dP_pitches, dtype=np.float64)
 
         if (self.dP_pitches[0] != self.P_pitches[0]
                 or self.dP_pitches[-1] != self.P_pitches[-1]):
@@ -172,11 +172,11 @@ class SolarHeat(PrecomputedHeatPower):
 
         if Ps is None:
             Ps = np.ones_like(self.P_pitches)
-        self.Ps = np.array(Ps, dtype=np.float)
+        self.Ps = np.array(Ps, dtype=np.float64)
 
         if dPs is None:
             dPs = np.zeros_like(self.dP_pitches)
-        self.dPs = np.array(dPs, dtype=np.float)
+        self.dPs = np.array(dPs, dtype=np.float64)
 
         self.epoch = epoch
 
@@ -1002,7 +1002,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             power_par_res = [par.name[4:].replace('x', '.')
                              for par in self.power_pars]
 
-            par_idxs = np.zeros(6612, dtype=np.int) - 1
+            par_idxs = np.zeros(6612, dtype=np.int_) - 1
             for fep_count in range(0, 7):
                 for ccd_count in range(0, 7):
                     for vid_board in range(0, 2):
