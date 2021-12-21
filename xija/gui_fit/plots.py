@@ -57,17 +57,8 @@ def calcquantiles(errors):
         datastructure that includes errors (input) and quantile values
 
     """
-
-    esort = np.sort(errors)
-    q99 = esort[int(0.99 * len(esort) - 1)]
-    q95 = esort[int(0.95 * len(esort) - 1)]
-    q84 = esort[int(0.84 * len(esort) - 1)]
-    q50 = np.median(esort)
-    q16 = esort[int(0.16 * len(esort) - 1)]
-    q05 = esort[int(0.05 * len(esort) - 1)]
-    q01 = esort[int(0.01 * len(esort) - 1)]
-    stats = {'error': errors, 'q01': q01, 'q05': q05, 'q16': q16, 'q50': q50,
-             'q84': q84, 'q95': q95, 'q99': q99}
+    qs = np.quantile(errors, [0.01, 0.5, 0.99])
+    stats = {'error': errors, 'q01': qs[0], 'q50': qs[1], 'q99': qs[2]}
     return stats
 
 
@@ -167,7 +158,7 @@ def clearLayout(layout):
 def annotate_limits(limits, ax, dir='h'):
     """
     Annotate limit lines on a plot.
-    
+
     Parameters
     ----------
     limits : dict
@@ -179,7 +170,7 @@ def annotate_limits(limits, ax, dir='h'):
     dir : str, optional
         The direction of the line, "h" for horizontal
         or "v" for vertical. Default: "h"
-        
+
     Returns
     ------- 
     list
@@ -385,9 +376,9 @@ class HistogramWindow(QtWidgets.QMainWindow):
         else:
             quantstats = calcquantstats(dvals, resids)
 
-        Epoints01, Tpoints01 = getQuantPlotPoints(quantstats, 'q01')
-        Epoints99, Tpoints99 = getQuantPlotPoints(quantstats, 'q99')
-        Epoints50, Tpoints50 = getQuantPlotPoints(quantstats, 'q50')
+        Epoints01, tmid = getQuantPlotPoints(quantstats, 'q01')
+        Epoints99, _ = getQuantPlotPoints(quantstats, 'q99')
+        Epoints50, _ = getQuantPlotPoints(quantstats, 'q50')
 
         hist, bins = np.histogram(resids, 40)
         hist = hist*100.0/self.comp.mvals.size
@@ -407,13 +398,13 @@ class HistogramWindow(QtWidgets.QMainWindow):
                 resids, dvalsr, 'o', color='#386cb0',
                 alpha=1, markersize=1, markeredgecolor='#386cb0')[0]
             self.plot_dict["01"] = self.ax1.plot(
-                Epoints01, Tpoints01, color='k', linewidth=4)[0]
+                Epoints01, tmid, color='k', linewidth=4)[0]
             self.plot_dict["99"] = self.ax1.plot(
-                Epoints99, Tpoints99, color='k', linewidth=4)[0]
+                Epoints99, tmid, color='k', linewidth=4)[0]
             self.plot_dict["50"] = self.ax1.plot(
-                Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)[0]
+                Epoints50, tmid, color=[1, 1, 1], linewidth=4)[0]
             self.plot_dict["50_2"] = self.ax1.plot(
-                Epoints50, Tpoints50, 'k', linewidth=1.5)[0]
+                Epoints50, tmid, 'k', linewidth=1.5)[0]
 
             self.plot_dict["step"] = self.ax2.step(
                 bin_mid, hist, '#386cb0', where='mid')[0]
@@ -431,10 +422,10 @@ class HistogramWindow(QtWidgets.QMainWindow):
                 linewidth=1.5, alpha=1)
         else:
             self.plot_dict['resids'].set_data(resids, dvalsr)
-            self.plot_dict['01'].set_data(Epoints01, Tpoints01)
-            self.plot_dict['99'].set_data(Epoints99, Tpoints99)
-            self.plot_dict['50'].set_data(Epoints50, Tpoints50)
-            self.plot_dict['50_2'].set_data(Epoints50, Tpoints50)
+            self.plot_dict['01'].set_data(Epoints01, tmid)
+            self.plot_dict['99'].set_data(Epoints99, tmid)
+            self.plot_dict['50'].set_data(Epoints50, tmid)
+            self.plot_dict['50_2'].set_data(Epoints50, tmid)
 
             self.plot_dict['step'].set_data(bin_mid, hist)
             self.plot_dict['q01'].set_xdata(stats['q01'])
@@ -590,7 +581,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         elif atype == "line" and self.ly is not None:
             self.ly.remove()
             self.ly = None
-    
+
     def add_ignore(self, t0, t1):
         times = self.plots_box.model.times
         pd_times = self.plots_box.pd_times
