@@ -544,6 +544,7 @@ class EarthHeat(PrecomputedHeatPower):
 
     def __init__(self, model, node,
                  orbitephem0_x, orbitephem0_y, orbitephem0_z,
+                 solarephem0_x, solarephem0_y, solarephem0_z,
                  aoattqt1, aoattqt2, aoattqt3, aoattqt4,
                  k=1.0):
         ModelComponent.__init__(self, model)
@@ -551,6 +552,9 @@ class EarthHeat(PrecomputedHeatPower):
         self.orbitephem0_x = self.model.get_comp(orbitephem0_x)
         self.orbitephem0_y = self.model.get_comp(orbitephem0_y)
         self.orbitephem0_z = self.model.get_comp(orbitephem0_z)
+        self.solarephem0_x = self.model.get_comp(solarephem0_x)
+        self.solarephem0_y = self.model.get_comp(solarephem0_y)
+        self.solarephem0_z = self.model.get_comp(solarephem0_z)
         self.aoattqt1 = self.model.get_comp(aoattqt1)
         self.aoattqt2 = self.model.get_comp(aoattqt2)
         self.aoattqt3 = self.model.get_comp(aoattqt3)
@@ -613,12 +617,15 @@ class EarthHeat(PrecomputedHeatPower):
             # Collect individual MSIDs for use in calc_earth_vis()
             ephem_xyzs = [getattr(self, 'orbitephem0_{}'.format(x))
                           for x in ('x', 'y', 'z')]
+            solar_xyzs = [getattr(self, 'solarephem0_{}'.format(x))
+                          for x in ('x', 'y', 'z')]
             aoattqt_1234s = [getattr(self, 'aoattqt{}'.format(x))
                              for x in range(1, 5)]
             # Note: the copy() here is so that the array becomes contiguous in
             # memory and allows numba to run faster (and avoids NumbaPerformanceWarning:
             # np.dot() is faster on contiguous arrays).
             ephems = np.array([x.dvals for x in ephem_xyzs]).transpose().copy()
+            solars = np.array([x.dvals for x in solar_xyzs]).transpose().copy()
             q_atts = np.array([x.dvals for x in aoattqt_1234s]).transpose()
 
             # Q_atts can have occasional bad values, maybe because the
@@ -639,6 +646,11 @@ class EarthHeat(PrecomputedHeatPower):
                 self.calc_earth_vis_from_grid(ephems, q_atts)
             else:
                 self.calc_earth_vis_from_taco(ephems, q_atts)
+
+            cos = np.sum(ephems*solars, axis=1)
+            es = np.sum(ephems*ephems, axis=1)*np.sum(solars*solars, axis=1)
+            cos /= np.sqrt(es)
+            self._dvals *= 0.5*(1.0+cos)
 
             self.put_cache()
 
