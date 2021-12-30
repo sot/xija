@@ -667,7 +667,7 @@ class XijaModel(object):
         self.tmal_ints = np.zeros((len(tmal_comps), tmal.N_INTS),
                                   dtype=np.int32)
         self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS),
-                                    dtype=np.float)
+                                    dtype=np.float64)
         for i, comp in enumerate(tmal_comps):
             self.tmal_ints[i, 0:len(comp.tmal_ints)] = comp.tmal_ints
             self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
