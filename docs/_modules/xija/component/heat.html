@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xija.component.heat &#8212; xija 4.24.0 documentation</title>
+    <title>xija.component.heat &#8212; xija 4.24.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">xija 4.24.0 documentation</a>
+	<a href="../../../index.html">xija 4.24.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -224,12 +224,12 @@
 
         <span class="k">if</span> <span class="n">P_pitches</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">P_pitches</span> <span class="o">=</span> <span class="p">[</span><span class="mi">45</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">180</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">P_pitches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">P_pitches</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_pitches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">P_pitches</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_pitches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P_pitches</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dP_pitches</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dP_pitches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_pitches</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dP_pitches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dP_pitches</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dP_pitches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dP_pitches</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dP_pitches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_pitches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">dP_pitches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_pitches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
@@ -237,11 +237,11 @@
 
         <span class="k">if</span> <span class="n">Ps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Ps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P_pitches</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Ps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Ps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Ps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dPs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dPs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dP_pitches</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dPs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dPs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dPs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dPs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">=</span> <span class="n">epoch</span>
 
@@ -1067,7 +1067,7 @@
             <span class="n">power_par_res</span> <span class="o">=</span> <span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
                              <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_pars</span><span class="p">]</span>
 
-            <span class="n">par_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6612</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">par_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6612</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">fep_count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">ccd_count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">vid_board</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
