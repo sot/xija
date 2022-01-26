@@ -33,6 +33,15 @@ from cheta.units import F_to_C
 gui_config = {}
 
 
+def raise_error_box(win_title, err_msg):
+    msg_box = QtWidgets.QMessageBox()
+    msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+    msg_box.setText(err_msg)
+    msg_box.setWindowTitle(win_title)
+    msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg_box.exec()
+
+
 class FormattedTelemData:
     def __init__(self, telem_data):
         self.telem_data = telem_data
@@ -171,12 +180,7 @@ class FiltersWindow(QtWidgets.QMainWindow):
                 err_msg = "Filter requires two arguments, " \
                           "the start time and the stop time."
         if len(err_msg) > 0:
-            msg_box = QtWidgets.QMessageBox()
-            msg_box.setIcon(QtWidgets.QMessageBox.Critical)
-            msg_box.setText(err_msg)
-            msg_box.setWindowTitle("Filters Error")
-            msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msg_box.exec()
+            raise_error_box("Filters Error", err_msg)
         else:
             if filter_type == "ignore":
                 self.model.append_mask_time([lim[0], lim[1]])
@@ -290,13 +294,25 @@ class WriteTableWindow(QtWidgets.QMainWindow):
             box.setChecked(checked)
 
     def change_start(self):
-        self.start_date = self.start_text.text()
-        self.start_label.setText("Start time: {}".format(self.start_date))
+        start_date = self.start_text.text()
+        try:
+            _ = CxoTime(start_date).secs
+            self.start_label.setText("Start time: {}".format(start_date))
+            self.start_date = start_date
+        except ValueError:
+            raise_error_box("Write Table Error", 
+                            f"Start time not valid: {start_date}")
         self.start_text.setText("")
 
     def change_stop(self):
-        self.stop_date = self.stop_text.text()
-        self.stop_label.setText("Stop time: {}".format(self.stop_date))
+        stop_date = self.stop_text.text()
+        try:
+            _ = CxoTime(stop_date).secs
+            self.start_label.setText("Stop time: {}".format(stop_date))
+            self.stop_date = stop_date
+        except ValueError:
+            raise_error_box("Write Table Error",
+                            f"Stop time not valid: {stop_date}")
         self.stop_text.setText("")
 
     def close_window(self, *args):
