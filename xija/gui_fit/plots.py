@@ -520,7 +520,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.ly = None
         self.limits = None
         self.rzlines = None
-        self.ignores = None
+        self.ignores = []
 
     def select(self, event):
         grab = event.inaxes and self.main_window.show_line and \
@@ -580,32 +580,26 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ly.remove()
             self.ly = None
 
-    def add_ignore(self, t0, t1, color='C3'):
+    def add_fill(self, t0, t1, bad=False):
+        color = "C1" if bad else "C3"
         times = self.plots_box.model.times
         pd_times = self.plots_box.pd_times
         ybot, ytop = self.ax.get_ylim()
         where = (times >= t0) & (times <= t1)
         fill = self.ax.fill_between(pd_times,
             ybot, ytop, where=where, color=color, alpha=0.5)
-        return fill
+        if not bad:
+            self.ignores.append(fill)
 
-    def add_ignores(self):
+    def show_fills(self):
         if len(self.plots_box.model.mask_time_secs) == 0:
             return
-        self.ignores = []
         for i, t in enumerate(self.plots_box.model.mask_time_secs):
-            if not self.plots_box.model.mask_times_bad[i]:
-                self.ignores.append(self.add_ignore(t[0], t[1]))
-
-    def add_bads(self):
-        for d in self.plots_box.model.bad_times:
-            t = CxoTime(d).secs
-            self.add_ignore(t[0], t[1], color="C1")
+            self.add_fill(t[0], t[1], self.plots_box.model.mask_times_bad[i])
 
     def remove_ignores(self):
-        if self.ignores is not None:
-            [fill.remove() for fill in self.ignores]
-            self.ignores = None
+        [fill.remove() for fill in self.ignores]
+        self.ignores = []
 
     def update(self, first=False):
         mw = self.main_window
@@ -615,8 +609,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
         if first:
             if self.plot_method.endswith("time"):
-                self.add_ignores()
-                self.add_bads()
+                self.show_fills()
             if mw.show_radzones:
                 self.add_annotation("radzones")
             if mw.show_line:
@@ -686,14 +679,18 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             pb.canvas.draw_idle()
 
     def add_ignore(self, t0, t1):
-        for pb in self.plot_boxes:
-            pb.add_ignore(t0, t1)
-            pb.canvas.draw_idle()
+        for i, pb in enumerate(self.plot_boxes):
+            if "time" in self.plot_names[i]:
+                pb.add_fill(t0, t1)
+                pb.canvas.draw_idle()
+        self.update_plots()
 
     def remove_ignores(self):
-        for pb in self.plot_boxes:
-            pb.remove_ignores()
-            pb.canvas.draw_idle()
+        for i, pb in enumerate(self.plot_boxes):
+            if "time" in self.plot_names[i]:
+                pb.remove_ignores()
+                pb.canvas.draw_idle()
+        self.update_plots()
 
     def update_plot_boxes(self):
         self.plot_boxes = []

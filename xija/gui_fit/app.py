@@ -896,6 +896,7 @@ class MainWindow:
     def notice_pushed(self):
         self.plots_box.remove_ignores()
         self.model.reset_mask_times()
+        self.plots_box.update_plots()
 
     def command_activated(self, cmd_type):
         """Respond to a command like "freeze solarheat*dP*" submitted via the
@@ -946,8 +947,8 @@ class MainWindow:
                     print("Ignore requires two arguments, the start time and the stop time.")
                 return
             t0, t1 = CxoTime(lim).secs
-            self.plots_box.add_ignore(t0, t1)
             self.model.append_mask_times(lim)
+            self.plots_box.add_ignore(t0, t1)
 
     def set_title(self):
         title_str = gui_config['filename']
