@@ -372,7 +372,7 @@ class WidgetTable(dict):
         self.table.setCellWidget(row, col, widget)
 
 
-class Panel(object):
+class Panel:
     def __init__(self, orient='h'):
         Box = QtWidgets.QHBoxLayout if orient == 'h' else QtWidgets.QVBoxLayout
         self.box = Box()
@@ -450,7 +450,7 @@ class PanelText(QtWidgets.QLineEdit):
         return getattr(self.par, self.attr).__repr__()
 
 
-class PanelParam(object):
+class PanelParam:
     def __init__(self, val, min, max):
         self._val = val
         self._min = min
