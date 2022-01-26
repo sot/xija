@@ -157,9 +157,8 @@ class XijaModel(object):
             i0, i1 = np.searchsorted(self.times, [t0, t1])
             if i1 > i0:
                 self.bad_times_indices.append((i0, i1))
-        self.mask_times = self.bad_times.copy()
-        self.mask_times_indices = self.bad_times_indices.copy()
-        self.mask_time_secs = date2secs(self.mask_times)
+        # This is really setting them for the first time in this case
+        self.reset_mask_times()
 
         self.pars = []
         if model_spec:
@@ -790,12 +789,13 @@ class XijaModel(object):
         if i1 > i0:
             self.mask_times_indices.append((i0, i1))
             self.mask_times.append(new_times)
+            self.mask_times_bad = np.append(self.mask_times_bad, False)
         self.mask_time_secs = date2secs(self.mask_times)
 
     def reset_mask_times(self):
         self.mask_times = self.bad_times.copy()
         self.mask_times_indices = self.bad_times_indices.copy()
         self.mask_time_secs = date2secs(self.mask_times)
-
+        self.mask_times_bad = np.ones(self.mask_time_secs.shape[0], dtype='bool')
 
 ThermalModel = XijaModel
