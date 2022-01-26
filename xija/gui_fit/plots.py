@@ -9,7 +9,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from cxotime import CxoTime
 
 
 from xija.limits import get_limit_color
@@ -581,7 +580,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ly = None
 
     def add_fill(self, t0, t1, bad=False):
-        color = "C1" if bad else "C3"
+        color = "C2" if bad else "C3"
         times = self.plots_box.model.times
         pd_times = self.plots_box.pd_times
         ybot, ytop = self.ax.get_ylim()
@@ -678,10 +677,10 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             pb.remove_annotation(atype)
             pb.canvas.draw_idle()
 
-    def add_ignore(self, t0, t1):
+    def add_fill(self, t0, t1, bad=False):
         for i, pb in enumerate(self.plot_boxes):
             if "time" in self.plot_names[i]:
-                pb.add_fill(t0, t1)
+                pb.add_fill(t0, t1, bad=bad)
                 pb.canvas.draw_idle()
         self.update_plots()
 

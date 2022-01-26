@@ -77,6 +77,129 @@ class FormattedTelemData:
         return val
 
 
+class FiltersWindow(QtWidgets.QMainWindow):
+    def __init__(self, model, main_window):
+        super(FiltersWindow, self).__init__()
+        self.model = model
+        self.mw = main_window
+        self.setWindowTitle("Filters")
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+
+        header_font = QtGui.QFont()
+        header_font.setBold(True)
+
+        self.ignore_label = QtWidgets.QLabel("Add Ignore/Notice")
+        self.ignore_label.setFont(header_font)
+        self.start_label = QtWidgets.QLabel("Start time:")
+        self.start_text = QtWidgets.QLineEdit()
+        self.stop_label = QtWidgets.QLabel("Stop time:")
+        self.stop_text = QtWidgets.QLineEdit()
+
+        add_ignore_button = QtWidgets.QPushButton('Add Ignore')
+        add_ignore_button.clicked.connect(self.add_ignore)
+
+        notice_button = QtWidgets.QPushButton('Notice')
+        notice_button.clicked.connect(self.notice_pushed)
+
+        pair = QtWidgets.QHBoxLayout()
+        pair.addWidget(add_ignore_button)
+        pair.addWidget(notice_button)
+
+        self.bt_label = QtWidgets.QLabel("Add Bad Time")
+        self.bt_label.setFont(header_font)
+        self.bt_start_label = QtWidgets.QLabel("Start time:")
+        self.bt_start_text = QtWidgets.QLineEdit()
+        self.bt_stop_label = QtWidgets.QLabel("Stop time:")
+        self.bt_stop_text = QtWidgets.QLineEdit()
+
+        add_bt_button = QtWidgets.QPushButton('Add Bad Time')
+        add_bt_button.clicked.connect(self.add_bad_time)
+
+        close_button = QtWidgets.QPushButton('Close')
+        close_button.clicked.connect(self.close_window)
+
+        close = QtWidgets.QHBoxLayout()
+        close.addWidget(close_button)
+        close.addStretch(1)
+
+        self.box = QtWidgets.QVBoxLayout()
+
+        self.box.addWidget(self.ignore_label)
+        self.box.addWidget(self.start_label)
+        self.box.addWidget(self.start_text)
+        self.box.addWidget(self.stop_label)
+        self.box.addWidget(self.stop_text)
+        self.box.addLayout(pair)
+        self.box.addWidget(self.bt_label)
+        self.box.addWidget(self.bt_start_label)
+        self.box.addWidget(self.bt_start_text)
+        self.box.addWidget(self.bt_stop_label)
+        self.box.addWidget(self.bt_stop_text)
+        self.box.addWidget(add_bt_button)
+        self.box.addStretch(1)
+        self.box.addLayout(close)
+
+        wid.setLayout(self.box)
+        self.setGeometry(0, 0, 400, 400)
+
+    def add_ignore(self):
+        self.add_filter("ignore")
+
+    def add_bad_time(self):
+        self.add_filter("bad_time")
+
+    def add_filter(self, filter_type):
+        err_msg = ''
+        if filter_type == "ignore":
+            vals = [self.start_text.text(), self.stop_text.text()]
+        elif filter_type == "bad_time":
+            vals = [self.bt_start_text.text(), self.bt_stop_text.text()]
+        try:
+            if vals[0] == "*":
+                vals[0] = self.model.datestart
+            if vals[1] == "*":
+                vals[1] = self.model.datestop
+            lim = CxoTime(vals).date
+            t0, t1 = CxoTime(lim).secs
+            if t0 > t1:
+                err_msg = "Filter stop is earlier than filter start!"
+        except (IndexError, ValueError):
+            if len(vals) == 2:
+                err_msg = f"Invalid input for filter: {vals[0]} {vals[1]}"
+            else:
+                err_msg = "Filter requires two arguments, " \
+                          "the start time and the stop time."
+        if len(err_msg) > 0:
+            msg_box = QtWidgets.QMessageBox()
+            msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+            msg_box.setText(err_msg)
+            msg_box.setWindowTitle("Filters Error")
+            msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msg_box.exec()
+        else:
+            if filter_type == "ignore":
+                self.model.append_mask_time([lim[0], lim[1]])
+                bad = False
+                self.mw.plots_box.add_fill(t0, t1)
+            elif filter_type == "bad_time":
+                self.model.append_bad_time([lim[0], lim[1]])
+                bad = True
+            self.mw.plots_box.add_fill(t0, t1, bad=bad)
+        self.start_text.setText('')
+        self.stop_text.setText('')
+        self.bt_start_text.setText('')
+        self.bt_stop_text.setText('')
+
+    def notice_pushed(self):
+        self.mw.plots_box.remove_ignores()
+        self.model.reset_mask_times()
+        self.mw.plots_box.update_plots()
+
+    def close_window(self, *args):
+        self.close()
+
+
 class WriteTableWindow(QtWidgets.QMainWindow):
     def __init__(self, model, main_window):
         super(WriteTableWindow, self).__init__()
@@ -605,6 +728,7 @@ class ControlButtonsPanel(Panel):
         self.save_button = QtWidgets.QPushButton("Save")
         self.hist_button = QtWidgets.QPushButton("Histogram")
         self.notice_button = QtWidgets.QPushButton("Notice")
+        self.filters_button = QtWidgets.QPushButton("Filters")
         self.model_info_button = QtWidgets.QPushButton("Model Info")
         self.write_table_button = QtWidgets.QPushButton("Write Table")
         self.add_plot_button = self.make_add_plot_button()
@@ -629,9 +753,10 @@ class ControlButtonsPanel(Panel):
         self.top_panel.pack_start(self.fit_button)
         self.top_panel.pack_start(self.stop_button)
         self.top_panel.pack_start(self.save_button)
-        self.top_panel.pack_start(self.add_plot_button)
-        self.top_panel.pack_start(self.update_status)
         self.top_panel.pack_start(self.hist_button)
+        self.top_panel.pack_start(self.filters_button)
+        self.top_panel.pack_start(self.model_info_button)
+        self.top_panel.pack_start(self.write_table_button)
         self.top_panel.add_stretch(1)
         self.top_panel.pack_start(self.quit_button)
 
@@ -647,13 +772,12 @@ class ControlButtonsPanel(Panel):
         self.line_panel.pack_start(QtWidgets.QLabel('Annotate line'))
         self.line_panel.pack_start(self.line_chkbox)
 
+        self.bottom_panel.pack_start(self.add_plot_button)
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
         self.bottom_panel.pack_start(self.line_panel)
-        self.bottom_panel.pack_start(self.ignore_panel)
+        self.bottom_panel.pack_start(self.update_status)
         self.bottom_panel.add_stretch(1)
-        self.bottom_panel.pack_start(self.model_info_button)
-        self.bottom_panel.pack_start(self.write_table_button)
 
         self.pack_start(self.top_panel)
         self.pack_start(self.bottom_panel)
@@ -759,14 +883,13 @@ class MainWindow:
         self.cbp.save_button.clicked.connect(self.save_model_file)
         self.cbp.write_table_button.clicked.connect(self.write_table)
         self.cbp.model_info_button.clicked.connect(self.model_info)
+        self.cbp.filters_button.clicked.connect(self.filters)
         self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
         self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
         self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
         self.cbp.line_chkbox.stateChanged.connect(self.plot_line)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
-        self.cbp.ignore_entry.returnPressed.connect(self.ignore_activated)
-        self.cbp.notice_button.clicked.connect(self.notice_pushed)
 
         self.ftp = mrp.freeze_thaw_panel
         self.ftp.freeze_entry.returnPressed.connect(self.freeze_activated)
@@ -823,6 +946,10 @@ class MainWindow:
     def write_table(self):
         self.write_table_window = WriteTableWindow(self.model, self)
         self.write_table_window.show()
+
+    def filters(self):
+        self.filters_window = FiltersWindow(self.model, self)
+        self.filters_window.show()
 
     def model_info(self):
         self.model_info_window = ModelInfoWindow(self.model, self)
@@ -890,19 +1017,11 @@ class MainWindow:
         if not fit_stopped:
             QtCore.QTimer.singleShot(200, self.fit_monitor)
 
-    def ignore_activated(self):
-        self.command_activated("ignore")
-
     def freeze_activated(self):
         self.command_activated("freeze")
 
     def thaw_activated(self):
         self.command_activated("thaw")
-
-    def notice_pushed(self):
-        self.plots_box.remove_ignores()
-        self.model.reset_mask_times()
-        self.plots_box.update_plots()
 
     def command_activated(self, cmd_type):
         """Respond to a command like "freeze solarheat*dP*" submitted via the
@@ -912,20 +1031,11 @@ class MainWindow:
         This then sets the corresponding params_table checkbuttons.
 
         """
-        if cmd_type in ("freeze", "thaw"):
-            panel = self.ftp
-        else:
-            panel = self.cbp
-        widget = getattr(panel, f"{cmd_type}_entry")
+        widget = getattr(self.ftp, f"{cmd_type}_entry")
         command = widget.text().strip()
         if command == '':
             return
-        self.parse_command(cmd_type, command)
-        widget.setText('')
-
-    def parse_command(self, cmd_type, command):
         vals = command.split()
-
         if cmd_type in ('freeze', 'thaw'):
             par_regexes = [fnmatch.translate(x) for x in vals]
             params_table = self.main_right_panel.params_panel.params_table
@@ -939,22 +1049,7 @@ class MainWindow:
                          self.set_title()
                          if self.model_info_window is not None:
                             self.model_info_window.update_checksum()
-        elif cmd_type == "ignore":
-            try:
-                if vals[0] == "*":
-                    vals[0] = self.model.datestart
-                if vals[1] == "*":
-                    vals[1] = self.model.datestop
-                lim = CxoTime(vals).date
-            except (IndexError, ValueError):
-                if len(vals) == 2:
-                    print(f"Invalid input for ignore: {vals[0]} {vals[1]}")
-                else:
-                    print("Ignore requires two arguments, the start time and the stop time.")
-                return
-            t0, t1 = CxoTime(lim).secs
-            self.model.append_mask_times(lim)
-            self.plots_box.add_ignore(t0, t1)
+        widget.setText('')
 
     def set_title(self):
         title_str = gui_config['filename']
