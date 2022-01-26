@@ -597,7 +597,6 @@ class PlotBox(QtWidgets.QVBoxLayout):
             return
         self.ignores = []
         for i, t in enumerate(self.plots_box.model.mask_time_secs):
-            print(self.plots_box.model.mask_times_bad[i])
             if not self.plots_box.model.mask_times_bad[i]:
                 self.ignores.append(self.add_ignore(t[0], t[1]))
 
