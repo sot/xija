@@ -788,9 +788,15 @@ class MainWindow:
             except ValueError:
                 print("ERROR: Unexpected plot_name {}".format(plot_name))
 
-        # Show everything finally
-        main_window_hbox.addLayout(mlp.box)
-        main_window_hbox.addLayout(self.main_right_panel.box)
+        # Show everything finally 
+        splitter = QtWidgets.QSplitter()
+        left_widget = QtWidgets.QWidget()
+        right_widget = QtWidgets.QWidget()
+        left_widget.setLayout(mlp.box)
+        right_widget.setLayout(mrp.box)
+        splitter.addWidget(left_widget)
+        splitter.addWidget(right_widget)
+        main_window_hbox.addWidget(splitter)
 
         self.window.show()
         self.hist_window = None
