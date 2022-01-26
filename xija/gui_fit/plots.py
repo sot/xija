@@ -8,6 +8,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import matplotlib.dates as mdates
+from cxotime import CxoTime
 
 
 from xija.limits import get_limit_color
@@ -582,28 +583,35 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ly.remove()
             self.ly = None
 
-    def add_ignore(self, t0, t1):
+    def add_ignore(self, t0, t1, color='C3'):
         times = self.plots_box.model.times
         pd_times = self.plots_box.pd_times
         ybot, ytop = self.ax.get_ylim()
         where = (times >= t0) & (times <= t1)
         fill = self.ax.fill_between(pd_times,
-            ybot, ytop, where=where, color='r', alpha=0.5)
+            ybot, ytop, where=where, color=color, alpha=0.5)
         return fill
 
     def add_ignores(self):
         if len(self.plots_box.model.mask_time_secs) == 0:
             return
         self.ignores = []
-        for t0, t1 in self.plots_box.model.mask_time_secs:
-            self.ignores.append(self.add_ignore(t0, t1))
+        for i, t in enumerate(self.plots_box.model.mask_time_secs):
+            print(self.plots_box.model.mask_times_bad[i])
+            if not self.plots_box.model.mask_times_bad[i]:
+                self.ignores.append(self.add_ignore(t[0], t[1]))
+
+    def add_bads(self):
+        for d in self.plots_box.model.bad_times:
+            t = CxoTime(d).secs
+            self.add_ignore(t[0], t[1], color="C1")
 
     def remove_ignores(self):
-        [fill.remove() for fill in self.ignores]
-        self.ignores = None
+        if self.ignores is not None:
+            [fill.remove() for fill in self.ignores]
+            self.ignores = None
 
     def update(self, first=False):
-        pb = self.plots_box
         mw = self.main_window
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         plot_func(fig=self.fig, ax=self.ax)
@@ -612,6 +620,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         if first:
             if self.plot_method.endswith("time"):
                 self.add_ignores()
+                self.add_bads()
             if mw.show_radzones:
                 self.add_annotation("radzones")
             if mw.show_line:

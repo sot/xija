@@ -604,15 +604,18 @@ class ControlButtonsPanel(Panel):
         self.stop_button = QtWidgets.QPushButton("Stop")
         self.save_button = QtWidgets.QPushButton("Save")
         self.hist_button = QtWidgets.QPushButton("Histogram")
-        self.write_table_button = QtWidgets.QPushButton("Write Table")
+        self.notice_button = QtWidgets.QPushButton("Notice")
         self.model_info_button = QtWidgets.QPushButton("Model Info")
+        self.write_table_button = QtWidgets.QPushButton("Write Table")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
         self.quit_button = QtWidgets.QPushButton('Quit')
-        self.command_entry = QtWidgets.QLineEdit()
-        self.command_panel = Panel()
-        self.command_panel.pack_start(QtWidgets.QLabel('Command:'))
-        self.command_panel.pack_start(self.command_entry)
+
+        self.ignore_entry = QtWidgets.QLineEdit()
+        self.ignore_panel = Panel()
+        self.ignore_panel.pack_start(QtWidgets.QLabel('Ignore:'))
+        self.ignore_panel.pack_start(self.ignore_entry)
+        self.ignore_panel.pack_start(self.notice_button)
 
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
@@ -628,7 +631,6 @@ class ControlButtonsPanel(Panel):
         self.top_panel.pack_start(self.save_button)
         self.top_panel.pack_start(self.add_plot_button)
         self.top_panel.pack_start(self.update_status)
-        self.top_panel.pack_start(self.command_panel)
         self.top_panel.pack_start(self.hist_button)
         self.top_panel.add_stretch(1)
         self.top_panel.pack_start(self.quit_button)
@@ -648,6 +650,7 @@ class ControlButtonsPanel(Panel):
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
         self.bottom_panel.pack_start(self.line_panel)
+        self.bottom_panel.pack_start(self.ignore_panel)
         self.bottom_panel.add_stretch(1)
         self.bottom_panel.pack_start(self.model_info_button)
         self.bottom_panel.pack_start(self.write_table_button)
@@ -671,6 +674,19 @@ class ControlButtonsPanel(Panel):
         return apb
 
 
+class FreezeThawPanel(Panel):
+    def __init__(self, model, plots_panel):
+        Panel.__init__(self, orient='h')
+        self.model = model
+        self.freeze_entry = QtWidgets.QLineEdit()
+        self.thaw_entry = QtWidgets.QLineEdit()
+
+        self.pack_start(QtWidgets.QLabel('Freeze:'))
+        self.pack_start(self.freeze_entry)
+        self.pack_start(QtWidgets.QLabel('Thaw:'))
+        self.pack_start(self.thaw_entry)
+
+
 class MainLeftPanel(Panel):
     def __init__(self, model, main_window):
         Panel.__init__(self, orient='v')
@@ -685,11 +701,13 @@ class MainLeftPanel(Panel):
 class MainRightPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient='v')
+        self.freeze_thaw_panel = FreezeThawPanel(model, plots_panel)
         self.params_panel = ParamsPanel(model, plots_panel)
+        self.pack_start(self.freeze_thaw_panel)
         self.pack_start(self.params_panel)
 
 
-class MainWindow(object):
+class MainWindow:
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
     def __init__(self, model, fit_worker, model_file):
@@ -728,6 +746,7 @@ class MainWindow(object):
         self.plots_box = self.main_left_panel.plots_box
 
         self.main_right_panel = MainRightPanel(model, mlp.plots_box)
+        mrp = self.main_right_panel
 
         self.show_radzones = False
         self.show_limits = False
@@ -746,7 +765,12 @@ class MainWindow(object):
         self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
         self.cbp.line_chkbox.stateChanged.connect(self.plot_line)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
-        self.cbp.command_entry.returnPressed.connect(self.command_activated)
+        self.cbp.ignore_entry.returnPressed.connect(self.ignore_activated)
+        self.cbp.notice_button.clicked.connect(self.notice_pushed)
+
+        self.ftp = mrp.freeze_thaw_panel
+        self.ftp.freeze_entry.returnPressed.connect(self.freeze_activated)
+        self.ftp.thaw_entry.returnPressed.connect(self.thaw_activated)
 
         self.dates = CxoTime(self.model.times).date
 
@@ -860,72 +884,70 @@ class MainWindow(object):
         if not fit_stopped:
             QtCore.QTimer.singleShot(200, self.fit_monitor)
 
-    def command_activated(self):
+    def ignore_activated(self):
+        self.command_activated("ignore")
+
+    def freeze_activated(self):
+        self.command_activated("freeze")
+
+    def thaw_activated(self):
+        self.command_activated("thaw")
+
+    def notice_pushed(self):
+        self.plots_box.remove_ignores()
+        self.model.reset_mask_times()
+
+    def command_activated(self, cmd_type):
         """Respond to a command like "freeze solarheat*dP*" submitted via the
         command entry box.  The first word is either "freeze" or "thaw" (with
         possibility for other commands later) and the subsequent args are
         space-delimited parameter globs using the UNIX file-globbing syntax.
         This then sets the corresponding params_table checkbuttons.
 
-        Parameters
-        ----------
-
-        Returns
-        -------
-
         """
-        widget = self.cbp.command_entry
+        if cmd_type in ("freeze", "thaw"):
+            panel = self.ftp
+        else:
+            panel = self.cbp
+        widget = getattr(panel, f"{cmd_type}_entry")
         command = widget.text().strip()
         if command == '':
             return
-        self.parse_command(command)
+        self.parse_command(cmd_type, command)
         widget.setText('')
 
-    def parse_command(self, command):
+    def parse_command(self, cmd_type, command):
         vals = command.split()
-        cmd = vals[0]  # currently freeze, thaw, ignore, or notice
-        if cmd not in ('freeze', 'thaw', 'ignore', 'notice') or \
-            (cmd != 'notice' and len(vals) < 2):
-            # dialog box..
-            print("ERROR: bad command: {}".format(command))
-            return
 
-        if cmd in ('freeze', 'thaw'):
-            par_regexes = [fnmatch.translate(x) for x in vals[1:]]
+        if cmd_type in ('freeze', 'thaw'):
+            par_regexes = [fnmatch.translate(x) for x in vals]
             params_table = self.main_right_panel.params_panel.params_table
             for row, par in enumerate(self.model.pars):
                 for par_regex in par_regexes:
                     if re.match(par_regex, par.full_name):
                          checkbutton = params_table[row, 0]
-                         checkbutton.setChecked(cmd == 'thaw')
-                         par.frozen = cmd != 'thaw'
+                         checkbutton.setChecked(cmd_type == 'thaw')
+                         par.frozen = cmd_type != 'thaw'
                          self.set_checksum()
                          self.set_title()
                          if self.model_info_window is not None:
                             self.model_info_window.update_checksum()
-        elif cmd in ('ignore', 'notice'):
-            if cmd == "ignore":
-                try:
-                    if vals[1] == "*":
-                        vals[1] = self.model.datestart
-                    if vals[2] == "*":
-                        vals[2] = self.model.datestop
-                    lim = CxoTime(vals[1:]).date
-                except (IndexError, ValueError):
-                    if len(vals) == 3:
-                        print(f"Invalid input for ignore: {vals[1]} {vals[2]}")
-                    else:
-                        print("Ignore requires two arguments, the start time and the stop time.")
-                    return
-                t0, t1 = CxoTime(lim).secs
-                self.plots_box.add_ignore(t0, t1)
-                self.model.append_mask_times(lim)
-            elif cmd == "notice":
-                if len(vals) > 1:
-                    print("Invalid input for notice: {}".format(vals[1:]))
-                    return
-                self.model.reset_mask_times()
-                self.plots_box.remove_ignores()
+        elif cmd_type == "ignore":
+            try:
+                if vals[0] == "*":
+                    vals[0] = self.model.datestart
+                if vals[1] == "*":
+                    vals[1] = self.model.datestop
+                lim = CxoTime(vals).date
+            except (IndexError, ValueError):
+                if len(vals) == 2:
+                    print(f"Invalid input for ignore: {vals[0]} {vals[1]}")
+                else:
+                    print("Ignore requires two arguments, the start time and the stop time.")
+                return
+            t0, t1 = CxoTime(lim).secs
+            self.plots_box.add_ignore(t0, t1)
+            self.model.append_mask_times(lim)
 
     def set_title(self):
         title_str = gui_config['filename']
