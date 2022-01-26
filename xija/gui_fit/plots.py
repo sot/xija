@@ -3,10 +3,11 @@ from PyQt5 import QtWidgets, QtCore
 import functools
 import numpy as np
 
-from Ska.Matplotlib import cxctime2plotdate
+from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from cxotime import CxoTime
 
@@ -501,17 +502,13 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         self.fig = canvas.fig
 
-        # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
-        # First such plot has sharex=None, subsequent ones use the first axis.
+        # Add shared x-axes for plots with time on the x-axis
         xaxis = plot_method.split('__')
         if len(xaxis) == 1 or not plot_method.endswith("time"): 
             self.ax = self.fig.add_subplot(111)
         else:
-            sharex = plots_box.sharex.get(xaxis[1])
-            self.ax = self.fig.add_subplot(111, sharex=sharex)
-            if sharex is not None:
-                self.ax.autoscale(enable=False, axis='x')
-            plots_box.sharex.setdefault(xaxis[1], self.ax)
+            self.ax = self.fig.add_subplot(111, sharex=plots_box.default_ax)
+            self.ax.autoscale(enable=False, axis='x')
 
         self.canvas = canvas
         self.canvas.show()
@@ -640,6 +637,11 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.pd_times = cxctime2plotdate(self.model.times)
         self.plot_boxes = []
         self.plot_names = []
+
+        # Set up a default axis that will the scaling reference
+        self.default_fig, self.default_ax = plt.subplots()
+        plot_cxctime(self.model.times, np.ones_like(self.model.times), 
+                     fig=self.default_fig, ax=self.default_ax)
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
