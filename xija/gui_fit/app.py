@@ -39,7 +39,7 @@ def raise_error_box(win_title, err_msg):
     msg_box.setText(err_msg)
     msg_box.setWindowTitle(win_title)
     msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg_box.exec()
+    msg_box.exec_()
 
 
 class FormattedTelemData:
