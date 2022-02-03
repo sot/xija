@@ -606,6 +606,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         plot_func(fig=self.fig, ax=self.ax)
         if self.plot_method.endswith("time"):
             self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
+            self.ax.autoscale(enable=False, axis='x')
         if first:
             if self.plot_method.endswith("time"):
                 self.show_fills()
@@ -647,22 +648,26 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.update_plot_boxes()
 
     def delete_plot_box(self, plot_name):
-        for plot_box in self.findChildren(PlotBox):
-            if plot_box.plot_name == plot_name:
-                plot_box.fig.clear()
-                self.removeItem(plot_box)
-                clearLayout(plot_box)
+        for pb in self.plot_boxes:
+            if pb.plot_name == plot_name:
+                pb.fig.clear()
+                self.removeItem(pb)
+                clearLayout(pb)
         self.update()
         self.update_plot_boxes()
-
+        # This is a hack to get the axes to appear correctly
+        # on the rest of the plots after deleting one, somehow
+        # related to clearing the figure above 
+        for pb in self.plot_boxes:
+            pb.ax.set_xlim()
+            
     def update_plots(self):
         mw = self.main_window
-        cbp = mw.cbp
-        cbp.update_status.setText(' BUSY... ')
+        mw.cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.plot_boxes:
             plot_box.update()
-        cbp.update_status.setText('')
+        mw.cbp.update_status.setText('')
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
         mw.set_title()
