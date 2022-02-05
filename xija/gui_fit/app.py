@@ -13,6 +13,7 @@ import re
 import json
 import logging
 import numpy as np
+from pathlib import Path
 
 from cxotime import CxoTime
 
@@ -22,6 +23,8 @@ import acis_taco as taco
 import xija
 
 from xija.component.base import Node, TelemData
+from xija.get_model_spec import get_xija_model_names, \
+    get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
 from .plots import PlotsBox, HistogramWindow
@@ -949,7 +952,7 @@ class MainWindow:
 
     def set_checksum(self, newfile=False):
         import hashlib
-        if newfile:
+        if newfile and gui_config["filename"] is not None:
             model_json = open(gui_config['filename'], 'rb').read()
         else:
             model_json = json.dumps(self.model_spec, 
@@ -1069,15 +1072,18 @@ class MainWindow:
 
     def set_title(self):
         title_str = gui_config['filename']
+        if title_str is None:
+            title_str = "no filename"
         if not self.checksum_match:
             title_str += "*"
-        self.window.setWindowTitle("xija_gui_fit ({})".format(title_str))
+        self.window.setWindowTitle(f"xija_gui_fit ({title_str})")
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
         dlg.setNameFilters(["JSON files (*.json)", "All files (*)"])
         dlg.selectNameFilter("JSON files (*.json)")
-        dlg.selectFile(os.path.abspath(gui_config["filename"]))
+        if gui_config["filename"] is not None:
+            dlg.selectFile(gui_config["filename"])
         dlg.setAcceptMode(dlg.AcceptSave)
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
@@ -1147,7 +1153,7 @@ def main():
 
     src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
     files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
-             pyc.ContextDict('files', basedir=os.getcwd()))
+             pyc.ContextDict('files', basedir=str(Path.cwd())))
     files.update(xija.files)
 
     sherpa_logger = logging.getLogger("sherpa")
@@ -1157,7 +1163,14 @@ def main():
             for h in logger.handlers:
                 logger.removeHandler(h)
 
-    model_spec = json.load(open(opt.filename, 'r'))
+    if opt.filename.endswith(".json"):
+        model_spec = json.load(open(opt.filename, 'r'))
+    elif opt.filename in get_xija_model_names():
+        model_spec, model_version = get_xija_model_spec(opt.filename)
+    else:
+        raise RuntimeError("'filename' not a valid path to a JSON file "
+                           "or a valid model name!")
+
     gui_config.update(model_spec.get('gui_config', {}))
     src['model'] = model_spec['name']
 
@@ -1199,7 +1212,11 @@ def main():
                 par.frozen = inherit_pars[par.full_name]['frozen']
                 par.fmt = inherit_pars[par.full_name]['fmt']
 
-    gui_config['filename'] = os.path.abspath(opt.filename)
+    filename = Path(opt.filename)
+    if filename.exists():
+        gui_config['filename'] = str(filename.resolve())
+    else:
+        gui_config['filename'] = None
     gui_config['set_data_vals'] = set_data_vals
 
     fit_worker = FitWorker(model, opt.maxiter, method=opt.fit_method)
@@ -1207,7 +1224,7 @@ def main():
     model.calc()
 
     app = QtWidgets.QApplication(sys.argv)
-    icon_path = os.path.join(os.path.dirname(__file__), "app_icon.png")
+    icon_path = str(Path(__file__).parent / "app_icon.png")
     icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
     MainWindow(model, fit_worker, opt.filename)
