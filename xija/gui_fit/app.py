@@ -871,7 +871,10 @@ class MainWindow:
                 else:
                     self.hist_msids.append(k)
 
-        self.checksum_match = True
+        if gui_config["filename"] is None:
+            self.checksum_match = False
+        else:
+            self.checksum_match = True
 
         self.fit_worker = fit_worker
         # create a new window
@@ -903,7 +906,7 @@ class MainWindow:
         self.cbp.write_table_button.clicked.connect(self.write_table)
         self.cbp.model_info_button.clicked.connect(self.model_info)
         self.cbp.filters_button.clicked.connect(self.filters)
-        self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        self.cbp.quit_button.clicked.connect(self.quit_pushed)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
         self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
         self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
@@ -960,7 +963,10 @@ class MainWindow:
         self.md5sum = hashlib.md5(model_json).hexdigest()
         if newfile:
             self.file_md5sum = self.md5sum
-        self.checksum_match = self.file_md5sum == self.md5sum
+        if gui_config["filename"] is None:
+            self.checksum_match = False
+        else:
+            self.checksum_match = self.file_md5sum == self.md5sum
 
     def write_table(self):
         self.write_table_window = WriteTableWindow(self.model, self)
@@ -1108,6 +1114,15 @@ class MainWindow:
                 msg.setText("There was a problem writing the file:")
                 msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
                 msg.exec_()
+
+    def quit_pushed(self):
+        if not self.checksum_match:
+            answer = QtWidgets.QMessageBox.question(
+                self.window, "Save Model?", 
+                "Current model not saved. Would you like to save it?")
+            if answer == QtWidgets.QMessageBox.Yes:
+                self.save_model_file()
+        QtCore.QCoreApplication.instance().quit()
 
 
 def get_options():
