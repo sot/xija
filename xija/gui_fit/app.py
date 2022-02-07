@@ -1082,7 +1082,8 @@ class MainWindow:
             title_str = "no filename"
         if not self.checksum_match:
             title_str += "*"
-        self.window.setWindowTitle(f"xija_gui_fit ({title_str})")
+        self.window.setWindowTitle(
+            f"xija_gui_fit v{xija.__version__} ({title_str})")
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
