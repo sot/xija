@@ -111,7 +111,7 @@ class FiltersWindow(QtWidgets.QMainWindow):
         add_ignore_button = QtWidgets.QPushButton('Add Ignore')
         add_ignore_button.clicked.connect(self.add_ignore)
 
-        notice_button = QtWidgets.QPushButton('Notice')
+        notice_button = QtWidgets.QPushButton('Notice All')
         notice_button.clicked.connect(self.notice_pushed)
 
         pair = QtWidgets.QHBoxLayout()
