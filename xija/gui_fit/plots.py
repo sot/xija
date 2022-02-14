@@ -3,10 +3,11 @@ from PyQt5 import QtWidgets, QtCore
 import functools
 import numpy as np
 
-from Ska.Matplotlib import cxctime2plotdate
+from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 
@@ -57,17 +58,8 @@ def calcquantiles(errors):
         datastructure that includes errors (input) and quantile values
 
     """
-
-    esort = np.sort(errors)
-    q99 = esort[int(0.99 * len(esort) - 1)]
-    q95 = esort[int(0.95 * len(esort) - 1)]
-    q84 = esort[int(0.84 * len(esort) - 1)]
-    q50 = np.median(esort)
-    q16 = esort[int(0.16 * len(esort) - 1)]
-    q05 = esort[int(0.05 * len(esort) - 1)]
-    q01 = esort[int(0.01 * len(esort) - 1)]
-    stats = {'error': errors, 'q01': q01, 'q05': q05, 'q16': q16, 'q50': q50,
-             'q84': q84, 'q95': q95, 'q99': q99}
+    qs = np.quantile(errors, [0.01, 0.5, 0.99])
+    stats = {'error': errors, 'q01': qs[0], 'q50': qs[1], 'q99': qs[2]}
     return stats
 
 
@@ -167,7 +159,7 @@ def clearLayout(layout):
 def annotate_limits(limits, ax, dir='h'):
     """
     Annotate limit lines on a plot.
-    
+
     Parameters
     ----------
     limits : dict
@@ -179,7 +171,7 @@ def annotate_limits(limits, ax, dir='h'):
     dir : str, optional
         The direction of the line, "h" for horizontal
         or "v" for vertical. Default: "h"
-        
+
     Returns
     ------- 
     list
@@ -385,9 +377,9 @@ class HistogramWindow(QtWidgets.QMainWindow):
         else:
             quantstats = calcquantstats(dvals, resids)
 
-        Epoints01, Tpoints01 = getQuantPlotPoints(quantstats, 'q01')
-        Epoints99, Tpoints99 = getQuantPlotPoints(quantstats, 'q99')
-        Epoints50, Tpoints50 = getQuantPlotPoints(quantstats, 'q50')
+        Epoints01, tmid = getQuantPlotPoints(quantstats, 'q01')
+        Epoints99, _ = getQuantPlotPoints(quantstats, 'q99')
+        Epoints50, _ = getQuantPlotPoints(quantstats, 'q50')
 
         hist, bins = np.histogram(resids, 40)
         hist = hist*100.0/self.comp.mvals.size
@@ -407,13 +399,13 @@ class HistogramWindow(QtWidgets.QMainWindow):
                 resids, dvalsr, 'o', color='#386cb0',
                 alpha=1, markersize=1, markeredgecolor='#386cb0')[0]
             self.plot_dict["01"] = self.ax1.plot(
-                Epoints01, Tpoints01, color='k', linewidth=4)[0]
+                Epoints01, tmid, color='k', linewidth=4)[0]
             self.plot_dict["99"] = self.ax1.plot(
-                Epoints99, Tpoints99, color='k', linewidth=4)[0]
+                Epoints99, tmid, color='k', linewidth=4)[0]
             self.plot_dict["50"] = self.ax1.plot(
-                Epoints50, Tpoints50, color=[1, 1, 1], linewidth=4)[0]
+                Epoints50, tmid, color=[1, 1, 1], linewidth=4)[0]
             self.plot_dict["50_2"] = self.ax1.plot(
-                Epoints50, Tpoints50, 'k', linewidth=1.5)[0]
+                Epoints50, tmid, 'k', linewidth=1.5)[0]
 
             self.plot_dict["step"] = self.ax2.step(
                 bin_mid, hist, '#386cb0', where='mid')[0]
@@ -431,10 +423,10 @@ class HistogramWindow(QtWidgets.QMainWindow):
                 linewidth=1.5, alpha=1)
         else:
             self.plot_dict['resids'].set_data(resids, dvalsr)
-            self.plot_dict['01'].set_data(Epoints01, Tpoints01)
-            self.plot_dict['99'].set_data(Epoints99, Tpoints99)
-            self.plot_dict['50'].set_data(Epoints50, Tpoints50)
-            self.plot_dict['50_2'].set_data(Epoints50, Tpoints50)
+            self.plot_dict['01'].set_data(Epoints01, tmid)
+            self.plot_dict['99'].set_data(Epoints99, tmid)
+            self.plot_dict['50'].set_data(Epoints50, tmid)
+            self.plot_dict['50_2'].set_data(Epoints50, tmid)
 
             self.plot_dict['step'].set_data(bin_mid, hist)
             self.plot_dict['q01'].set_xdata(stats['q01'])
@@ -509,17 +501,13 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         self.fig = canvas.fig
 
-        # Add shared x-axes for plot methods matching <yaxis_type>__<xaxis_type>.
-        # First such plot has sharex=None, subsequent ones use the first axis.
+        # Add shared x-axes for plots with time on the x-axis
         xaxis = plot_method.split('__')
         if len(xaxis) == 1 or not plot_method.endswith("time"): 
             self.ax = self.fig.add_subplot(111)
         else:
-            sharex = plots_box.sharex.get(xaxis[1])
-            self.ax = self.fig.add_subplot(111, sharex=sharex)
-            if sharex is not None:
-                self.ax.autoscale(enable=False, axis='x')
-            plots_box.sharex.setdefault(xaxis[1], self.ax)
+            self.ax = self.fig.add_subplot(111, sharex=plots_box.default_ax)
+            self.ax.autoscale(enable=False, axis='x')
 
         self.canvas = canvas
         self.canvas.show()
@@ -531,7 +519,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.ly = None
         self.limits = None
         self.rzlines = None
-        self.ignores = None
+        self.ignores = []
 
     def select(self, event):
         grab = event.inaxes and self.main_window.show_line and \
@@ -590,37 +578,38 @@ class PlotBox(QtWidgets.QVBoxLayout):
         elif atype == "line" and self.ly is not None:
             self.ly.remove()
             self.ly = None
-    
-    def add_ignore(self, t0, t1):
+
+    def add_fill(self, t0, t1, bad=False):
+        color = "C2" if bad else "C3"
         times = self.plots_box.model.times
         pd_times = self.plots_box.pd_times
         ybot, ytop = self.ax.get_ylim()
         where = (times >= t0) & (times <= t1)
         fill = self.ax.fill_between(pd_times,
-            ybot, ytop, where=where, color='r', alpha=0.5)
-        return fill
+            ybot, ytop, where=where, color=color, alpha=0.5)
+        if not bad:
+            self.ignores.append(fill)
 
-    def add_ignores(self):
+    def show_fills(self):
         if len(self.plots_box.model.mask_time_secs) == 0:
             return
-        self.ignores = []
-        for t0, t1 in self.plots_box.model.mask_time_secs:
-            self.ignores.append(self.add_ignore(t0, t1))
+        for i, t in enumerate(self.plots_box.model.mask_time_secs):
+            self.add_fill(t[0], t[1], self.plots_box.model.mask_times_bad[i])
 
     def remove_ignores(self):
         [fill.remove() for fill in self.ignores]
-        self.ignores = None
+        self.ignores = []
 
     def update(self, first=False):
-        pb = self.plots_box
         mw = self.main_window
         plot_func = getattr(self.comp, 'plot_' + self.plot_method)
         plot_func(fig=self.fig, ax=self.ax)
         if self.plot_method.endswith("time"):
             self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
+            self.ax.autoscale(enable=False, axis='x')
         if first:
             if self.plot_method.endswith("time"):
-                self.add_ignores()
+                self.show_fills()
             if mw.show_radzones:
                 self.add_annotation("radzones")
             if mw.show_line:
@@ -642,6 +631,11 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.plot_boxes = []
         self.plot_names = []
 
+        # Set up a default axis that will the scaling reference
+        self.default_fig, self.default_ax = plt.subplots()
+        plot_cxctime(self.model.times, np.ones_like(self.model.times), 
+                     fig=self.default_fig, ax=self.default_ax)
+
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
         if plot_name == "Add plot..." or plot_name in self.plot_names:
@@ -654,22 +648,26 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.update_plot_boxes()
 
     def delete_plot_box(self, plot_name):
-        for plot_box in self.findChildren(PlotBox):
-            if plot_box.plot_name == plot_name:
-                plot_box.fig.clear()
-                self.removeItem(plot_box)
-                clearLayout(plot_box)
+        for pb in self.plot_boxes:
+            if pb.plot_name == plot_name:
+                pb.fig.clear()
+                self.removeItem(pb)
+                clearLayout(pb)
         self.update()
         self.update_plot_boxes()
-
+        # This is a hack to get the axes to appear correctly
+        # on the rest of the plots after deleting one, somehow
+        # related to clearing the figure above 
+        for pb in self.plot_boxes:
+            pb.ax.set_xlim()
+            
     def update_plots(self):
         mw = self.main_window
-        cbp = mw.cbp
-        cbp.update_status.setText(' BUSY... ')
+        mw.cbp.update_status.setText(' BUSY... ')
         self.model.calc()
         for plot_box in self.plot_boxes:
             plot_box.update()
-        cbp.update_status.setText('')
+        mw.cbp.update_status.setText('')
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
         mw.set_title()
@@ -684,15 +682,19 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             pb.remove_annotation(atype)
             pb.canvas.draw_idle()
 
-    def add_ignore(self, t0, t1):
-        for pb in self.plot_boxes:
-            pb.add_ignore(t0, t1)
-            pb.canvas.draw_idle()
+    def add_fill(self, t0, t1, bad=False):
+        for i, pb in enumerate(self.plot_boxes):
+            if "time" in self.plot_names[i]:
+                pb.add_fill(t0, t1, bad=bad)
+                pb.canvas.draw_idle()
+        self.update_plots()
 
     def remove_ignores(self):
-        for pb in self.plot_boxes:
-            pb.remove_ignores()
-            pb.canvas.draw_idle()
+        for i, pb in enumerate(self.plot_boxes):
+            if "time" in self.plot_names[i]:
+                pb.remove_ignores()
+                pb.canvas.draw_idle()
+        self.update_plots()
 
     def update_plot_boxes(self):
         self.plot_boxes = []

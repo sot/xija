@@ -13,6 +13,7 @@ import re
 import json
 import logging
 import numpy as np
+from pathlib import Path
 
 from cxotime import CxoTime
 
@@ -22,16 +23,26 @@ import acis_taco as taco
 import xija
 
 from xija.component.base import Node, TelemData
+from xija.get_model_spec import get_xija_model_names, \
+    get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
 from .plots import PlotsBox, HistogramWindow
-from .utils import in_process_console
 
 from collections import OrderedDict
 
 from cheta.units import F_to_C
 
 gui_config = {}
+
+
+def raise_error_box(win_title, err_msg):
+    msg_box = QtWidgets.QMessageBox()
+    msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+    msg_box.setText(err_msg)
+    msg_box.setWindowTitle(win_title)
+    msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg_box.exec_()
 
 
 class FormattedTelemData:
@@ -76,6 +87,124 @@ class FormattedTelemData:
         else:
             val = self.telem_data[basenm].dvals
         return val
+
+
+class FiltersWindow(QtWidgets.QMainWindow):
+    def __init__(self, model, main_window):
+        super(FiltersWindow, self).__init__()
+        self.model = model
+        self.mw = main_window
+        self.setWindowTitle("Filters")
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+
+        header_font = QtGui.QFont()
+        header_font.setBold(True)
+
+        self.ignore_label = QtWidgets.QLabel("Add Ignore/Notice")
+        self.ignore_label.setFont(header_font)
+        self.start_label = QtWidgets.QLabel("Start time:")
+        self.start_text = QtWidgets.QLineEdit()
+        self.stop_label = QtWidgets.QLabel("Stop time:")
+        self.stop_text = QtWidgets.QLineEdit()
+
+        add_ignore_button = QtWidgets.QPushButton('Add Ignore')
+        add_ignore_button.clicked.connect(self.add_ignore)
+
+        notice_button = QtWidgets.QPushButton('Notice All')
+        notice_button.clicked.connect(self.notice_pushed)
+
+        pair = QtWidgets.QHBoxLayout()
+        pair.addWidget(add_ignore_button)
+        pair.addWidget(notice_button)
+
+        self.bt_label = QtWidgets.QLabel("Add Bad Time")
+        self.bt_label.setFont(header_font)
+        self.bt_start_label = QtWidgets.QLabel("Start time:")
+        self.bt_start_text = QtWidgets.QLineEdit()
+        self.bt_stop_label = QtWidgets.QLabel("Stop time:")
+        self.bt_stop_text = QtWidgets.QLineEdit()
+
+        add_bt_button = QtWidgets.QPushButton('Add Bad Time')
+        add_bt_button.clicked.connect(self.add_bad_time)
+
+        close_button = QtWidgets.QPushButton('Close')
+        close_button.clicked.connect(self.close_window)
+
+        close = QtWidgets.QHBoxLayout()
+        close.addWidget(close_button)
+        close.addStretch(1)
+
+        self.box = QtWidgets.QVBoxLayout()
+
+        self.box.addWidget(self.ignore_label)
+        self.box.addWidget(self.start_label)
+        self.box.addWidget(self.start_text)
+        self.box.addWidget(self.stop_label)
+        self.box.addWidget(self.stop_text)
+        self.box.addLayout(pair)
+        self.box.addWidget(self.bt_label)
+        self.box.addWidget(self.bt_start_label)
+        self.box.addWidget(self.bt_start_text)
+        self.box.addWidget(self.bt_stop_label)
+        self.box.addWidget(self.bt_stop_text)
+        self.box.addWidget(add_bt_button)
+        self.box.addStretch(1)
+        self.box.addLayout(close)
+
+        wid.setLayout(self.box)
+        self.setGeometry(0, 0, 400, 400)
+
+    def add_ignore(self):
+        self.add_filter("ignore")
+
+    def add_bad_time(self):
+        self.add_filter("bad_time")
+
+    def add_filter(self, filter_type):
+        err_msg = ''
+        if filter_type == "ignore":
+            vals = [self.start_text.text(), self.stop_text.text()]
+        elif filter_type == "bad_time":
+            vals = [self.bt_start_text.text(), self.bt_stop_text.text()]
+        try:
+            if vals[0] == "*":
+                vals[0] = self.model.datestart
+            if vals[1] == "*":
+                vals[1] = self.model.datestop
+            lim = CxoTime(vals).date
+            t0, t1 = CxoTime(lim).secs
+            if t0 > t1:
+                err_msg = "Filter stop is earlier than filter start!"
+        except (IndexError, ValueError):
+            if len(vals) == 2:
+                err_msg = f"Invalid input for filter: {vals[0]} {vals[1]}"
+            else:
+                err_msg = "Filter requires two arguments, " \
+                          "the start time and the stop time."
+        if len(err_msg) > 0:
+            raise_error_box("Filters Error", err_msg)
+        else:
+            if filter_type == "ignore":
+                self.model.append_mask_time([lim[0], lim[1]])
+                bad = False
+                self.mw.plots_box.add_fill(t0, t1)
+            elif filter_type == "bad_time":
+                self.model.append_bad_time([lim[0], lim[1]])
+                bad = True
+            self.mw.plots_box.add_fill(t0, t1, bad=bad)
+        self.start_text.setText('')
+        self.stop_text.setText('')
+        self.bt_start_text.setText('')
+        self.bt_stop_text.setText('')
+
+    def notice_pushed(self):
+        self.mw.plots_box.remove_ignores()
+        self.model.reset_mask_times()
+        self.mw.plots_box.update_plots()
+
+    def close_window(self, *args):
+        self.close()
 
 
 class WriteTableWindow(QtWidgets.QMainWindow):
@@ -168,13 +297,25 @@ class WriteTableWindow(QtWidgets.QMainWindow):
             box.setChecked(checked)
 
     def change_start(self):
-        self.start_date = self.start_text.text()
-        self.start_label.setText("Start time: {}".format(self.start_date))
+        start_date = self.start_text.text()
+        try:
+            _ = CxoTime(start_date).secs
+            self.start_label.setText("Start time: {}".format(start_date))
+            self.start_date = start_date
+        except ValueError:
+            raise_error_box("Write Table Error", 
+                            f"Start time not valid: {start_date}")
         self.start_text.setText("")
 
     def change_stop(self):
-        self.stop_date = self.stop_text.text()
-        self.stop_label.setText("Stop time: {}".format(self.stop_date))
+        stop_date = self.stop_text.text()
+        try:
+            _ = CxoTime(stop_date).secs
+            self.start_label.setText("Stop time: {}".format(stop_date))
+            self.stop_date = stop_date
+        except ValueError:
+            raise_error_box("Write Table Error",
+                            f"Stop time not valid: {stop_date}")
         self.stop_text.setText("")
 
     def close_window(self, *args):
@@ -373,7 +514,7 @@ class WidgetTable(dict):
         self.table.setCellWidget(row, col, widget)
 
 
-class Panel(object):
+class Panel:
     def __init__(self, orient='h'):
         Box = QtWidgets.QHBoxLayout if orient == 'h' else QtWidgets.QVBoxLayout
         self.box = Box()
@@ -451,7 +592,7 @@ class PanelText(QtWidgets.QLineEdit):
         return getattr(self.par, self.attr).__repr__()
 
 
-class PanelParam(object):
+class PanelParam:
     def __init__(self, val, min, max):
         self._val = val
         self._min = min
@@ -605,16 +746,19 @@ class ControlButtonsPanel(Panel):
         self.stop_button = QtWidgets.QPushButton("Stop")
         self.save_button = QtWidgets.QPushButton("Save")
         self.hist_button = QtWidgets.QPushButton("Histogram")
-        self.write_table_button = QtWidgets.QPushButton("Write Table")
+        self.notice_button = QtWidgets.QPushButton("Notice")
+        self.filters_button = QtWidgets.QPushButton("Filters")
         self.model_info_button = QtWidgets.QPushButton("Model Info")
+        self.write_table_button = QtWidgets.QPushButton("Write Table")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
         self.quit_button = QtWidgets.QPushButton('Quit')
-        self.console_button = QtWidgets.QPushButton('Console')
-        self.command_entry = QtWidgets.QLineEdit()
-        self.command_panel = Panel()
-        self.command_panel.pack_start(QtWidgets.QLabel('Command:'))
-        self.command_panel.pack_start(self.command_entry)
+
+        self.ignore_entry = QtWidgets.QLineEdit()
+        self.ignore_panel = Panel()
+        self.ignore_panel.pack_start(QtWidgets.QLabel('Ignore:'))
+        self.ignore_panel.pack_start(self.ignore_entry)
+        self.ignore_panel.pack_start(self.notice_button)
 
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
@@ -628,10 +772,10 @@ class ControlButtonsPanel(Panel):
         self.top_panel.pack_start(self.fit_button)
         self.top_panel.pack_start(self.stop_button)
         self.top_panel.pack_start(self.save_button)
-        self.top_panel.pack_start(self.add_plot_button)
-        self.top_panel.pack_start(self.update_status)
-        self.top_panel.pack_start(self.command_panel)
         self.top_panel.pack_start(self.hist_button)
+        self.top_panel.pack_start(self.filters_button)
+        self.top_panel.pack_start(self.model_info_button)
+        self.top_panel.pack_start(self.write_table_button)
         self.top_panel.add_stretch(1)
         self.top_panel.pack_start(self.quit_button)
 
@@ -647,13 +791,12 @@ class ControlButtonsPanel(Panel):
         self.line_panel.pack_start(QtWidgets.QLabel('Annotate line'))
         self.line_panel.pack_start(self.line_chkbox)
 
+        self.bottom_panel.pack_start(self.add_plot_button)
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
         self.bottom_panel.pack_start(self.line_panel)
+        self.bottom_panel.pack_start(self.update_status)
         self.bottom_panel.add_stretch(1)
-        self.bottom_panel.pack_start(self.model_info_button)
-        self.bottom_panel.pack_start(self.write_table_button)
-        self.bottom_panel.pack_start(self.console_button)
 
         self.pack_start(self.top_panel)
         self.pack_start(self.bottom_panel)
@@ -674,6 +817,19 @@ class ControlButtonsPanel(Panel):
         return apb
 
 
+class FreezeThawPanel(Panel):
+    def __init__(self, model, plots_panel):
+        Panel.__init__(self, orient='h')
+        self.model = model
+        self.freeze_entry = QtWidgets.QLineEdit()
+        self.thaw_entry = QtWidgets.QLineEdit()
+
+        self.pack_start(QtWidgets.QLabel('Freeze:'))
+        self.pack_start(self.freeze_entry)
+        self.pack_start(QtWidgets.QLabel('Thaw:'))
+        self.pack_start(self.thaw_entry)
+
+
 class MainLeftPanel(Panel):
     def __init__(self, model, main_window):
         Panel.__init__(self, orient='v')
@@ -688,11 +844,13 @@ class MainLeftPanel(Panel):
 class MainRightPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient='v')
+        self.freeze_thaw_panel = FreezeThawPanel(model, plots_panel)
         self.params_panel = ParamsPanel(model, plots_panel)
+        self.pack_start(self.freeze_thaw_panel)
         self.pack_start(self.params_panel)
 
 
-class MainWindow(object):
+class MainWindow:
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
     def __init__(self, model, fit_worker, model_file):
@@ -713,7 +871,10 @@ class MainWindow(object):
                 else:
                     self.hist_msids.append(k)
 
-        self.checksum_match = True
+        if gui_config["filename"] is None:
+            self.checksum_match = False
+        else:
+            self.checksum_match = True
 
         self.fit_worker = fit_worker
         # create a new window
@@ -731,6 +892,7 @@ class MainWindow(object):
         self.plots_box = self.main_left_panel.plots_box
 
         self.main_right_panel = MainRightPanel(model, mlp.plots_box)
+        mrp = self.main_right_panel
 
         self.show_radzones = False
         self.show_limits = False
@@ -743,14 +905,17 @@ class MainWindow(object):
         self.cbp.save_button.clicked.connect(self.save_model_file)
         self.cbp.write_table_button.clicked.connect(self.write_table)
         self.cbp.model_info_button.clicked.connect(self.model_info)
-        self.cbp.console_button.clicked.connect(self.open_console)
-        self.cbp.quit_button.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        self.cbp.filters_button.clicked.connect(self.filters)
+        self.cbp.quit_button.clicked.connect(self.quit_pushed)
         self.cbp.hist_button.clicked.connect(self.make_histogram)
         self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
         self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
         self.cbp.line_chkbox.stateChanged.connect(self.plot_line)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
-        self.cbp.command_entry.returnPressed.connect(self.command_activated)
+
+        self.ftp = mrp.freeze_thaw_panel
+        self.ftp.freeze_entry.returnPressed.connect(self.freeze_activated)
+        self.ftp.thaw_entry.returnPressed.connect(self.thaw_activated)
 
         self.dates = CxoTime(self.model.times).date
 
@@ -768,9 +933,15 @@ class MainWindow(object):
             except ValueError:
                 print("ERROR: Unexpected plot_name {}".format(plot_name))
 
-        # Show everything finally
-        main_window_hbox.addLayout(mlp.box)
-        main_window_hbox.addLayout(self.main_right_panel.box)
+        # Show everything finally 
+        splitter = QtWidgets.QSplitter()
+        left_widget = QtWidgets.QWidget()
+        right_widget = QtWidgets.QWidget()
+        left_widget.setLayout(mlp.box)
+        right_widget.setLayout(mrp.box)
+        splitter.addWidget(left_widget)
+        splitter.addWidget(right_widget)
+        main_window_hbox.addWidget(splitter)
 
         self.window.show()
         self.hist_window = None
@@ -784,7 +955,7 @@ class MainWindow(object):
 
     def set_checksum(self, newfile=False):
         import hashlib
-        if newfile:
+        if newfile and gui_config["filename"] is not None:
             model_json = open(gui_config['filename'], 'rb').read()
         else:
             model_json = json.dumps(self.model_spec, 
@@ -792,150 +963,18 @@ class MainWindow(object):
         self.md5sum = hashlib.md5(model_json).hexdigest()
         if newfile:
             self.file_md5sum = self.md5sum
-        self.checksum_match = self.file_md5sum == self.md5sum
-
-    def open_console(self):
-
-        def fit():
-            """Perform a fit."""
-            self.fit_worker.start()
-            self.fit_monitor()
-
-        def freeze(params):
-            """Freeze the parameter or parameters which
-            correspond to the given glob pattern.
-
-            Parameters
-            ----------
-            params : string
-                The name of the parameter to freeze.
-                Multiple parameters can be specified using
-                a glob/regex pattern.
-
-            Returns
-            -------
-
-            Examples
-            --------
-            >>> freeze("solarheat*_P*")
-            """
-            self.parse_command("freeze {}".format(params))
-
-        def thaw(params):
-            """Thaw the parameter or parameters which
-            correspond to the given glob pattern.
-
-            Parameters
-            ----------
-            params : string
-                The name of the parameter to thaw.
-                Multiple parameters can be specified using
-                a glob/regex pattern.
-
-            Returns
-            -------
-
-            Examples
-            --------
-            >>> thaw("solarheat*_P*")
-            """
-            self.parse_command("thaw {}".format(params))
-
-        def ignore(tstart, tstop):
-            """Ignore specified time ranges when performing a fit.
-
-            Parameters
-            ----------
-            tstart : string
-                The earliest time in the range to be ignored.
-                If None, this will default to the beginning of
-                the imported data range.
-            tstop : string
-                The latest time in the range to be ignored.
-                If None, this will default to the end of the
-                imported data range.
-
-            Returns
-            -------
-
-            Examples
-            --------
-            >>> # When only the year and DOY are included,
-            >>> # assumed time is 12:00:00
-            >>> ignore("2019:100:09:10:12", "2019:200")
-            
-            >>> ignore(None, "2019:056:17:15:10")
-            """
-            if tstart is None:
-                tstart = "*"
-            if tstop is None:
-                tstop = "*"
-            self.parse_command("ignore {} {}".format(tstart, tstop))
-
-        def notice():
-            """Remove all time masks which were set by the
-            *ignore* command. Note: this does not remove
-            "bad times".
-
-            Parameters
-            ----------
-
-            Returns
-            -------
-
-            """
-            self.parse_command("notice")
-
-        def howto(query=None):
-            if query is None:
-                msg = "This is the xija_gui_fit console.\n" \
-                      "Functions defined here are:\n\n" \
-                      "fit()\n" \
-                      "freeze(params)\n" \
-                      "thaw(params)\n" \
-                      "ignore(tstart, tstop)\n" \
-                      "notice()\n\n" \
-                      "Other data objects are:\n\n" \
-                      "telem_data (dict)\n" \
-                      "params (OrderedDict) \n\n" \
-                      "To find out more information about any of these, " \
-                      "type e.g. 'howto(freeze)'"
-            elif query is params:
-                msg = "The params OrderedDict gives limited access to getting " \
-                      "and setting the model parameters.\n\n" \
-                      "Examples\n" \
-                      "--------\n" \
-                      ">>> # Print value, min, max and of a model parameter\n" \
-                      ">>> print(params['solarheat__1cbat__P_90'])\n" \
-                      ">>> # Set value of a model parameter\n" \
-                      ">>> params['dpa_power__pow_3xx0'].val = 40.0\n" \
-                      ">>> # Set minimum of a model parameter\n" \
-                      ">>> params['dpa_power__pow_3xx0'].min = 0.0\n" \
-                      ">>> # Set maximum of a model parameter\n" \
-                      ">>> params['dpa_power__pow_3xx0'].max = 100.0"
-            elif query is self.telem_data:
-                msg = "The telem_data dictionary gives access to the " \
-                      "various telemetry data and commanded states objects " \
-                      "for examination and side calculations.\n\n" \
-                      "Examples\n" \
-                      "--------\n" \
-                      ">>> print(telem_data.keys())\n" \
-                      ">>> print(telem_data['fep_count'].dvals)" 
-            else:
-                msg = query.__doc__
-            print(msg)
-
-        params = self.main_right_panel.params_panel.params_dict
-
-        namespace = {"telem_data": self.telem_data, "params": params, "fit": fit,
-                     "freeze": freeze, "thaw": thaw, "ignore": ignore,
-                     "notice": notice, "howto": howto}
-        widget = in_process_console(**namespace)
-        widget.show()
+        if gui_config["filename"] is None:
+            self.checksum_match = False
+        else:
+            self.checksum_match = self.file_md5sum == self.md5sum
 
     def write_table(self):
         self.write_table_window = WriteTableWindow(self.model, self)
         self.write_table_window.show()
+
+    def filters(self):
+        self.filters_window = FiltersWindow(self.model, self)
+        self.filters_window.show()
 
     def model_info(self):
         self.model_info_window = ModelInfoWindow(self.model, self)
@@ -1003,84 +1042,55 @@ class MainWindow(object):
         if not fit_stopped:
             QtCore.QTimer.singleShot(200, self.fit_monitor)
 
-    def command_activated(self):
+    def freeze_activated(self):
+        self.command_activated("freeze")
+
+    def thaw_activated(self):
+        self.command_activated("thaw")
+
+    def command_activated(self, cmd_type):
         """Respond to a command like "freeze solarheat*dP*" submitted via the
         command entry box.  The first word is either "freeze" or "thaw" (with
         possibility for other commands later) and the subsequent args are
         space-delimited parameter globs using the UNIX file-globbing syntax.
         This then sets the corresponding params_table checkbuttons.
 
-        Parameters
-        ----------
-
-        Returns
-        -------
-
         """
-        widget = self.cbp.command_entry
+        widget = getattr(self.ftp, f"{cmd_type}_entry")
         command = widget.text().strip()
         if command == '':
             return
-        self.parse_command(command)
-        widget.setText('')
-
-    def parse_command(self, command):
         vals = command.split()
-        cmd = vals[0]  # currently freeze, thaw, ignore, or notice
-        if cmd not in ('freeze', 'thaw', 'ignore', 'notice') or \
-            (cmd != 'notice' and len(vals) < 2):
-            # dialog box..
-            print("ERROR: bad command: {}".format(command))
-            return
-
-        if cmd in ('freeze', 'thaw'):
-            par_regexes = [fnmatch.translate(x) for x in vals[1:]]
+        if cmd_type in ('freeze', 'thaw'):
+            par_regexes = [fnmatch.translate(x) for x in vals]
             params_table = self.main_right_panel.params_panel.params_table
             for row, par in enumerate(self.model.pars):
                 for par_regex in par_regexes:
                     if re.match(par_regex, par.full_name):
                          checkbutton = params_table[row, 0]
-                         checkbutton.setChecked(cmd == 'thaw')
-                         par.frozen = cmd != 'thaw'
+                         checkbutton.setChecked(cmd_type == 'thaw')
+                         par.frozen = cmd_type != 'thaw'
                          self.set_checksum()
                          self.set_title()
                          if self.model_info_window is not None:
                             self.model_info_window.update_checksum()
-        elif cmd in ('ignore', 'notice'):
-            if cmd == "ignore":
-                try:
-                    if vals[1] == "*":
-                        vals[1] = self.model.datestart
-                    if vals[2] == "*":
-                        vals[2] = self.model.datestop
-                    lim = CxoTime(vals[1:]).date
-                except (IndexError, ValueError):
-                    if len(vals) == 3:
-                        print(f"Invalid input for ignore: {vals[1]} {vals[2]}")
-                    else:
-                        print("Ignore requires two arguments, the start time and the stop time.")
-                    return
-                t0, t1 = CxoTime(lim).secs
-                self.plots_box.add_ignore(t0, t1)
-                self.model.append_mask_times(lim)
-            elif cmd == "notice":
-                if len(vals) > 1:
-                    print("Invalid input for notice: {}".format(vals[1:]))
-                    return
-                self.model.reset_mask_times()
-                self.plots_box.remove_ignores()
+        widget.setText('')
 
     def set_title(self):
         title_str = gui_config['filename']
+        if title_str is None:
+            title_str = "no filename"
         if not self.checksum_match:
             title_str += "*"
-        self.window.setWindowTitle("xija_gui_fit ({})".format(title_str))
+        self.window.setWindowTitle(
+            f"xija_gui_fit v{xija.__version__} ({title_str})")
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
         dlg.setNameFilters(["JSON files (*.json)", "All files (*)"])
         dlg.selectNameFilter("JSON files (*.json)")
-        dlg.selectFile(os.path.abspath(gui_config["filename"]))
+        if gui_config["filename"] is not None:
+            dlg.selectFile(gui_config["filename"])
         dlg.setAcceptMode(dlg.AcceptSave)
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
@@ -1105,6 +1115,15 @@ class MainWindow(object):
                 msg.setText("There was a problem writing the file:")
                 msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
                 msg.exec_()
+
+    def quit_pushed(self):
+        if not self.checksum_match:
+            answer = QtWidgets.QMessageBox.question(
+                self.window, "Save Model?", 
+                "Current model not saved. Would you like to save it?")
+            if answer == QtWidgets.QMessageBox.Yes:
+                self.save_model_file()
+        QtCore.QCoreApplication.instance().quit()
 
 
 def get_options():
@@ -1150,7 +1169,7 @@ def main():
 
     src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
     files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
-             pyc.ContextDict('files', basedir=os.getcwd()))
+             pyc.ContextDict('files', basedir=str(Path.cwd())))
     files.update(xija.files)
 
     sherpa_logger = logging.getLogger("sherpa")
@@ -1160,7 +1179,14 @@ def main():
             for h in logger.handlers:
                 logger.removeHandler(h)
 
-    model_spec = json.load(open(opt.filename, 'r'))
+    if opt.filename.endswith(".json"):
+        model_spec = json.load(open(opt.filename, 'r'))
+    elif opt.filename in get_xija_model_names():
+        model_spec, model_version = get_xija_model_spec(opt.filename)
+    else:
+        raise RuntimeError("'filename' not a valid path to a JSON file "
+                           "or a valid model name!")
+
     gui_config.update(model_spec.get('gui_config', {}))
     src['model'] = model_spec['name']
 
@@ -1202,7 +1228,11 @@ def main():
                 par.frozen = inherit_pars[par.full_name]['frozen']
                 par.fmt = inherit_pars[par.full_name]['fmt']
 
-    gui_config['filename'] = os.path.abspath(opt.filename)
+    filename = Path(opt.filename)
+    if filename.exists():
+        gui_config['filename'] = str(filename.resolve())
+    else:
+        gui_config['filename'] = None
     gui_config['set_data_vals'] = set_data_vals
 
     fit_worker = FitWorker(model, opt.maxiter, method=opt.fit_method)
@@ -1210,7 +1240,7 @@ def main():
     model.calc()
 
     app = QtWidgets.QApplication(sys.argv)
-    icon_path = os.path.join(os.path.dirname(__file__), "app_icon.png")
+    icon_path = str(Path(__file__).parent / "app_icon.png")
     icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
     MainWindow(model, fit_worker, opt.filename)
