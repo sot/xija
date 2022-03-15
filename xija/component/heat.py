@@ -659,9 +659,9 @@ class EarthHeat(PrecomputedHeatPower):
             # Earth's surface that is illuminated by the Sun. 
             solar_xyzs = [getattr(self, 'solarephem0_{}'.format(x))
                           for x in ('x', 'y', 'z')]
-            
-            if set(solar_xyzs) != {None}:
-                
+
+            if not None in solar_xyzs:
+
                 solars = np.array([x.dvals for x in solar_xyzs]).transpose().copy()
 
                 cos = np.sum(ephems*solars, axis=1)
