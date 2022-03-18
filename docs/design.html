@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Design overview &#8212; xija 4.24.1 documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Design overview &#8212; xija 4.25.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -60,7 +60,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">xija 4.24.1 documentation</a>
+	<a href="index.html">xija 4.25.0 documentation</a>
 	 &#187;
       </li>
       
@@ -74,7 +74,7 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="design-overview">
+  <section id="design-overview">
 <h1>Design overview<a class="headerlink" href="#design-overview" title="Permalink to this headline">¶</a></h1>
 <p>The key requirements that drive the Xija design are the following:</p>
 <ul class="simple">
@@ -88,7 +88,7 @@ values Y and the model parameters p</p></li>
 <li><p>Choice of minimization algorithms (fast versus robust)</p></li>
 <li><p>Handle models with up to ~100 parameters</p></li>
 </ul>
-<div class="section" id="xija-features">
+<section id="xija-features">
 <h2>Xija features<a class="headerlink" href="#xija-features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Modular and extensible</p></li>
@@ -99,7 +99,7 @@ values Y and the model parameters p</p></li>
 <li><p>GUI interface for model fitting</p></li>
 <li><p>Fitting engine provided by <a class="reference external" href="http://cxc.harvard.edu/contrib/sherpa">Sherpa</a>.</p></li>
 </ul>
-<div class="section" id="conceptual-overview">
+<section id="conceptual-overview">
 <h3>Conceptual overview<a class="headerlink" href="#conceptual-overview" title="Permalink to this headline">¶</a></h3>
 <p>The schematic diagram below of the ACIS focal plane model graphically illustrates the basic
 idea of the Xija framework.  A model consists of one or more nodes (blue boxes) which
@@ -126,8 +126,8 @@ real model has other heat sinks that are not shown.</p>
 <li><p>No physical units. Everything is scale-free and it is assumed that each node has unit thermal mass.</p></li>
 <li><p>Coupling is one-way and this is how one effectively generates different node masses.</p></li>
 </ul>
-</div>
-<div class="section" id="modular-and-extensible">
+</section>
+<section id="modular-and-extensible">
 <h3>Modular and extensible<a class="headerlink" href="#modular-and-extensible" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">xija</span></code> package provides functions and classes to assemble and
 calculate a thermal model.</p>
@@ -148,8 +148,8 @@ separate Python class.  Some currently implemented examples include:</p>
 <li><p><a class="reference internal" href="api.html#xija.component.heat.AcisDpaStatePower" title="xija.component.heat.AcisDpaStatePower"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcisDpaStatePower</span></code></a> : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)</p></li>
 </ul>
 <p>As needed additional model components can be added.</p>
-</div>
-<div class="section" id="single-step-integration">
+</section>
+<section id="single-step-integration">
 <h3>Single-step integration<a class="headerlink" href="#single-step-integration" title="Permalink to this headline">¶</a></h3>
 <p>The very fast state-based analytic solutions used for purely passive
 models cannot accomodate model components that depend on the node
@@ -158,8 +158,8 @@ uses 2nd order Runge-Kutte integration to propagate the node
 temperatures.  Model components such as heaters respond to the
 most-recently calculated temperatures.  The integration code is
 written in C for performance.</p>
-</div>
-<div class="section" id="model-definition">
+</section>
+<section id="model-definition">
 <h3>Model definition<a class="headerlink" href="#model-definition" title="Permalink to this headline">¶</a></h3>
 <p>The class-based framework makes it natural to define a model and do
 interactive parameter fitting within the Python language.  At the same
@@ -167,16 +167,16 @@ time one needs to store the results of model fitting and potentially
 iterate the fit process starting with stored parameter values.  This
 is done by saving the model definition, fit parameters, and other
 relevant fit meta-data to a JSON file.</p>
-</div>
-<div class="section" id="interactive-and-iterative-fitting">
+</section>
+<section id="interactive-and-iterative-fitting">
 <h3>Interactive and iterative fitting<a class="headerlink" href="#interactive-and-iterative-fitting" title="Permalink to this headline">¶</a></h3>
 <p>The framework provides a GUI fitting tool to help with visualization
 of fit results and parameter values.  This allows for interactive
 fitting using CIAO/Sherpa by freezing or thawing various parameters or
 groups of parameters.  The Sherpa fitting functionality is separated
 from the model evaluation code.</p>
-</div>
-<div class="section" id="predictively-model-a-node-or-use-telemetry">
+</section>
+<section id="predictively-model-a-node-or-use-telemetry">
 <h3>Predictively model a node or use telemetry<a class="headerlink" href="#predictively-model-a-node-or-use-telemetry" title="Permalink to this headline">¶</a></h3>
 <p>One of the key methods for initially narrowing the parameter space in
 a complex model is to fit parameters and predict values for a single
@@ -184,9 +184,9 @@ node only and use truth values for the other coupled nodes.  The Xija
 framework easily allows nodes to be enabled or disabled from the model
 fitting and prediction process.  In this way a complex model can be
 gradually built up.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -240,7 +240,7 @@ gradually built up.</p>
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
   </p>
 </footer>
   </body>

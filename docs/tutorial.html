@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutorial &#8212; xija 4.24.1 documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Tutorial &#8212; xija 4.25.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -60,7 +60,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">xija 4.24.1 documentation</a>
+	<a href="index.html">xija 4.25.0 documentation</a>
 	 &#187;
       </li>
       
@@ -74,9 +74,9 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="tutorial">
+  <section id="tutorial">
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="setup-for-xija-modeling">
+<section id="setup-for-xija-modeling">
 <h2>Setup for Xija modeling<a class="headerlink" href="#setup-for-xija-modeling" title="Permalink to this headline">¶</a></h2>
 <p>When you first start working with Xija create a local copy of the Xija source code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% mkdir -p ~/git  # OR WHEREVER, but ~/git is easiest!
@@ -100,8 +100,8 @@ working:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% setenv PYTHONPATH $XIJA
 </pre></div>
 </div>
-</div>
-<div class="section" id="navigating-the-xija-source">
+</section>
+<section id="navigating-the-xija-source">
 <h2>Navigating the Xija source<a class="headerlink" href="#navigating-the-xija-source" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="http://github.com/sot/xija">Xija source</a> is always available at <a class="reference external" href="http://github.com">github</a>.  Within the <strong>Files</strong> tab you will find a directory
 browser.  At the top level you will see the <code class="docutils literal notranslate"><span class="pre">xija</span></code> directory that contains
@@ -114,8 +114,8 @@ model fitting tool.  Within the <code class="docutils literal notranslate"><span
           <span class="n">mask</span><span class="o">.</span><span class="n">py</span>    <span class="n">Mask</span> <span class="n">components</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="creating-and-understanding-models">
+</section>
+<section id="creating-and-understanding-models">
 <h2>Creating and understanding models<a class="headerlink" href="#creating-and-understanding-models" title="Permalink to this headline">¶</a></h2>
 <p>The example models show here are available in the <code class="docutils literal notranslate"><span class="pre">examples/doc/</span></code> directory of the Xija git repository.</p>
 <p>Each model component is handled by a
@@ -131,7 +131,7 @@ separate Python class.  Some currently implemented examples include:</p>
 <li><p><a class="reference internal" href="api.html#xija.component.heat.ThermostatHeater" title="xija.component.heat.ThermostatHeater"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThermostatHeater</span></code></a> : Thermostat heater (with configurable deadband)</p></li>
 <li><p><a class="reference internal" href="api.html#xija.component.heat.AcisDpaStatePower" title="xija.component.heat.AcisDpaStatePower"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcisDpaStatePower</span></code></a> : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)</p></li>
 </ul>
-<div class="section" id="example-1-simplest-model">
+<section id="example-1-simplest-model">
 <h3>Example 1: simplest model<a class="headerlink" href="#example-1-simplest-model" title="Permalink to this headline">¶</a></h3>
 <p>Start with the simplest example with a single node with solar heating.  We use only two
 bin points at 45 and 180 degrees.</p>
@@ -164,8 +164,8 @@ bin points at 45 and 180 degrees.</p>
 <ul class="simple">
 <li><p>What is fundamentally wrong with this model?</p></li>
 </ul>
-</div>
-<div class="section" id="example-2-add-a-heat-sink">
+</section>
+<section id="example-2-add-a-heat-sink">
 <h3>Example 2: add a heat sink<a class="headerlink" href="#example-2-add-a-heat-sink" title="Permalink to this headline">¶</a></h3>
 <p>Same as example 1, but add a heat sink with a temperature of -16 C and a tau of 30 ksec.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">HeatSink</span><span class="p">,</span>
@@ -192,8 +192,8 @@ to have auto-epoch updating.  This should be an <code class="docutils literal no
 element of <code class="docutils literal notranslate"><span class="pre">SolarHeat</span></code> components.  (Note: <code class="docutils literal notranslate"><span class="pre">SolarHeatOffNomRoll</span></code> is a bit different
 and does not have an epoch).</p></li>
 </ul>
-</div>
-<div class="section" id="example-3-add-pitch-bins">
+</section>
+<section id="example-3-add-pitch-bins">
 <h3>Example 3: add pitch bins<a class="headerlink" href="#example-3-add-pitch-bins" title="Permalink to this headline">¶</a></h3>
 <p>Same as example 2, but now the <code class="docutils literal notranslate"><span class="pre">SolarHeat</span></code> component has 6 pitch bins:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xija</span><span class="o">.</span><span class="n">SolarHeat</span><span class="p">,</span>
@@ -226,9 +226,9 @@ and does not have an epoch).</p></li>
 <li><p>But note: eclipse data breaks degeneracy.  This can be used for short-timescale components.</p></li>
 <li><p>Save the best fit as <code class="docutils literal notranslate"><span class="pre">example3_fit.json</span></code></p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="working-with-a-model">
+</section>
+</section>
+<section id="working-with-a-model">
 <h2>Working with a model<a class="headerlink" href="#working-with-a-model" title="Permalink to this headline">¶</a></h2>
 <p>As an example, here is the code (available in <code class="docutils literal notranslate"><span class="pre">examples/dpa/plot_dpa_resid.py</span></code>) to plot
 residuals versus temperature for the ACIS DPA model.  You can run this with
@@ -299,8 +299,8 @@ residuals versus temperature for the ACIS DPA model.  You can run this with
 <p><code class="docutils literal notranslate"><span class="pre">ThermalModel</span></code> is a synonym for <code class="docutils literal notranslate"><span class="pre">XijaModel</span></code> available for back-compatibility,
 but new code should use <code class="docutils literal notranslate"><span class="pre">XijaModel</span></code>.</p>
 </div>
-</div>
-<div class="section" id="modifying-an-existing-model">
+</section>
+<section id="modifying-an-existing-model">
 <h2>Modifying an existing model<a class="headerlink" href="#modifying-an-existing-model" title="Permalink to this headline">¶</a></h2>
 <p>Much of the time the best way to create a new model is to start from an
 existing model.  There are a few strategies for doing this:</p>
@@ -310,28 +310,28 @@ existing model.  There are a few strategies for doing this:</p>
 <li><p>Directly edit the model JSON specification</p></li>
 <li><p>Convert the model spec to Python and edit the Python</p></li>
 </ul>
-<div class="section" id="extend-an-existing-model">
+<section id="extend-an-existing-model">
 <h3>Extend an existing model<a class="headerlink" href="#extend-an-existing-model" title="Permalink to this headline">¶</a></h3>
 <p>If you have an existing model (e.g. <code class="docutils literal notranslate"><span class="pre">pcm03t</span></code> from the previous examples) and
 want to extend it by adding a model component, the technique is to read in the
 model,  add the component, make the model, and then write out the new model.
 This is illustrated in the <a class="reference external" href="xija_extend_model.html">Xija extend model</a> notebook.</p>
-</div>
-<div class="section" id="inherit-from-an-existing-model">
+</section>
+<section id="inherit-from-an-existing-model">
 <h3>Inherit from an existing model<a class="headerlink" href="#inherit-from-an-existing-model" title="Permalink to this headline">¶</a></h3>
 <p>This option provides a way to use some of the existing (calibrated) components
 from an existing model.  In particular if you want to remove a component this
 is one way to do it. This is illustrated in the <a class="reference external" href="xija_inherit.html">Xija inherit</a> IPython notebook.</p>
-</div>
-<div class="section" id="edit-the-model-specification">
+</section>
+<section id="edit-the-model-specification">
 <h3>Edit the model specification<a class="headerlink" href="#edit-the-model-specification" title="Permalink to this headline">¶</a></h3>
 <p>Xija models are stored in a file format called <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a>.  This captures the model definition,
 model parameters, and also everything about the GUI fit application (screen
 size, plots, frozen / thawed parameters) when the model was saved.</p>
 <p>Although it requires a bit of care, sometimes the easiest way to produce a
 derived model is by directly editing the JSON model specification.</p>
-</div>
-<div class="section" id="convert-model-spec-back-to-python">
+</section>
+<section id="convert-model-spec-back-to-python">
 <h3>Convert model spec back to Python<a class="headerlink" href="#convert-model-spec-back-to-python" title="Permalink to this headline">¶</a></h3>
 <p>A very good way to modify an existing model spec is to write it back out as
 Python code.  This can be done in three ways:</p>
@@ -350,9 +350,9 @@ Python code.  This can be done in three ways:</p>
 </div>
 </li>
 </ul>
-</div>
-</div>
-<div class="section" id="fitting-a-model">
+</section>
+</section>
+<section id="fitting-a-model">
 <h2>Fitting a model<a class="headerlink" href="#fitting-a-model" title="Permalink to this headline">¶</a></h2>
 <p>So far we have been manually working with a Xija model to understand a bit of
 what is going on underneath and know how to make performance predictions.
@@ -367,7 +367,7 @@ the <code class="docutils literal notranslate"><span class="pre">gui_fit.py</spa
 ../../gui_fit.py pcm.json --stop 2012:095 --days 30
 </pre></div>
 </div>
-<div class="section" id="command-line-options">
+<section id="command-line-options">
 <h3>Command line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h3>
 <p>The GUI fit tool supports the following command line options:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="o">./</span><span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
@@ -419,8 +419,8 @@ then a typical calling sequence from the Xija source directory is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">stop</span> <span class="mi">2012</span><span class="p">:</span><span class="mi">002</span> <span class="o">--</span><span class="n">days</span> <span class="mi">180</span> <span class="n">my_model_spec</span><span class="o">.</span><span class="n">json</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="manipulating-plots">
+</section>
+<section id="manipulating-plots">
 <h3>Manipulating plots<a class="headerlink" href="#manipulating-plots" title="Permalink to this headline">¶</a></h3>
 <p>Many model components have built-in plots that can be added to the fit window
 via the <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">plots...</span></code> drop down menu.  The available plot names correspond to the
@@ -430,8 +430,8 @@ pressing the corresponding <code class="docutils literal notranslate"><span clas
 axis so that if you zoom in to one then all plots zoom accordingly.  When you
 want to go back to the full view you can use the <code class="docutils literal notranslate"><span class="pre">Home</span></code> button on the plot
 where you originally zoomed.</p>
-</div>
-<div class="section" id="manipulating-parameters">
+</section>
+<section id="manipulating-parameters">
 <h3>Manipulating parameters<a class="headerlink" href="#manipulating-parameters" title="Permalink to this headline">¶</a></h3>
 <p>One of the key features of the GUI fit tool is the ability to visualize and
 manipulate the dozens of parameters in a typical Xija model.</p>
@@ -450,8 +450,8 @@ entry box at the top of the fit window.  Examples:</p>
 <span class="n">freeze</span> <span class="n">solarheat</span><span class="o">*</span><span class="n">_dP_</span><span class="o">*</span> <span class="c1"># freeze the long-term solarheat variation params</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="fit-strategy">
+</section>
+<section id="fit-strategy">
 <h3>Fit strategy<a class="headerlink" href="#fit-strategy" title="Permalink to this headline">¶</a></h3>
 <p>Fitting Xija models is a bit of an art and will it take some time to develop
 skill here.  A few rules of thumb and tips:</p>
@@ -492,9 +492,9 @@ final “flight” models that get configured are called
 <code class="docutils literal notranslate"><span class="pre">&lt;modelname&gt;_model_spec.json</span></code>, so avoid using this name during development.</p></li>
 <li><p>Saving also saves the state of plots and your parameters.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="bad-times">
+</section>
+</section>
+<section id="bad-times">
 <h2>Bad Times<a class="headerlink" href="#bad-times" title="Permalink to this headline">¶</a></h2>
 <p>If there are one or more intervals of time where the data are effectively
 bad for fitting (i.e. the thermal model is not expected to predict accurately
@@ -525,8 +525,8 @@ tag to the JSON model file.  This would like:</p>
     <span class="o">...</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="exercises">
+</section>
+<section id="exercises">
 <h2>Exercises<a class="headerlink" href="#exercises" title="Permalink to this headline">¶</a></h2>
 <p>The exercise for both teams will be to first get familiar with the GUI fit tool
 by playing with an existing calibrated model.  Do one of the following:</p>
@@ -543,12 +543,12 @@ the number of days to fit as <code class="docutils literal notranslate"><span cl
 <li><p>Try fitting various parameter sets using both the check boxes and the glob
 tool to freeze and thaw.</p></li>
 </ul>
-<div class="section" id="team-acis">
+<section id="team-acis">
 <h3>Team ACIS<a class="headerlink" href="#team-acis" title="Permalink to this headline">¶</a></h3>
 <p><strong>Goal</strong>: Make a model for 1DEAMZT that is analogous to the 1DPAMZT model.</p>
 <p>Choose the best way to derive a DEA model from the DPA model.</p>
-</div>
-<div class="section" id="team-spacecraft">
+</section>
+<section id="team-spacecraft">
 <h3>Team Spacecraft<a class="headerlink" href="#team-spacecraft" title="Permalink to this headline">¶</a></h3>
 <p><strong>Goal</strong>: Make a working model for PCM03T.</p>
 <p>The first step will be to calibrate the PCM03T model that we have created
@@ -557,9 +557,9 @@ integrate the PCM03T model into the MinusZ model.</p>
 <blockquote>
 <div><p>% cp ~aldcroft/git/xija/examples/pcm/pcm.json ./    # Spacecraft</p>
 </div></blockquote>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -633,7 +633,7 @@ integrate the PCM03T model into the MinusZ model.</p>
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
   </p>
 </footer>
   </body>

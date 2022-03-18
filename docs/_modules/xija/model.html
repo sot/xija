@@ -4,16 +4,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xija.model &#8212; xija 4.24.1 documentation</title>
-    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>xija.model &#8212; xija 4.25.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css" />
     
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -47,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.24.1 documentation</a>
+	<a href="../../index.html">xija 4.25.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -212,19 +211,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rk4</span> <span class="o">=</span> <span class="n">rk4</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">limits</span> <span class="o">=</span> <span class="n">limits</span>
 
-        <span class="k">if</span> <span class="n">model_spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="s1">&#39;bad_times&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_spec</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;bad_times&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="p">:</span>
-            <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">([</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span><span class="o">.</span><span class="n">secs</span>
-            <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">model_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;bad_times&#39;</span> <span class="ow">in</span> <span class="n">model_spec</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;bad_times&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">d0</span><span class="p">,</span> <span class="n">d1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="p">:</span>
+                <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">([</span><span class="n">d0</span><span class="p">,</span> <span class="n">d1</span><span class="p">])</span><span class="o">.</span><span class="n">secs</span>
+                <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">))</span>
+        <span class="c1"># This is really setting the mask times for the first</span>
+        <span class="c1"># time in this case</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_mask_times</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">pars</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">model_spec</span><span class="p">:</span>
@@ -849,19 +847,28 @@
             <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_2</span> <span class="o">=</span> <span class="n">_core_2</span>
         <span class="k">return</span> <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_2</span>
 
-    <span class="k">def</span> <span class="nf">append_mask_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">append_mask_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">,</span> <span class="n">bad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span>
         <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times_bad</span><span class="p">,</span> <span class="n">bad</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">append_bad_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_mask_time</span><span class="p">(</span><span class="n">new_times</span><span class="p">,</span> <span class="n">bad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span>
+        <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span>
+        <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">reset_mask_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="p">)</span></div>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_time_secs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;bool&#39;</span><span class="p">)</span></div>
 
 <span class="n">ThermalModel</span> <span class="o">=</span> <span class="n">XijaModel</span>
 </pre></div>
@@ -888,7 +895,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
   </p>
 </footer>
   </body>

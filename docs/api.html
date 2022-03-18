@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API docs &#8212; xija 4.24.1 documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-astropy.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>API docs &#8212; xija 4.25.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -54,7 +54,7 @@
 	
       </li>
       <li>
-	<a href="index.html">xija 4.24.1 documentation</a>
+	<a href="index.html">xija 4.25.0 documentation</a>
 	 &#187;
       </li>
       
@@ -68,27 +68,27 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="api-docs">
+  <section id="api-docs">
 <h1>API docs<a class="headerlink" href="#api-docs" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-xija.model">
+<section id="module-xija.model">
 <span id="model"></span><h2>Model<a class="headerlink" href="#module-xija.model" title="Permalink to this headline">¶</a></h2>
 <p>Xija - framework to model complex time-series data using a network of
 coupled nodes with pluggable model components that define the node
 interactions.</p>
 <dl class="py exception">
-<dt id="xija.model.FetchError">
-<em class="property">exception </em><code class="sig-prename descclassname">xija.model.</code><code class="sig-name descname">FetchError</code><a class="reference internal" href="_modules/xija/model.html#FetchError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.FetchError" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.FetchError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">xija.model.</span></span><span class="sig-name descname"><span class="pre">FetchError</span></span><a class="reference internal" href="_modules/xija/model.html#FetchError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.FetchError" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="xija.model.ThermalModel">
-<code class="sig-prename descclassname">xija.model.</code><code class="sig-name descname">ThermalModel</code><a class="headerlink" href="#xija.model.ThermalModel" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.ThermalModel">
+<span class="sig-prename descclassname"><span class="pre">xija.model.</span></span><span class="sig-name descname"><span class="pre">ThermalModel</span></span><a class="headerlink" href="#xija.model.ThermalModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#xija.model.XijaModel" title="xija.model.XijaModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">xija.model.XijaModel</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.model.XijaModel">
-<em class="property">class </em><code class="sig-prename descclassname">xija.model.</code><code class="sig-name descname">XijaModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">start</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stop</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">model_spec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmd_states</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evolve_method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rk4</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">limits</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.model.</span></span><span class="sig-name descname"><span class="pre">XijaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd_states</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolve_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rk4</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Xija model class to encapsulate all ModelComponents and provide the
 infrastructure to define and evaluate models.</p>
 <p>The parameters <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span></code>, and <code class="docutils literal notranslate"><span class="pre">stop</span></code> are determined as follows:</p>
@@ -129,8 +129,8 @@ evolve_method == 2 (None | 0 or 1, default 0)</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="xija.model.XijaModel.add">
-<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ComponentClass</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.add" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ComponentClass</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.add" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a new component to the model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -144,20 +144,20 @@ evolve_method == 2 (None | 0 or 1, default 0)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.calc">
-<code class="sig-name descname">calc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.calc" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.calc">
+<span class="sig-name descname"><span class="pre">calc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.calc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.calc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the model.  The results appear in the self.mvals array.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.calc_stat">
-<code class="sig-name descname">calc_stat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.calc_stat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.calc_stat" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.calc_stat">
+<span class="sig-name descname"><span class="pre">calc_stat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.calc_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.calc_stat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate model fit statistic as the sum of component fit stats</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.calc_staterror">
-<code class="sig-name descname">calc_staterror</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.calc_staterror"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.calc_staterror" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.calc_staterror">
+<span class="sig-name descname"><span class="pre">calc_staterror</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.calc_staterror"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.calc_staterror" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate model fit statistic error (dummy array for Sherpa use)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -168,42 +168,37 @@ evolve_method == 2 (None | 0 or 1, default 0)</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="xija.model.XijaModel.cmd_states">
-<em class="property">property </em><code class="sig-name descname">cmd_states</code><a class="headerlink" href="#xija.model.XijaModel.cmd_states" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="xija.model.XijaModel.cmd_states">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cmd_states</span></span><a class="headerlink" href="#xija.model.XijaModel.cmd_states" title="Permalink to this definition">¶</a></dt>
 <dd><p>test cmdstats</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="xija.model.XijaModel.comps">
-<em class="property">property </em><code class="sig-name descname">comps</code><a class="headerlink" href="#xija.model.XijaModel.comps" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="xija.model.XijaModel.comps">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">comps</span></span><a class="headerlink" href="#xija.model.XijaModel.comps" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of model components</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="xija.model.XijaModel.core_1">
-<em class="property">property </em><code class="sig-name descname">core_1</code><a class="headerlink" href="#xija.model.XijaModel.core_1" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="xija.model.XijaModel.core_1">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">core_1</span></span><a class="headerlink" href="#xija.model.XijaModel.core_1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Lazy-load the “core_1” ctypes shared object libary that does the
 low-level model calculation via the C “calc_model_1” routine.  Only
 load once by setting/returning a class attribute.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="xija.model.XijaModel.core_2">
-<em class="property">property </em><code class="sig-name descname">core_2</code><a class="headerlink" href="#xija.model.XijaModel.core_2" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="xija.model.XijaModel.core_2">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">core_2</span></span><a class="headerlink" href="#xija.model.XijaModel.core_2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Lazy-load the “core_2” ctypes shared object libary that does the
 low-level model calculation via the C “calc_model_2” routine.  Only
 load once by setting/returning a class attribute.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.date_range">
-<em class="property">property </em><code class="sig-name descname">date_range</code><a class="headerlink" href="#xija.model.XijaModel.date_range" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="xija.model.XijaModel.fetch">
-<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msid</span></em>, <em class="sig-param"><span class="n">attr</span><span class="o">=</span><span class="default_value">'vals'</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'linear'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.fetch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.fetch">
+<span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vals'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.fetch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.fetch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get data from the Chandra engineering archive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -219,8 +214,8 @@ load once by setting/returning a class attribute.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.get_comp">
-<code class="sig-name descname">get_comp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.get_comp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.get_comp" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.get_comp">
+<span class="sig-name descname"><span class="pre">get_comp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.get_comp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.get_comp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a model component.  Works with either a string or a component
 object</p>
 <dl class="field-list simple">
@@ -233,8 +228,8 @@ object</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.get_model_code">
-<code class="sig-name descname">get_model_code</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.get_model_code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.get_model_code" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.get_model_code">
+<span class="sig-name descname"><span class="pre">get_model_code</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.get_model_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.get_model_code" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return Python code that will create the current model.</p>
 <p>This is useful during model development as a way to derive from and
 modify existing models while retaining good parameter values.</p>
@@ -249,8 +244,8 @@ modify existing models while retaining good parameter values.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.inherit_from_model_spec">
-<code class="sig-name descname">inherit_from_model_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inherit_spec</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.inherit_from_model_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.inherit_from_model_spec" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.inherit_from_model_spec">
+<span class="sig-name descname"><span class="pre">inherit_from_model_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inherit_spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.inherit_from_model_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.inherit_from_model_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Inherit parameter values from any like-named parameters within the
 inherit_spec model specification.  This is useful for making a new
 variation of an existing model.</p>
@@ -264,8 +259,8 @@ variation of an existing model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.interpolate_data">
-<code class="sig-name descname">interpolate_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">times</span></em>, <em class="sig-param"><span class="n">comp</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.interpolate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.interpolate_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.interpolate_data">
+<span class="sig-name descname"><span class="pre">interpolate_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.interpolate_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.interpolate_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate supplied <code class="docutils literal notranslate"><span class="pre">data</span></code> values at the model times using
 nearest-neighbor or state value interpolation.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">times</span></code> arg can be either a 1-d or 2-d ndarray.  If 1-d,
@@ -286,15 +281,15 @@ state values with <code class="docutils literal notranslate"><span class="pre">t
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.make">
-<code class="sig-name descname">make</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.make"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.make" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.make"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.make" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call self.make_mvals and self.make_tmal to prepare for model evaluation
 once all model components have been added.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.make_mvals">
-<code class="sig-name descname">make_mvals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.make_mvals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.make_mvals" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.make_mvals">
+<span class="sig-name descname"><span class="pre">make_mvals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.make_mvals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.make_mvals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the global mvals (model values) array.  This is an
 N (rows) x n_times (cols) array that contains all data needed
 to compute the model prediction.  All rows are initialized to
@@ -304,32 +299,22 @@ rows will be overwritten with predictions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.make_tmal">
-<code class="sig-name descname">make_tmal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.make_tmal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.make_tmal" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.make_tmal">
+<span class="sig-name descname"><span class="pre">make_tmal</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.make_tmal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.make_tmal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make the TMAL “code” using components that generate TMAL
 statements</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="xija.model.XijaModel.model_spec">
-<em class="property">property </em><code class="sig-name descname">model_spec</code><a class="headerlink" href="#xija.model.XijaModel.model_spec" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="xija.model.XijaModel.model_spec">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">model_spec</span></span><a class="headerlink" href="#xija.model.XijaModel.model_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a full model specification data structure for this
 model</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.parnames">
-<em class="property">property </em><code class="sig-name descname">parnames</code><a class="headerlink" href="#xija.model.XijaModel.parnames" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="xija.model.XijaModel.parvals">
-<em class="property">property </em><code class="sig-name descname">parvals</code><a class="headerlink" href="#xija.model.XijaModel.parvals" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="xija.model.XijaModel.write">
-<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">model_spec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.write" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the model specification as JSON or Python to a file.</p>
 <p>If the file name ends with “.py” then the output will the Python
 code to create the model (using <code class="docutils literal notranslate"><span class="pre">get_model_code()</span></code>), otherwise
@@ -347,8 +332,8 @@ the JSON model specification will be written.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.model.XijaModel.write_vals">
-<code class="sig-name descname">write_vals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.write_vals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.model.XijaModel.write_vals" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.model.XijaModel.write_vals">
+<span class="sig-name descname"><span class="pre">write_vals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/model.html#XijaModel.write_vals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.model.XijaModel.write_vals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write dvals and mvals for each model component (as applicable) to an
 ascii table file.  Some component have neither (couplings), some have
 just dvals (TelemData), others have both (Node, AcisDpaPower).
@@ -365,26 +350,26 @@ column.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="components">
+</section>
+<section id="components">
 <h2>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-xija.component.base">
+<section id="module-xija.component.base">
 <span id="base-classes"></span><h3>Base classes<a class="headerlink" href="#module-xija.component.base" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="xija.component.base.AcisFPtemp">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">AcisFPtemp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">mask</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#AcisFPtemp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.AcisFPtemp" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.AcisFPtemp">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">AcisFPtemp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#AcisFPtemp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.AcisFPtemp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a wrapper around MSID FPTEMP_11 because that currently comes from
 the eng_archive in K instead of C.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.CmdStatesData">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">CmdStatesData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">msid</span></em>, <em class="sig-param"><span class="n">mval</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fetch_attr</span><span class="o">=</span><span class="default_value">'vals'</span></em>, <em class="sig-param"><span class="n">units</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#CmdStatesData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.CmdStatesData" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.CmdStatesData">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">CmdStatesData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vals'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#CmdStatesData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.CmdStatesData" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.Coupling">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Coupling</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node1</span></em>, <em class="sig-param"><span class="n">node2</span></em>, <em class="sig-param"><span class="n">tau</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Coupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Coupling" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.Coupling">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">Coupling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Coupling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.Coupling" title="Permalink to this definition">¶</a></dt>
 <dd><p>First-order coupling between Nodes <cite>node1</cite> and <cite>node2</cite></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dy1</span><span class="o">/</span><span class="n">dt</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">y1</span> <span class="o">-</span> <span class="n">y2</span><span class="p">)</span> <span class="o">/</span> <span class="n">tau</span>
 </pre></div>
@@ -392,8 +377,8 @@ the eng_archive in K instead of C.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.Delay">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Delay</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">delay</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Delay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Delay" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.Delay">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">Delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.Delay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Delay mval from <code class="docutils literal notranslate"><span class="pre">node</span></code> by <code class="docutils literal notranslate"><span class="pre">delay</span></code> ksec</p>
 <p>See the example in examples/delay/. For a positive delay, the computed model
 value (<code class="docutils literal notranslate"><span class="pre">node.mval</span></code>) will be constant at the initial value for the first
@@ -402,19 +387,19 @@ be constant for <code class="docutils literal notranslate"><span class="pre">del
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.Eclipse">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Eclipse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Eclipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Eclipse" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.Eclipse">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">Eclipse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Eclipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.Eclipse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.HeatSink">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">HeatSink</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">T</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">20.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#HeatSink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.HeatSink" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.HeatSink">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">HeatSink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#HeatSink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.HeatSink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fixed temperature external heat bath</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.HeatSinkRef">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">HeatSinkRef</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">T</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">20.0</span></em>, <em class="sig-param"><span class="n">T_ref</span><span class="o">=</span><span class="default_value">20.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#HeatSinkRef"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.HeatSinkRef" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.HeatSinkRef">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">HeatSinkRef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#HeatSinkRef"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.HeatSinkRef" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fixed temperature external heat bath, reparameterized so that varying
 tau does not affect the mean model temperature.  This requires an extra
 non-fitted parameter T_ref which corresponds to a reference temperature for
@@ -430,14 +415,14 @@ the node.:</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.ModelComponent">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">ModelComponent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#ModelComponent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.ModelComponent" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.ModelComponent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">ModelComponent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#ModelComponent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.ModelComponent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model component base class</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.Node">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">msid</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">- 10</span></em>, <em class="sig-param"><span class="n">quant</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">predict</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">mask</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fetch_attr</span><span class="o">=</span><span class="default_value">'vals'</span></em>, <em class="sig-param"><span class="n">units</span><span class="o">=</span><span class="default_value">'degC'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Node" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.Node">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vals'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'degC'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.Node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Time-series dataset for prediction.</p>
 <p>If the <code class="docutils literal notranslate"><span class="pre">sigma</span></code> value is negative then sigma is computed from the
 node data values as the specified percent of the data standard
@@ -466,9 +451,9 @@ is set to 0 then the fit statistic is set to 0.0 for this node.</p>
 </dl>
 </dd>
 </dl>
-<dl class="py method">
-<dt id="xija.component.base.Node.randx">
-<em class="property">property </em><code class="sig-name descname">randx</code><a class="headerlink" href="#xija.component.base.Node.randx" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="xija.component.base.Node.randx">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">randx</span></span><a class="headerlink" href="#xija.component.base.Node.randx" title="Permalink to this definition">¶</a></dt>
 <dd><p>Random X-offset for plotting which is a uniform distribution
 with width = self.quant or 1.0</p>
 </dd></dl>
@@ -476,48 +461,48 @@ with width = self.quant or 1.0</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.Param">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Param</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">comp_name</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">val</span></em>, <em class="sig-param"><span class="n">min</span><span class="o">=</span><span class="default_value">- 1e+38</span></em>, <em class="sig-param"><span class="n">max</span><span class="o">=</span><span class="default_value">1e+38</span></em>, <em class="sig-param"><span class="n">fmt</span><span class="o">=</span><span class="default_value">'{:.4g}'</span></em>, <em class="sig-param"><span class="n">frozen</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Param" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.Param">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">Param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comp_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1e+38</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e+38</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{:.4g}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frozen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.Param" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model component parameter.  Inherits from dict but adds attribute access
 for convenience.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.Pitch">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Pitch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Pitch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Pitch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.Pitch">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">Pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Pitch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.Pitch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.Roll">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">Roll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Roll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.Roll" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.Roll">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">Roll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#Roll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.Roll" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.SimZ">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">SimZ</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#SimZ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.SimZ" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.SimZ">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">SimZ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#SimZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.SimZ" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.base.TelemData">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.base.</code><code class="sig-name descname">TelemData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">msid</span></em>, <em class="sig-param"><span class="n">mval</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fetch_attr</span><span class="o">=</span><span class="default_value">'vals'</span></em>, <em class="sig-param"><span class="n">units</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#TelemData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.base.TelemData" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.base.TelemData">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.base.</span></span><span class="sig-name descname"><span class="pre">TelemData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vals'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/base.html#TelemData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.base.TelemData" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-xija.component.heat">
+</section>
+<section id="module-xija.component.heat">
 <span id="heat-classes"></span><h3>Heat classes<a class="headerlink" href="#module-xija.component.heat" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="xija.component.heat.AcisDeaPower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">AcisDeaPower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDeaPower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisDeaPower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisDeaPower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">AcisDeaPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDeaPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisDeaPower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heating from ACIS DEA</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.AcisDpaPower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">AcisDpaPower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaPower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisDpaPower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisDpaPower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">AcisDpaPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisDpaPower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)</p>
 <dl class="py method">
-<dt id="xija.component.heat.AcisDpaPower.get_dvals_tlm">
-<code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaPower.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisDpaPower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisDpaPower.get_dvals_tlm">
+<span class="sig-name descname"><span class="pre">get_dvals_tlm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaPower.get_dvals_tlm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisDpaPower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model dvals is set to the telemetered power.  This is not actually
 used by the model, but is useful for diagnostics.</p>
 </dd></dl>
@@ -525,21 +510,21 @@ used by the model, but is useful for diagnostics.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.AcisDpaStatePower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">AcisDpaStatePower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">mult</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">fep_count</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ccd_count</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vid_board</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">clocking</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pow_states</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaStatePower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisDpaStatePower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisDpaStatePower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">AcisDpaStatePower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fep_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ccd_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vid_board</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pow_states</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaStatePower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisDpaStatePower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc).
 Use commanded states and assign an effective power for each “unique” power
 state.  See dpa/NOTES.power.</p>
 <dl class="py method">
-<dt id="xija.component.heat.AcisDpaStatePower.get_dvals_tlm">
-<code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaStatePower.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisDpaStatePower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisDpaStatePower.get_dvals_tlm">
+<span class="sig-name descname"><span class="pre">get_dvals_tlm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaStatePower.get_dvals_tlm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisDpaStatePower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model dvals is set to the telemetered power.  This is not actually
 used by the model, but is useful for diagnostics.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="xija.component.heat.AcisDpaStatePower.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaStatePower.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisDpaStatePower.update" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisDpaStatePower.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisDpaStatePower.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisDpaStatePower.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the model prediction as a precomputed heat.  Make an array of
 the current power parameters, then slice that with self.par_idxs to
 generate the predicted power (based on the parameter specifying state
@@ -549,42 +534,42 @@ power) at each time step.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.AcisPsmcPower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">AcisPsmcPower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisPsmcPower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisPsmcPower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisPsmcPower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">AcisPsmcPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisPsmcPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisPsmcPower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.AcisPsmcSolarHeat">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">AcisPsmcSolarHeat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">dh_heater_comp</span><span class="o">=</span><span class="default_value">'dh_heater'</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_vals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'linear'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2013:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dh_heater</span><span class="o">=</span><span class="default_value">0.05</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisPsmcSolarHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.AcisPsmcSolarHeat" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.AcisPsmcSolarHeat">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">AcisPsmcSolarHeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simz_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sim_z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh_heater_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dh_heater'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_vals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1732.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2013:001:12:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh_heater</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#AcisPsmcSolarHeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.AcisPsmcSolarHeat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating of PSMC box.  This is dependent on SIM-Z</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.ActiveHeatPower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">ActiveHeatPower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#ActiveHeatPower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.ActiveHeatPower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.ActiveHeatPower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">ActiveHeatPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#ActiveHeatPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.ActiveHeatPower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Component that provides active heat power input which depends on
 current or past computed model values</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.DetectorHousingHeater">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">DetectorHousingHeater</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#DetectorHousingHeater"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.DetectorHousingHeater" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.DetectorHousingHeater">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">DetectorHousingHeater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#DetectorHousingHeater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.DetectorHousingHeater" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="xija.component.heat.DpaSolarHeat">
-<code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">DpaSolarHeat</code><a class="headerlink" href="#xija.component.heat.DpaSolarHeat" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.DpaSolarHeat">
+<span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">DpaSolarHeat</span></span><a class="headerlink" href="#xija.component.heat.DpaSolarHeat" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#xija.component.heat.SolarHeatHrc" title="xija.component.heat.SolarHeatHrc"><code class="xref py py-class docutils literal notranslate"><span class="pre">xija.component.heat.SolarHeatHrc</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.EarthHeat">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">EarthHeat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">orbitephem0_x</span></em>, <em class="sig-param"><span class="n">orbitephem0_y</span></em>, <em class="sig-param"><span class="n">orbitephem0_z</span></em>, <em class="sig-param"><span class="n">aoattqt1</span></em>, <em class="sig-param"><span class="n">aoattqt2</span></em>, <em class="sig-param"><span class="n">aoattqt3</span></em>, <em class="sig-param"><span class="n">aoattqt4</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#EarthHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.EarthHeat" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.EarthHeat">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">EarthHeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orbitephem0_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orbitephem0_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orbitephem0_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aoattqt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aoattqt2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aoattqt3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aoattqt4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#EarthHeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.EarthHeat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Earth heating of ACIS cold radiator (attitude, ephem dependent)</p>
 <dl class="py method">
-<dt id="xija.component.heat.EarthHeat.get_cached">
-<code class="sig-name descname">get_cached</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#EarthHeat.get_cached"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.EarthHeat.get_cached" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.EarthHeat.get_cached">
+<span class="sig-name descname"><span class="pre">get_cached</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#EarthHeat.get_cached"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.EarthHeat.get_cached" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find a cached version of the Earth solid angle values from
 file if possible.</p>
 </dd></dl>
@@ -592,8 +577,8 @@ file if possible.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.MsidStatePower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">MsidStatePower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">state_msid</span></em>, <em class="sig-param"><span class="n">state_val</span></em>, <em class="sig-param"><span class="n">P</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#MsidStatePower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.MsidStatePower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.MsidStatePower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">MsidStatePower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_msid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#MsidStatePower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.MsidStatePower" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class that applies a constant heat power shift only when the state of an
 MSID, <code class="docutils literal notranslate"><span class="pre">state_msid</span></code>, matches a specified value, <code class="docutils literal notranslate"><span class="pre">state_val</span></code>.  The shift
 is <code class="docutils literal notranslate"><span class="pre">P</span></code> when the <code class="docutils literal notranslate"><span class="pre">state_val</span></code> for <code class="docutils literal notranslate"><span class="pre">state_msid</span></code> is matched, otherwise it
@@ -619,8 +604,8 @@ this component, one would use the following syntax:</p>
 <div><p>model.comp[‘cossrbx_on’].set_data(True)</p>
 </div></blockquote>
 <dl class="py method">
-<dt id="xija.component.heat.MsidStatePower.get_dvals_tlm">
-<code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#MsidStatePower.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.MsidStatePower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.MsidStatePower.get_dvals_tlm">
+<span class="sig-name descname"><span class="pre">get_dvals_tlm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#MsidStatePower.get_dvals_tlm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.MsidStatePower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an array of power values where the power is <code class="docutils literal notranslate"><span class="pre">P</span></code> when the
 <code class="docutils literal notranslate"><span class="pre">state_val</span></code> for <code class="docutils literal notranslate"><span class="pre">state_msid</span></code> is matched, otherwise it is 0.0.</p>
 </dd></dl>
@@ -628,25 +613,20 @@ this component, one would use the following syntax:</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.PrecomputedHeatPower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">PrecomputedHeatPower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#PrecomputedHeatPower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.PrecomputedHeatPower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.PrecomputedHeatPower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">PrecomputedHeatPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#PrecomputedHeatPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.PrecomputedHeatPower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Component that provides static (precomputed) direct heat power input</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.PropHeater">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">PropHeater</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">node_control</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">T_set</span><span class="o">=</span><span class="default_value">20.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#PropHeater"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.PropHeater" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.PropHeater">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">PropHeater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_control</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#PropHeater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.PropHeater" title="Permalink to this definition">¶</a></dt>
 <dd><p>Proportional heater (P = k * (T_set - T) for T &lt; T_set).</p>
-<dl class="py method">
-<dt id="xija.component.heat.PropHeater.get_dvals_tlm">
-<code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#PropHeater.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.PropHeater.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.SolarHeat">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeat" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeat">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">SolarHeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eclipse_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1732.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2010:001:12:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dP_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -681,16 +661,16 @@ this component, one would use the following syntax:</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="xija.component.heat.SolarHeat.dvals_post_hook">
-<code class="sig-name descname">dvals_post_hook</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeat.dvals_post_hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeat.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeat.dvals_post_hook">
+<span class="sig-name descname"><span class="pre">dvals_post_hook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeat.dvals_post_hook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeat.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Override this method to adjust self._dvals after main computation.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.SolarHeatAcisCameraBody">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatAcisCameraBody</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dh_heater_comp</span><span class="o">=</span><span class="default_value">'dh_heater'</span></em>, <em class="sig-param"><span class="n">dh_heater_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatAcisCameraBody"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatAcisCameraBody" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatAcisCameraBody">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">SolarHeatAcisCameraBody</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eclipse_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1732.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2010:001:12:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh_heater_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dh_heater'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dh_heater_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dP_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatAcisCameraBody"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatAcisCameraBody" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch and SIM-Z dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -731,16 +711,16 @@ this component, one would use the following syntax:</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="xija.component.heat.SolarHeatAcisCameraBody.dvals_post_hook">
-<code class="sig-name descname">dvals_post_hook</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatAcisCameraBody.dvals_post_hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatAcisCameraBody.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatAcisCameraBody.dvals_post_hook">
+<span class="sig-name descname"><span class="pre">dvals_post_hook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatAcisCameraBody.dvals_post_hook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatAcisCameraBody.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a bias power offset when detector housing heater is on</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.SolarHeatHrc">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrc_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrc" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatHrc">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">SolarHeatHrc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simz_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sim_z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eclipse_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1732.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2010:001:12:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hrc_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dP_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch and SIM-Z dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -779,16 +759,16 @@ this component, one would use the following syntax:</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="xija.component.heat.SolarHeatHrc.dvals_post_hook">
-<code class="sig-name descname">dvals_post_hook</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrc.dvals_post_hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrc.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatHrc.dvals_post_hook">
+<span class="sig-name descname"><span class="pre">dvals_post_hook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrc.dvals_post_hook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrc.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.SolarHeatHrcMult">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrcMult</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.0334</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrci_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">hrcs_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcMult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcMult" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatHrcMult">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">SolarHeatHrcMult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simz_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sim_z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eclipse_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1732.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0334</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2010:001:12:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hrci_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hrcs_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dP_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcMult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcMult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch and SIM-Z dependent, two parameters for
 HRC-I and HRC-S)</p>
 <dl class="field-list simple">
@@ -832,8 +812,8 @@ HRC-I and HRC-S)</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.SolarHeatHrcOpts">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatHrcOpts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">simz_comp</span><span class="o">=</span><span class="default_value">'sim_z'</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">hrci_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">hrcs_bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcOpts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcOpts" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatHrcOpts">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">SolarHeatHrcOpts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simz_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sim_z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eclipse_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1732.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2010:001:12:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hrci_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hrcs_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dP_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcOpts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcOpts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch and SIM-Z dependent, two parameters for
 HRC-I and HRC-S)</p>
 <dl class="field-list simple">
@@ -875,16 +855,16 @@ HRC-I and HRC-S)</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="xija.component.heat.SolarHeatHrcOpts.dvals_post_hook">
-<code class="sig-name descname">dvals_post_hook</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcOpts.dvals_post_hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcOpts.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatHrcOpts.dvals_post_hook">
+<span class="sig-name descname"><span class="pre">dvals_post_hook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatHrcOpts.dvals_post_hook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatHrcOpts.dvals_post_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a bias power offset when SIM-Z is at HRC-S or HRC-I.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.SolarHeatMulplicative">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatMulplicative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_pitches</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Ps</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dPs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_func</span><span class="o">=</span><span class="default_value">'exp'</span></em>, <em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1732.0</span></em>, <em class="sig-param"><span class="n">ampl</span><span class="o">=</span><span class="default_value">0.0334</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="o">=</span><span class="default_value">'2010:001:12:00:00'</span></em>, <em class="sig-param"><span class="n">dP_pitches</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatMulplicative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatMulplicative" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatMulplicative">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">SolarHeatMulplicative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eclipse_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1732.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0334</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2010:001:12:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dP_pitches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatMulplicative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatMulplicative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solar heating (pitch dependent)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -921,8 +901,8 @@ HRC-I and HRC-S)</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.SolarHeatOffNomRoll">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">SolarHeatOffNomRoll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">pitch_comp</span><span class="o">=</span><span class="default_value">'pitch'</span></em>, <em class="sig-param"><span class="n">roll_comp</span><span class="o">=</span><span class="default_value">'roll'</span></em>, <em class="sig-param"><span class="n">eclipse_comp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P_plus_y</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">P_minus_y</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatOffNomRoll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.SolarHeatOffNomRoll" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.SolarHeatOffNomRoll">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">SolarHeatOffNomRoll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pitch'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roll_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'roll'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eclipse_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_plus_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_minus_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#SolarHeatOffNomRoll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.SolarHeatOffNomRoll" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heating of a +Y or -Y face of a spacecraft component due to off-nominal roll.  The
 heating is proportional to the projection of the sun on body +Y axis (which is a value
 from -1 to 1).  There are two parameters <code class="docutils literal notranslate"><span class="pre">P_plus_y</span></code> and <code class="docutils literal notranslate"><span class="pre">P_minus_y</span></code>.  For sun on
@@ -936,8 +916,8 @@ projections: <a class="reference external" href="http://occweb.cfa.harvard.edu/t
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.StepFunctionPower">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">StepFunctionPower</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">P</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">id</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#StepFunctionPower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.StepFunctionPower" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.StepFunctionPower">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">StepFunctionPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#StepFunctionPower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.StepFunctionPower" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class that applies a constant heat power shift only
 after a certain point in time.  The shift is 0.0 before
 <code class="docutils literal notranslate"><span class="pre">time</span></code> and <code class="docutils literal notranslate"><span class="pre">P</span></code> after <code class="docutils literal notranslate"><span class="pre">time</span></code>.</p>
@@ -958,32 +938,22 @@ after a certain point in time.  The shift is 0.0 before
 </dd>
 </dl>
 <dl class="py method">
-<dt id="xija.component.heat.StepFunctionPower.get_dvals_tlm">
-<code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#StepFunctionPower.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.StepFunctionPower.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="xija.component.heat.StepFunctionPower.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#StepFunctionPower.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.StepFunctionPower.update" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.StepFunctionPower.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#StepFunctionPower.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.StepFunctionPower.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the model prediction as a precomputed heat.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.heat.ThermostatHeater">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">ThermostatHeater</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">node_control</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">P</span><span class="o">=</span><span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">T_set</span><span class="o">=</span><span class="default_value">20.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#ThermostatHeater"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.ThermostatHeater" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.ThermostatHeater">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">ThermostatHeater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_control</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#ThermostatHeater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.ThermostatHeater" title="Permalink to this definition">¶</a></dt>
 <dd><p>Thermostat heater (no deadband): heat = P for T &lt; T_set).</p>
-<dl class="py method">
-<dt id="xija.component.heat.ThermostatHeater.get_dvals_tlm">
-<code class="sig-name descname">get_dvals_tlm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#ThermostatHeater.get_dvals_tlm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.ThermostatHeater.get_dvals_tlm" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py function">
-<dt id="xija.component.heat.quat_to_transform_transpose">
-<code class="sig-prename descclassname">xija.component.heat.</code><code class="sig-name descname">quat_to_transform_transpose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#quat_to_transform_transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.heat.quat_to_transform_transpose" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.heat.quat_to_transform_transpose">
+<span class="sig-prename descclassname"><span class="pre">xija.component.heat.</span></span><span class="sig-name descname"><span class="pre">quat_to_transform_transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/heat.html#quat_to_transform_transpose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.heat.quat_to_transform_transpose" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -998,12 +968,12 @@ after a certain point in time.  The shift is 0.0 before
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="module-xija.component.mask">
+</section>
+<section id="module-xija.component.mask">
 <span id="mask-classes"></span><h3>Mask classes<a class="headerlink" href="#module-xija.component.mask" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="xija.component.mask.Mask">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.mask.</code><code class="sig-name descname">Mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">op</span></em>, <em class="sig-param"><span class="n">val</span></em>, <em class="sig-param"><span class="n">min_</span><span class="o">=</span><span class="default_value">- 1e+38</span></em>, <em class="sig-param"><span class="n">max_</span><span class="o">=</span><span class="default_value">1e+38</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/mask.html#Mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.mask.Mask" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.mask.Mask">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.mask.</span></span><span class="sig-name descname"><span class="pre">Mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1e+38</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e+38</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/mask.html#Mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.mask.Mask" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Create object with a <code class="docutils literal notranslate"><span class="pre">mask</span></code> attribute corresponding to</dt><dd><p>node.dvals op val</p>
 </dd>
@@ -1018,22 +988,22 @@ after a certain point in time.  The shift is 0.0 before
 </dd></dl>
 
 <dl class="py class">
-<dt id="xija.component.mask.MaskBox">
-<em class="property">class </em><code class="sig-prename descclassname">xija.component.mask.</code><code class="sig-name descname">MaskBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">val0</span></em>, <em class="sig-param"><span class="n">val1</span></em>, <em class="sig-param"><span class="n">min_</span><span class="o">=</span><span class="default_value">- 1000</span></em>, <em class="sig-param"><span class="n">max_</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/mask.html#MaskBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.component.mask.MaskBox" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.component.mask.MaskBox">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">xija.component.mask.</span></span><span class="sig-name descname"><span class="pre">MaskBox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xija/component/mask.html#MaskBox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.component.mask.MaskBox" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Create object with a <code class="docutils literal notranslate"><span class="pre">mask</span></code> attribute corresponding to</dt><dd><p>val0 &lt; node.dvals &lt; val1</p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="module-xija.get_model_spec">
+</section>
+</section>
+<section id="module-xija.get_model_spec">
 <span id="get-model-spec"></span><h2>Get model spec<a class="headerlink" href="#module-xija.get_model_spec" title="Permalink to this headline">¶</a></h2>
 <p>Get Chandra model specifications</p>
 <dl class="py function">
-<dt id="xija.get_model_spec.get_github_version">
-<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_github_version</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'https://api.github.com/repos/sot/chandra_models/releases/latest'</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_github_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_github_version" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.get_model_spec.get_github_version">
+<span class="sig-prename descclassname"><span class="pre">xija.get_model_spec.</span></span><span class="sig-name descname"><span class="pre">get_github_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'https://api.github.com/repos/sot/chandra_models/releases/latest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_github_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.get_model_spec.get_github_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get latest chandra_models GitHub repo release tag (version).</p>
 <p>This queries GitHub for the latest release of chandra_models.</p>
 <dl class="field-list simple">
@@ -1056,8 +1026,8 @@ None if the request timed out, indicating indeterminate answer.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="xija.get_model_spec.get_repo_version">
-<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_repo_version</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">repo_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span> <span class="o">=</span> <span class="default_value">PosixPath('/proj/sot/ska/data/chandra_models')</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="reference internal" href="_modules/xija/get_model_spec.html#get_repo_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_repo_version" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.get_model_spec.get_repo_version">
+<span class="sig-prename descclassname"><span class="pre">xija.get_model_spec.</span></span><span class="sig-name descname"><span class="pre">get_repo_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)"><span class="pre">pathlib.Path</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">PosixPath('/proj/sot/ska/data/chandra_models')</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_repo_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.get_model_spec.get_repo_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return version (most recent tag) of models repository.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -1070,8 +1040,8 @@ None if the request timed out, indicating indeterminate answer.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="xija.get_model_spec.get_xija_model_names">
-<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_xija_model_names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">repo_path</span><span class="o">=</span><span class="default_value">PosixPath('/proj/sot/ska/data/chandra_models')</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_names" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.get_model_spec.get_xija_model_names">
+<span class="sig-prename descclassname"><span class="pre">xija.get_model_spec.</span></span><span class="sig-name descname"><span class="pre">get_xija_model_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PosixPath('/proj/sot/ska/data/chandra_models')</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return list of available xija model names.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1110,8 +1080,8 @@ $SKA/data/chandra_models)</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="xija.get_model_spec.get_xija_model_spec">
-<code class="sig-prename descclassname">xija.get_model_spec.</code><code class="sig-name descname">get_xija_model_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_name</span></em>, <em class="sig-param"><span class="n">version</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">repo_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">check_version</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_spec" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="xija.get_model_spec.get_xija_model_spec">
+<span class="sig-prename descclassname"><span class="pre">xija.get_model_spec.</span></span><span class="sig-name descname"><span class="pre">get_xija_model_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repo_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><span class="pre">tuple</span></a></span></span><a class="reference internal" href="_modules/xija/get_model_spec.html#get_xija_model_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xija.get_model_spec.get_xija_model_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get Xija model specification for the specified <code class="docutils literal notranslate"><span class="pre">model_name</span></code>.</p>
 <p>Supported model names include (but are not limited to): <code class="docutils literal notranslate"><span class="pre">'aca'</span></code>,
 <code class="docutils literal notranslate"><span class="pre">'acisfp'</span></code>, <code class="docutils literal notranslate"><span class="pre">'dea'</span></code>, <code class="docutils literal notranslate"><span class="pre">'dpa'</span></code>, <code class="docutils literal notranslate"><span class="pre">'psmc'</span></code>, <code class="docutils literal notranslate"><span class="pre">'minusyz'</span></code>, and
@@ -1164,8 +1134,8 @@ GitHub.</p>
 </div>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -1215,7 +1185,7 @@ GitHub.</p>
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 3.1.2. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
   </p>
 </footer>
   </body>
