@@ -8,104 +8,20 @@ on:
     - created
   repository_dispatch:
     types:
-    - conda-build
+      - conda-build
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    name: Build on Linux
-    steps:
-    - name: Login to GitHub Package Registry
-      run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }}
-    - name: Pull Docker image
-      run: docker pull docker.pkg.github.com/sot/skare3/centos7-builder:latest
-    - name: Build
-      id: build
-      run: >
-        docker run --rm  --name builder -v $GITHUB_WORKSPACE:/github/workspace -w /github/workspace
-        -e CONDA_PASSWORD -e GIT_USERNAME -e GIT_PASSWORD
-        docker.pkg.github.com/sot/skare3/centos7-builder:latest
-        ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
-      env:
-        CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
-        GIT_USERNAME: chandra-xray
-        GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
-        GIT_ASKPASS: /home/aca/git_pass.py
-    - name: Save package
-      uses: actions/upload-artifact@v2
-      with:
-        name: conda-package
-        path: |
-          builds/noarch/
-          builds/linux-64/
-          !builds/*/*repodata*
-          !builds/*/index.html
+  build:
+    uses: sot/skare3/.github/workflows/package_build.yml@master
+    with:
+      noarch: false
+    secrets:
+      CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
+      CHANDRA_XRAY_TOKEN: ${{ secrets.CHANDRA_XRAY_TOKEN }}
+      token: ${{ secrets.GITHUB_TOKEN }}
 
-
-  build-other:
-    runs-on: ${{ matrix.os }}-latest
-    name: Build on ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["macos", "windows"]
-    steps:
-    - name: Fetch Skare3-tools
-      uses: actions/checkout@v2
-      with:
-        repository: sot/skare3_tools
-        ref: master
-        path: skare3_tools
-    - name: Select XCode Version
-      run: sudo xcode-select -s "/Applications/Xcode_11.7.app"
-      if: ${{ matrix.os == 'macos' }}
-    - uses: sot/setup-miniconda@v2
-      with:
-        miniconda-version: "py38_4.8.3"
-        python-version: "3.8"
-        channels: https://ska:${{ secrets.CONDA_PASSWORD }}@cxc.cfa.harvard.edu/mta/ASPECT/ska3-conda/shiny
-    - name: Build Dependencies
-      shell: bash -l {0}
-      run: conda install setuptools_scm gitpython conda-build jinja2 pyyaml python=3.8 numpy packaging
-    - name: Build Package
-      shell: bash -l {0}
-      run: |
-        python skare3_tools/actions/build/files/build.py --arch-specific ${GITHUB_REPOSITORY} --tag ${GITHUB_SHA}
-      env:
-        CONDA_PASSWORD: ${{ secrets.CONDA_PASSWORD }}
-        GIT_USERNAME: chandra-xray
-        GIT_ASKPASS: ${{ github.workspace }}/skare3_tools/actions/build/files/git_pass.py
-        GIT_PASSWORD: ${{ secrets.CHANDRA_XRAY_TOKEN }}
-    - name: Save package
-      uses: actions/upload-artifact@v2
-      with:
-        name: conda-package
-        path: |
-          builds/noarch/
-          builds/osx-64/
-          builds/win-64/
-          !builds/*/*repodata*
-          !builds/*/index.html
-
-  update-channel:
-    runs-on: head
-    name: Update Conda Channel
-    needs: [build-linux, build-other]
-    steps:
-      - name: Get linux package
-        uses: actions/download-artifact@v2
-        with:
-          name: conda-package
-          path: package
-      - name: Update channel
-        run: |
-          rsync -a package/ ${CONDA_CHANNEL_DIR}
-          for d in noarch linux-64 osx-64 win-64;
-          do
-            if [ -d "${CONDA_CHANNEL_DIR}/$d" ];
-            then
-              conda index ${CONDA_CHANNEL_DIR}/$d;
-            fi
-          done;
-        env:
-          CONDA_CHANNEL_DIR: /proj/sot/ska/www/ASPECT/ska3-conda/masters
+  upload:
+    needs: [build]
+    uses: sot/skare3/.github/workflows/package_upload.yml@master
+    with:
+      channel: masters
