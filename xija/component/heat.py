@@ -659,7 +659,7 @@ class EarthHeat(PrecomputedHeatPower):
             # Earth's surface that is illuminated by the Sun.
             solar_xyzs = [getattr(self, f'solarephem0_{x}') for x in 'xyz']
 
-            if not None in solar_xyzs:
+            if None not in solar_xyzs:
 
                 solars = np.array([x.dvals for x in solar_xyzs]).transpose().copy()
 
