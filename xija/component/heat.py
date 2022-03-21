@@ -659,7 +659,9 @@ class EarthHeat(PrecomputedHeatPower):
 
             # This next bit optionally checks to see if the solar ephemeris
             # was passed in, and if it was it computes the fraction of the
-            # Earth's surface that is illuminated by the Sun.
+            # Earth's surface that is illuminated by the Sun. Originally
+            # discussed at:
+            # https://occweb.cfa.harvard.edu/twiki/bin/view/ThermalWG/MeetingNotes2022x03x03
             solar_xyzs = [getattr(self, f'solarephem0_{x}') for x in 'xyz']
 
             if self.use_earth_phase:
