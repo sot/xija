@@ -666,7 +666,8 @@ class EarthHeat(PrecomputedHeatPower):
                 cos = np.sum(ephems*solars, axis=1)
                 es = np.sum(ephems*ephems, axis=1)*np.sum(solars*solars, axis=1)
                 cos /= np.sqrt(es)
-                self._dvals *= 0.5*(1.0+cos)
+                self.earth_phase = 0.5*(1.0+cos)
+                self._dvals *= self.earth_phase
 
             self.put_cache()
 
@@ -717,6 +718,17 @@ class EarthHeat(PrecomputedHeatPower):
                           self.mvals_i,  # mvals with precomputed heat input
                           )
         self.tmal_floats = ()
+
+    def plot_earth_phase__time(self, fig, ax):
+        lines = ax.get_lines()
+        if not lines:
+            plot_cxctime(self.model.times, self.earth_phase, ls='-',
+                         color='#386cb0', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('Earth Phase')
+            ax.set_ylabel('Earth Phase')
+        else:
+            lines[0].set_data(self.model_plotdate, self.dvals)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
