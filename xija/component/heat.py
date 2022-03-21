@@ -656,9 +656,8 @@ class EarthHeat(PrecomputedHeatPower):
 
             # This next bit optionally checks to see if the solar ephemeris
             # was passed in, and if it was it computes the fraction of the
-            # Earth's surface that is illuminated by the Sun. 
-            solar_xyzs = [getattr(self, 'solarephem0_{}'.format(x))
-                          for x in ('x', 'y', 'z')]
+            # Earth's surface that is illuminated by the Sun.
+            solar_xyzs = [getattr(self, f'solarephem0_{x}') for x in 'xyz']
 
             if not None in solar_xyzs:
 
