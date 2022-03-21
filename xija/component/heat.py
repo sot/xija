@@ -546,7 +546,7 @@ class EarthHeat(PrecomputedHeatPower):
                  orbitephem0_x, orbitephem0_y, orbitephem0_z,
                  aoattqt1, aoattqt2, aoattqt3, aoattqt4,
                  solarephem0_x=None, solarephem0_y=None, 
-                 solarephem0_z=None, k=1.0):
+                 solarephem0_z=None, k=1.0, k2=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.orbitephem0_x = self.model.get_comp(orbitephem0_x)
@@ -568,9 +568,12 @@ class EarthHeat(PrecomputedHeatPower):
             self.solarephem0_z = None
         else:
             self.solarephem0_z = self.model.get_comp(solarephem0_z)
-        
+        self.use_earth_phase = np.all([getattr(self, f"solarephem0_{ax}") is not None
+                                       for ax in "xyz"])
         self.n_mvals = 1
         self.add_par('k', k, min=0.0, max=2.0)
+        self.add_par('k2', k2, min=0.0, max=2.0)
+        self.earth_phase = 1.0
 
     def calc_earth_vis_from_grid(self, ephems, q_atts):
         import astropy_healpix
@@ -659,15 +662,13 @@ class EarthHeat(PrecomputedHeatPower):
             # Earth's surface that is illuminated by the Sun.
             solar_xyzs = [getattr(self, f'solarephem0_{x}') for x in 'xyz']
 
-            if None not in solar_xyzs:
-
+            if self.use_earth_phase:
                 solars = np.array([x.dvals for x in solar_xyzs]).transpose().copy()
 
                 cos = np.sum(ephems*solars, axis=1)
                 es = np.sum(ephems*ephems, axis=1)*np.sum(solars*solars, axis=1)
                 cos /= np.sqrt(es)
                 self.earth_phase = 0.5*(1.0+cos)
-                self._dvals *= self.earth_phase
 
             self.put_cache()
 
@@ -713,6 +714,8 @@ class EarthHeat(PrecomputedHeatPower):
 
     def update(self):
         self.mvals = self.k * self.dvals
+        if self.use_earth_phase:
+            self.mvals += self.k2 * self.earth_phase * self.dvals
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                           self.node.mvals_i,  # dy1/dt index
                           self.mvals_i,  # mvals with precomputed heat input
