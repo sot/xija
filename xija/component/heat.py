@@ -546,7 +546,7 @@ class EarthHeat(PrecomputedHeatPower):
                  orbitephem0_x, orbitephem0_y, orbitephem0_z,
                  aoattqt1, aoattqt2, aoattqt3, aoattqt4,
                  solarephem0_x=None, solarephem0_y=None, 
-                 solarephem0_z=None, k=1.0, k2=1.0):
+                 solarephem0_z=None, k=1.0, k2=None):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.orbitephem0_x = self.model.get_comp(orbitephem0_x)
@@ -572,7 +572,8 @@ class EarthHeat(PrecomputedHeatPower):
                                        for ax in "xyz"])
         self.n_mvals = 1
         self.add_par('k', k, min=0.0, max=2.0)
-        self.add_par('k2', k2, min=0.0, max=2.0)
+        if k2 is not None:
+            self.add_par('k2', k2, min=0.0, max=2.0)
         self.earth_phase = 1.0
 
     def calc_earth_vis_from_grid(self, ephems, q_atts):
