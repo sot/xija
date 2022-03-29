@@ -5,22 +5,7 @@ on:
       - released
 
 jobs:
-  patch-release:
-    runs-on: ubuntu-latest
-    name: Patch Release
-    steps:
-    - name: Fetch Skare3 Tools
-      uses: actions/checkout@v2
-      with:
-        repository: sot/skare3_tools
-        ref: master
-        path: skare3_tools
-    - name: Release Description and Skare3 Issue
-      run: |
-        sudo -H pip3 install setuptools wheel
-        sudo -H pip3 install -r ./skare3_tools/requirements.txt
-        sudo -H pip3 install ./skare3_tools
-        skare3-release-merge-info --repository $GITHUB_REPOSITORY --sha $GITHUB_SHA
-        skare3-create-issue --repository sot/skare3 --latest-release $GITHUB_REPOSITORY --label 'Package update'
-      env:
-        GITHUB_API_TOKEN: ${{ secrets.SKARE3_CI_API_TOKEN }}
+  release:
+    uses: sot/skare3/.github/workflows/package_release.yml@master
+    secrets:
+      SKARE3_CI_API_TOKEN: ${{ secrets.SKARE3_CI_API_TOKEN }}
