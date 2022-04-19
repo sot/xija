@@ -231,7 +231,7 @@ class SolarHeat(PrecomputedHeatPower):
             # taken from the model spec file and used in fitting.
             Ps = self.parvals[0:self.n_pitches]
             dPs = self.parvals[self.n_pitches:self.n_pitches + len(self.dP_pitches)]
-            dPs_interp = np.interpolate(x=self.P_pitches, xp=self.dP_pitches, fp=dPs)
+            dPs_interp = np.interp(x=self.P_pitches, xp=self.dP_pitches, fp=dPs)
 
             Ps += dPs_interp * days / self.tau
             for par, P in zip(self.pars, Ps):
