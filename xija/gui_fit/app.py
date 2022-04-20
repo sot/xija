@@ -89,14 +89,12 @@ class FormattedTelemData:
         return val
 
 
-class FiltersWindow(QtWidgets.QMainWindow):
+class FiltersWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
         super(FiltersWindow, self).__init__()
         self.model = model
         self.mw = main_window
         self.setWindowTitle("Filters")
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
 
         header_font = QtGui.QFont()
         header_font.setBold(True)
@@ -152,7 +150,7 @@ class FiltersWindow(QtWidgets.QMainWindow):
         self.box.addStretch(1)
         self.box.addLayout(close)
 
-        wid.setLayout(self.box)
+        self.setLayout(self.box)
         self.setGeometry(0, 0, 400, 400)
 
     def add_ignore(self):
@@ -207,18 +205,16 @@ class FiltersWindow(QtWidgets.QMainWindow):
         self.close()
 
 
-class WriteTableWindow(QtWidgets.QMainWindow):
+class WriteTableWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
         super(WriteTableWindow, self).__init__()
         self.model = model
         self.mw = main_window
         self.setWindowTitle("Write Table")
-        wid = QtWidgets.QWidget(self)
         self.box = QtWidgets.QVBoxLayout()
-        wid.setLayout(self.box)
+        self.setLayout(self.box)
         self.setGeometry(0, 0, 200, 600)
         self.scroll = QtWidgets.QScrollArea()
-        self.setCentralWidget(wid)
 
         self.last_filename = ""
 
@@ -355,15 +351,13 @@ class WriteTableWindow(QtWidgets.QMainWindow):
                 msg.exec_()
 
 
-class ModelInfoWindow(QtWidgets.QMainWindow):
+class ModelInfoWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
         super(ModelInfoWindow, self).__init__()
         self.model = model
         self.setWindowTitle("Model Info")
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
         self.box = QtWidgets.QVBoxLayout()
-        wid.setLayout(self.box)
+        self.setLayout(self.box)
         self.setGeometry(0, 0, 300, 200)
 
         self.main_window = main_window
@@ -427,15 +421,13 @@ class ModelInfoWindow(QtWidgets.QMainWindow):
         self.main_window.model_info_window = None
 
 
-class LineDataWindow(QtWidgets.QMainWindow):
+class LineDataWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window, plots_box):
         super(LineDataWindow, self).__init__()
         self.model = model
         self.setWindowTitle("Line Data")
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
         self.box = QtWidgets.QVBoxLayout()
-        wid.setLayout(self.box)
+        self.setLayout(self.box)
         self.setGeometry(0, 0, 350, 600)
 
         self.plots_box = plots_box

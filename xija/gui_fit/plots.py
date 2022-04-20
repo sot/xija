@@ -6,7 +6,6 @@ import numpy as np
 from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
@@ -196,19 +195,7 @@ def annotate_limits(limits, ax, dir='h'):
     return lines
 
 
-class MplCanvas(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
-    def __init__(self, parent=None):
-        self.fig = Figure()
-
-        super(MplCanvas, self).__init__(self.fig)
-        self.setParent(parent)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                           QtWidgets.QSizePolicy.Expanding)
-        self.updateGeometry()
-
-
-class HistogramWindow(QtWidgets.QMainWindow):
+class HistogramWindow(QtWidgets.QWidget):
     def __init__(self, model, hist_msids):
         super(HistogramWindow, self).__init__()
         self.setGeometry(0, 0, 1000, 600)
@@ -217,16 +204,16 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.which_msid = 0
         self.comp = self.model.comp[self.hist_msids[self.which_msid]]
         self.setWindowTitle("Histogram")
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
         self.box = QtWidgets.QVBoxLayout()
-        wid.setLayout(self.box)
+        self.setLayout(self.box)
 
         self.rz_masked = False
         self.fmt1_masked = False
         self.show_limits = False
 
-        canvas = MplCanvas(parent=None)
+        self.fig = plt.figure()
+
+        canvas = FigureCanvas(self.fig)
         toolbar = NavigationToolbar(canvas, parent=None)
 
         msid_select = QtWidgets.QComboBox()
@@ -281,13 +268,13 @@ class HistogramWindow(QtWidgets.QMainWindow):
         self.limit_lines = []
 
         self.canvas = canvas
-        self.ax1 = self.canvas.fig.add_subplot(1, 2, 1)
-        self.ax2 = self.canvas.fig.add_subplot(1, 2, 2)
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
         self.plot_dict = {}
         self.make_plots()
 
     def close_window(self, *args):
-        self.canvas.fig.clear()
+        #self.canvas.fig.clear()
         self.close()
 
     _rz_mask = None
@@ -485,7 +472,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.comp_name = comp_name
         self.plot_name = plot_name
 
-        canvas = MplCanvas(parent=None)
+        self.fig = plt.figure()
+        canvas = FigureCanvas(self.fig)
         toolbar = NavigationToolbar(canvas, parent=None)
         delete_plot_button = QtWidgets.QPushButton('Delete')
         delete_plot_button.clicked.connect(
@@ -499,8 +487,6 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.addWidget(canvas)
         self.addLayout(toolbar_box)
 
-        self.fig = canvas.fig
-
         # Add shared x-axes for plots with time on the x-axis
         xaxis = plot_method.split('__')
         if len(xaxis) == 1 or not plot_method.endswith("time"): 
@@ -510,7 +496,6 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ax.autoscale(enable=False, axis='x')
 
         self.canvas = canvas
-        self.canvas.show()
         self.plots_box = plots_box
         self.main_window = self.plots_box.main_window
         self.selecter = self.canvas.mpl_connect("button_press_event", self.select)
