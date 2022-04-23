@@ -261,6 +261,21 @@ class HistogramWindow(QtWidgets.QWidget):
         check_boxes.addWidget(limits_check)
         check_boxes.addStretch(1)
 
+        self._errorlimits = [-5.0, 5.0]
+
+        self.emin_entry = QtWidgets.QLineEdit()
+        self.emin_entry.setText(f"{self.errorlimits[0]}")
+        self.emin_entry.returnPressed.connect(self.emin_edited)
+        
+        self.emax_entry = QtWidgets.QLineEdit()
+        self.emax_entry.setText(f"{self.errorlimits[1]}")
+        self.emax_entry.returnPressed.connect(self.emax_edited)
+
+        check_boxes.addWidget(QtWidgets.QLabel('Error min:'))
+        check_boxes.addWidget(self.emin_entry)
+        check_boxes.addWidget(QtWidgets.QLabel('Error max:'))
+        check_boxes.addWidget(self.emax_entry)
+
         self.box.addWidget(canvas)
         self.box.addLayout(toolbar_box)
         self.box.addLayout(check_boxes)
@@ -273,8 +288,25 @@ class HistogramWindow(QtWidgets.QWidget):
         self.plot_dict = {}
         self.make_plots()
 
+    @property
+    def errorlimits(self):
+        return self._errorlimits
+    
+    @errorlimits.setter
+    def errorlimits(self, lims):
+        self._errorlimits = lims
+
+    def emin_edited(self):
+        emin = float(self.emin_entry.text().strip())
+        self._errorlimits[0] = emin
+        self.update_plots()
+
+    def emax_edited(self):
+        emax = float(self.emax_entry.text().strip())
+        self._errorlimits[1] = emax
+        self.update_plots()
+
     def close_window(self, *args):
-        #self.canvas.fig.clear()
         self.close()
 
     _rz_mask = None
@@ -368,7 +400,7 @@ class HistogramWindow(QtWidgets.QWidget):
         Epoints99, _ = getQuantPlotPoints(quantstats, 'q99')
         Epoints50, _ = getQuantPlotPoints(quantstats, 'q50')
 
-        hist, bins = np.histogram(resids, 40)
+        hist, bins = np.histogram(resids, 40, range=self._errorlimits)
         hist = hist*100.0/self.comp.mvals.size
         hist[hist == 0.0] = np.nan
         bin_mid = 0.5*(bins[1:]+bins[:-1])
@@ -422,7 +454,7 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict['max_hist'].set_xdata(max_resid)
             self.plot_dict['fill'].remove()
 
-        self.ax1.set_xlim(min_resid-0.5, max_resid+0.5)
+        self.ax1.set_xlim(*self._errorlimits)
         self.ax1.set_ylim(min_dvals-0.5, max_dvals+0.5)
 
         self.plot_dict["fill"] = self.ax2.fill_between(
@@ -434,7 +466,7 @@ class HistogramWindow(QtWidgets.QWidget):
         ylim2 = self.ax2.get_ylim()
         ystart = (ylim2[1] + ylim2[0]) * 0.5
         xoffset = -(.2 / 25) * (max_resid - min_resid)
-        self.ax2.set_xlim(min_resid-1.0, max_resid+1.0)
+        self.ax2.set_xlim(*self._errorlimits)
 
         xpos_q01 = stats['q01'] + xoffset*1.1
         xpos_q99 = stats['q99'] - xoffset*0.9
