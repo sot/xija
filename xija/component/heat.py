@@ -545,7 +545,8 @@ class EarthHeat(PrecomputedHeatPower):
     def __init__(self, model, node,
                  orbitephem0_x, orbitephem0_y, orbitephem0_z,
                  aoattqt1, aoattqt2, aoattqt3, aoattqt4,
-                 k=1.0):
+                 solarephem0_x=None, solarephem0_y=None, 
+                 solarephem0_z=None, k=1.0, k2=None):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.orbitephem0_x = self.model.get_comp(orbitephem0_x)
@@ -555,8 +556,25 @@ class EarthHeat(PrecomputedHeatPower):
         self.aoattqt2 = self.model.get_comp(aoattqt2)
         self.aoattqt3 = self.model.get_comp(aoattqt3)
         self.aoattqt4 = self.model.get_comp(aoattqt4)
+        if solarephem0_x is None:
+            self.solarephem0_x = None
+        else:
+            self.solarephem0_x = self.model.get_comp(solarephem0_x)
+        if solarephem0_y is None:
+            self.solarephem0_y = None
+        else:
+            self.solarephem0_y = self.model.get_comp(solarephem0_y)
+        if solarephem0_z is None:
+            self.solarephem0_z = None
+        else:
+            self.solarephem0_z = self.model.get_comp(solarephem0_z)
+        self.use_earth_phase = np.all([getattr(self, f"solarephem0_{ax}") is not None
+                                       for ax in "xyz"])
         self.n_mvals = 1
         self.add_par('k', k, min=0.0, max=2.0)
+        if k2 is not None:
+            self.add_par('k2', k2, min=0.0, max=2.0)
+        self.earth_phase = 1.0
 
     def calc_earth_vis_from_grid(self, ephems, q_atts):
         import astropy_healpix
@@ -640,6 +658,21 @@ class EarthHeat(PrecomputedHeatPower):
             else:
                 self.calc_earth_vis_from_taco(ephems, q_atts)
 
+            # This next bit optionally checks to see if the solar ephemeris
+            # was passed in, and if it was it computes the fraction of the
+            # Earth's surface that is illuminated by the Sun. Originally
+            # discussed at:
+            # https://occweb.cfa.harvard.edu/twiki/bin/view/ThermalWG/MeetingNotes2022x03x03
+            solar_xyzs = [getattr(self, f'solarephem0_{x}') for x in 'xyz']
+
+            if self.use_earth_phase:
+                solars = np.array([x.dvals for x in solar_xyzs]).transpose().copy()
+
+                cos = np.sum(ephems*solars, axis=1)
+                es = np.sum(ephems*ephems, axis=1)*np.sum(solars*solars, axis=1)
+                cos /= np.sqrt(es)
+                self.earth_phase = 0.5*(1.0+cos)
+
             self.put_cache()
 
         return self._dvals
@@ -684,11 +717,24 @@ class EarthHeat(PrecomputedHeatPower):
 
     def update(self):
         self.mvals = self.k * self.dvals
+        if self.use_earth_phase:
+            self.mvals += self.k2 * self.earth_phase * self.dvals
         self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
                           self.node.mvals_i,  # dy1/dt index
                           self.mvals_i,  # mvals with precomputed heat input
                           )
         self.tmal_floats = ()
+
+    def plot_earth_phase__time(self, fig, ax):
+        lines = ax.get_lines()
+        if not lines:
+            plot_cxctime(self.model.times, self.earth_phase, ls='-',
+                         color='#386cb0', fig=fig, ax=ax)
+            ax.grid()
+            ax.set_title('Earth Phase')
+            ax.set_ylabel('Earth Phase')
+        else:
+            lines[0].set_data(self.model_plotdate, self.dvals)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
