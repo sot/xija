@@ -8,7 +8,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-
+from matplotlib.figure import Figure
 
 from xija.limits import get_limit_color
 from cheta.units import F_to_C
@@ -211,7 +211,7 @@ class HistogramWindow(QtWidgets.QWidget):
         self.fmt1_masked = False
         self.show_limits = False
 
-        self.fig = plt.figure()
+        self.fig = Figure()
 
         canvas = FigureCanvas(self.fig)
         toolbar = NavigationToolbar(canvas, parent=None)
@@ -504,7 +504,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.comp_name = comp_name
         self.plot_name = plot_name
 
-        self.fig = plt.figure()
+        self.fig = Figure()
         canvas = FigureCanvas(self.fig)
         toolbar = NavigationToolbar(canvas, parent=None)
         delete_plot_button = QtWidgets.QPushButton('Delete')
