@@ -281,6 +281,8 @@ class HistogramWindow(QtWidgets.QWidget):
         self.box.addLayout(check_boxes)
 
         self.limit_lines = []
+        self.max_limit = -1000
+        self.min_limit = 1000
 
         self.canvas = canvas
         self.ax1 = self.fig.add_subplot(1, 2, 1)
@@ -340,15 +342,21 @@ class HistogramWindow(QtWidgets.QWidget):
     def _clear_limits(self):
         [line.remove() for line in self.limit_lines]
         self.limit_lines = []
+        self.max_limit = -1000
+        self.min_limit = 1000
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def plot_limits(self, state):
         if state == QtCore.Qt.Checked:
             limits = self.model.limits.get(self.hist_msids[self.which_msid], None)
             if limits is not None:
                 self.limit_lines = annotate_limits(limits, self.ax1)
+                lim_vals = [v for k, v in limits.items() if "unit" not in k.lower()]
+                self.min_limit = np.min(lim_vals)
+                self.max_limit = np.max(lim_vals)
         else:
             self._clear_limits()
-        self.canvas.draw_idle()
+        QtCore.QTimer.singleShot(200, self.update_plots)
 
     def change_msid(self, msid):
         self._clear_limits()
@@ -410,8 +418,12 @@ class HistogramWindow(QtWidgets.QWidget):
 
         dvalsr = dvals + randx
 
-        min_dvals = np.nanmin(dvalsr)
-        max_dvals = np.nanmax(dvalsr)
+        ymin = np.nanmin(dvalsr)
+        ymax = np.nanmax(dvalsr)
+        if self.min_limit > ymin - 10:
+            ymin = min(ymin, self.min_limit)
+        if self.max_limit < ymax + 10:
+            ymax = max(ymax, self.max_limit)
 
         if len(self.plot_dict) == 0:
             self.plot_dict['resids'] = self.ax1.plot(
@@ -455,7 +467,7 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict['fill'].remove()
 
         self.ax1.set_xlim(*self._errorlimits)
-        self.ax1.set_ylim(min_dvals-0.5, max_dvals+0.5)
+        self.ax1.set_ylim(ymin-0.5, ymax+0.5)
 
         self.plot_dict["fill"] = self.ax2.fill_between(
             bin_mid, hist, step="mid", color='#386cb0')
