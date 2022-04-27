@@ -288,8 +288,10 @@ class HistogramWindow(QtWidgets.QWidget):
         self.ax1 = self.fig.add_subplot(1, 2, 1)
         self.ax2 = self.fig.add_subplot(1, 2, 2)
         self.plot_dict = {}
+        self.rz_mask
+        self.fmt1_mask
         self.make_plots()
-
+        
     @property
     def errorlimits(self):
         return self._errorlimits
@@ -576,6 +578,18 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ly.set_xdata(self.plots_box.xline)
             self.canvas.draw_idle()
 
+    _rz_times = None
+    
+    @property
+    def rz_times(self):
+        if self._rz_times is None:
+            self._rz_times = []
+            rad_zones = get_radzones(self.plots_box.model)
+            for rz in rad_zones:
+                t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
+                self._rz_times.append((t0, t1))
+        return self._rz_times
+
     def add_annotation(self, atype):
         if atype == "limits" and self.comp_name in self.plots_box.model.limits:
             limits = self.plots_box.model.limits[self.comp_name]
@@ -584,10 +598,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
             elif "data__time" in self.plot_name:
                 self.limits = annotate_limits(limits, self.ax, dir='h')
         elif atype == "radzones" and self.plot_method.endswith("time"):
-            rad_zones = get_radzones(self.plots_box.model)
             self.rzlines = []
-            for rz in rad_zones:
-                t0, t1 = cxctime2plotdate([rz.tstart, rz.tstop])
+            for t0, t1 in self.rz_times:
                 self.rzlines += [
                     self.ax.axvline(t0, color='g', ls='--'),
                     self.ax.axvline(t1, color='g', ls='--')
