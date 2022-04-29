@@ -579,7 +579,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.canvas.draw_idle()
 
     _rz_times = None
-    
+
     @property
     def rz_times(self):
         if self._rz_times is None:
@@ -664,7 +664,6 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     def __init__(self, model, main_window):
         super(QtWidgets.QVBoxLayout, self).__init__()
         self.main_window = main_window
-        self.sharex = {}        # Shared x-axes keyed by x-axis type
         self.model = model
         self.xline = 0.5*np.sum(cxctime2plotdate([self.model.tstart,
                                                   self.model.tstop]))
@@ -672,7 +671,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.plot_boxes = []
         self.plot_names = []
 
-        # Set up a default axis that will the scaling reference
+        # Set up a default axis that will act as the scaling reference
         self.default_fig, self.default_ax = plt.subplots()
         plot_cxctime(self.model.times, np.ones_like(self.model.times), 
                      fig=self.default_fig, ax=self.default_ax)
@@ -698,10 +697,10 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.update_plot_boxes()
         # This is a hack to get the axes to appear correctly
         # on the rest of the plots after deleting one, somehow
-        # related to clearing the figure above 
+        # related to clearing the figure above
         for pb in self.plot_boxes:
             pb.ax.set_xlim()
-            
+
     def update_plots(self):
         mw = self.main_window
         mw.cbp.update_status.setText(' BUSY... ')
