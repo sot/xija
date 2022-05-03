@@ -17,7 +17,6 @@ void dTdt(int j, int half, int n_preds, int n_tmals, int **tmal_ints,
     int i, i1, i2, i3, opcode;
     double dt2, mvals_i2, mvals_i3, tempk1, tempk2;
 
-    double sb_const = 5.670374419E-8;
     double c2k = 273.15;
     
     for (i = 0; i < n_preds; i++) {
@@ -83,18 +82,16 @@ void dTdt(int j, int half, int n_preds, int n_tmals, int **tmal_ints,
                 if (half == 0) mvals[i3][j] = mvals_i3;
                 break;
             case 5:  /* Node to node radiative coupling */
-                tempk1 = y[i1] + c2k;
+                tempk1 = (y[i1] + c2k) / 300;
                 if (i2 < n_preds && i1 < n_preds) {
-                    tempk2 = y[i2] + c2k;
-                    deriv[i1] += (tempk2 * tempk2 * tempk2 * tempk2 - tempk1 * tempk1 * tempk1 * tempk1)
-                        * tmal_floats[i][0] * sb_const;
+                    tempk2 = (y[i2] + c2k) / 300;
                 }
                 else {
-                    tempk2 = mvals_i2 + c2k;
-                    deriv[i1] += (tempk2 * tempk2 * tempk2 * tempk2 - tempk1 * tempk1 * tempk1 * tempk1)
-                        * tmal_floats[i][0] * sb_const;
+                    tempk2 = (mvals_i2 + c2k) / 300;
                 }
-                break;
+                deriv[i1] += (pow(tempk2, tmal_floats[i][1]) -
+                    pow(tempk1, tmal_floats[i][1])) * tmal_floats[i][0];
+            break;
         }
     }
 
