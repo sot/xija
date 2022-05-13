@@ -45,9 +45,6 @@ logger = clogging.config_logger('xija', level=clogging.INFO)
 DEFAULT_DT = 328.0
 dt_factors = np.array([1.0, 0.5, 0.25, 0.2, 0.125, 0.1, 0.05, 0.025])
 
-#int calc_model(int n_times, int n_preds, int n_tmals, double dt,
-#               double **mvals, int **tmal_ints, double **tmal_floats)
-
 
 def convert_type_star_star(array, ctype_type):
     f4ptr = ctypes.POINTER(ctype_type)
@@ -185,8 +182,8 @@ class XijaModel(object):
                            "Setting dt = %g s." % DEFAULT_DT)
             return DEFAULT_DT
         dt_factor = dt / DEFAULT_DT
-        idx = np.argmin(np.abs(dt_factor-dt_factors))
-        dt = DEFAULT_DT*dt_factors[idx]
+        idx = np.argmin(np.abs(dt_factor - dt_factors))
+        dt = DEFAULT_DT * dt_factors[idx]
         logger.debug("Using dt = %g s." % dt)
         return dt
 
@@ -279,12 +276,12 @@ class XijaModel(object):
 
         """
         if states is not None:
-            if (states[0]['tstart'] >= self.times[0] or
-                states[-1]['tstop'] <= self.times[-1]):
+            if (states[0]['tstart'] >= self.times[0]
+                    or states[-1]['tstop'] <= self.times[-1]):
                 raise ValueError('cmd_states time range too small:\n'
                                  '{} : {} versus {} : {}'.format(
-                        states[0]['tstart'], states[-1]['tstop'],
-                        self.times[0], self.times[-1]))
+                                     states[0]['tstart'], states[-1]['tstop'],
+                                     self.times[0], self.times[-1]))
 
             indexes = np.searchsorted(states['tstop'], self.times)
             self._cmd_states = states[indexes]
@@ -308,7 +305,7 @@ class XijaModel(object):
         -------
 
         """
-        tpad = DEFAULT_DT*5.0
+        tpad = DEFAULT_DT * 5.0
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
         logger.info('Fetching msid: %s over %s to %s' %
@@ -448,8 +445,7 @@ class XijaModel(object):
 
         model_spec['limits'] = self.limits
 
-        stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent)
-                              else x)
+        stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent) else x)
         for comp in self.comps:
             init_args = [stringfy(x) for x in comp.init_args]
             init_kwargs = dict((k, stringfy(v))
@@ -556,8 +552,7 @@ class XijaModel(object):
             comp_name = par['comp_name']
             if comp_name != last_comp_name:
                 print('# Set {} component parameters'.format(comp_name), file=out)
-                print('comp = model.get_comp({})\n' \
-                    .format(repr(comp_name)), file=out)
+                print('comp = model.get_comp({})\n'.format(repr(comp_name)), file=out)
             print('par = comp.get_par({})'.format(repr(par['name'])), file=out)
             par_upds = ['{}={}'.format(attr, repr(par[attr]))
                         for attr in parattrs]
@@ -591,7 +586,7 @@ class XijaModel(object):
         """
         if len(vals) != len(self.pars):
             raise ValueError('Length mismatch setting parvals {} vs {}'.format(
-                    len(self.pars), len(vals)))
+                len(self.pars), len(vals)))
         for par, val in zip(self.pars, vals):
             par.val = val
 
@@ -692,8 +687,8 @@ class XijaModel(object):
                                      len(self.tmal_ints), dt, mvals,
                                      tmal_ints, tmal_floats)
 
-        # hackish fix to ensure last value is computed
-        self.mvals[:, -1] = self.mvals[:, -2]
+        # hackish fix to ensure last value is a computed value for predicted components
+        self.mvals[:self.n_preds, -1] = self.mvals[:self.n_preds, -2]
 
         # Apply Delay components after the model calculation
         for comp in self.comps:
@@ -751,8 +746,7 @@ class XijaModel(object):
                 ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
-                ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
-                ]
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double))]
             XijaModel._core_1 = _core_1
         return XijaModel._core_1
 
@@ -805,5 +799,6 @@ class XijaModel(object):
         self.mask_times_indices = self.bad_times_indices.copy()
         self.mask_time_secs = date2secs(self.mask_times)
         self.mask_times_bad = np.ones(self.mask_time_secs.shape[0], dtype='bool')
+
 
 ThermalModel = XijaModel
