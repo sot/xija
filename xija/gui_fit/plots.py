@@ -494,16 +494,16 @@ class HistogramWindow(QtWidgets.QWidget):
         else:
             self.plot_dict["q01_text"] = self.ax2.text(
                 xpos_q01, ystart, '1% Quantile', 
-                ha="right", va="center", rotation=90)
+                ha="right", va="center", rotation=90, clip_on=True)
             self.plot_dict["q99_text"] = self.ax2.text(
                 xpos_q99, ystart, '99% Quantile', 
-                ha="left", va="center", rotation=90)
+                ha="left", va="center", rotation=90, clip_on=True)
             self.plot_dict["min_text"] = self.ax2.text(
                 xpos_min, ystart, 'Minimum Error', 
-                ha="right", va="center", rotation=90)
+                ha="right", va="center", rotation=90, clip_on=True)
             self.plot_dict["max_text"] = self.ax2.text(
                 xpos_max, ystart, 'Maximum Error', 
-                ha="left", va="center", rotation=90)
+                ha="left", va="center", rotation=90, clip_on=True)
 
         self.canvas.draw_idle()
 
