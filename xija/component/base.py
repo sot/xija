@@ -338,19 +338,29 @@ class Node(TelemData):
             ax.autoscale()
 
 
-class ModeledData(ModelComponent):
-    def __init__(self, model, name, modeled_msid, model_spec):
+class ModeledData(TelemData):
+    def __init__(self, model, name, modeled_msid, model_spec=None,
+                 set_data_vals=None):
         from xija.model import XijaModel
-        super().__init__(model)
+        from xija.get_model_spec import get_xija_model_spec
+        super().__init__(model, modeled_msid)
         self.modeled_msid = modeled_msid
+        if model_spec is None:
+            model_spec = get_xija_model_spec(name)[0]
         self.model2 = XijaModel(name, start=self.model.datestart,
                                 stop=self.model.datestop,
                                 model_spec=model_spec)
+        if set_data_vals is not None:
+            for comp_name, val in set_data_vals.items():
+                self.model2.comp[comp_name].set_data(val)
+
         self.model2.make()
         self.model2.calc()
 
     def get_dvals_tlm(self):
-        return self.model2.comp[self.modeled_msid].mvals
+        mvals = self.model2.comp[self.modeled_msid].mvals
+        times = self.model2.times
+        return np.interp(self.times, times, mvals)
 
     def __str__(self):
         return self.modeled_msid
