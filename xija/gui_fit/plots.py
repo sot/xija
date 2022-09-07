@@ -266,7 +266,7 @@ class HistogramWindow(QtWidgets.QWidget):
         self.emin_entry = QtWidgets.QLineEdit()
         self.emin_entry.setText(f"{self.errorlimits[0]}")
         self.emin_entry.returnPressed.connect(self.emin_edited)
-        
+
         self.emax_entry = QtWidgets.QLineEdit()
         self.emax_entry.setText(f"{self.errorlimits[1]}")
         self.emax_entry.returnPressed.connect(self.emax_edited)
@@ -291,11 +291,11 @@ class HistogramWindow(QtWidgets.QWidget):
         self.rz_mask
         self.fmt1_mask
         self.make_plots()
-        
+
     @property
     def errorlimits(self):
         return self._errorlimits
-    
+
     @errorlimits.setter
     def errorlimits(self, lims):
         self._errorlimits = lims
@@ -390,7 +390,7 @@ class HistogramWindow(QtWidgets.QWidget):
             mask &= self.rz_mask
         if self.fmt1_masked:
             mask &= self.fmt1_mask
-        for i0, i1 in self.model.bad_times_indices:
+        for i0, i1 in self.model.mask_times_indices:
             mask[i0:i1] = False
         resids = self.comp.resids[mask]
         dvals = self.comp.dvals[mask]
