@@ -541,11 +541,10 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ax = self.fig.add_subplot(111, sharex=plots_box.default_ax)
             self.ax.autoscale(enable=False, axis='x')
 
-        self.canvas = canvas
         self.plots_box = plots_box
         self.main_window = self.plots_box.main_window
-        self.selecter = self.canvas.mpl_connect("button_press_event", self.select)
-        self.releaser = self.canvas.mpl_connect("button_release_event", self.release)
+        self.selecter = self.fig.canvas.mpl_connect("button_press_event", self.select)
+        self.releaser = self.fig.canvas.mpl_connect("button_release_event", self.release)
 
         self.ly = None
         self.limits = None
@@ -556,7 +555,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         grab = event.inaxes and self.main_window.show_line and \
                not self.ax.get_navigate_mode()
         if grab:
-            self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+            self.mover = self.fig.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
             self.plots_box.xline = event.xdata
             self.plots_box.update_xline()
         else:
@@ -571,12 +570,12 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def release(self, event):
         if hasattr(self, "mover"):
-            self.canvas.mpl_disconnect(self.mover)
+            self.fig.canvas.mpl_disconnect(self.mover)
 
     def update_xline(self):
         if self.plot_name.endswith("time") and self.ly is not None:
             self.ly.set_xdata(self.plots_box.xline)
-            self.canvas.draw_idle()
+            self.fig.canvas.draw_idle()
 
     _rz_times = None
 
@@ -657,8 +656,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 self.add_annotation("line")
             if mw.show_limits:
                 self.add_annotation("limits")
-        self.canvas.draw_idle()
-
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
 
 class PlotsBox(QtWidgets.QVBoxLayout):
     def __init__(self, model, main_window):
