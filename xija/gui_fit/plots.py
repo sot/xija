@@ -284,7 +284,6 @@ class HistogramWindow(QtWidgets.QWidget):
         self.max_limit = -1000
         self.min_limit = 1000
 
-        self.canvas = canvas
         self.ax1 = self.fig.add_subplot(1, 2, 1)
         self.ax2 = self.fig.add_subplot(1, 2, 2)
         self.plot_dict = {}
@@ -505,7 +504,8 @@ class HistogramWindow(QtWidgets.QWidget):
                 xpos_max, ystart, 'Maximum Error', 
                 ha="left", va="center", rotation=90, clip_on=True)
 
-        self.canvas.draw_idle()
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
 
 
 class PlotBox(QtWidgets.QVBoxLayout):
@@ -658,6 +658,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 self.add_annotation("limits")
         self.fig.canvas.draw_idle()
         self.fig.canvas.flush_events()
+
 
 class PlotsBox(QtWidgets.QVBoxLayout):
     def __init__(self, model, main_window):
