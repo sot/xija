@@ -266,7 +266,7 @@ class HistogramWindow(QtWidgets.QWidget):
         self.emin_entry = QtWidgets.QLineEdit()
         self.emin_entry.setText(f"{self.errorlimits[0]}")
         self.emin_entry.returnPressed.connect(self.emin_edited)
-        
+
         self.emax_entry = QtWidgets.QLineEdit()
         self.emax_entry.setText(f"{self.errorlimits[1]}")
         self.emax_entry.returnPressed.connect(self.emax_edited)
@@ -284,18 +284,17 @@ class HistogramWindow(QtWidgets.QWidget):
         self.max_limit = -1000
         self.min_limit = 1000
 
-        self.canvas = canvas
         self.ax1 = self.fig.add_subplot(1, 2, 1)
         self.ax2 = self.fig.add_subplot(1, 2, 2)
         self.plot_dict = {}
         self.rz_mask
         self.fmt1_mask
         self.make_plots()
-        
+
     @property
     def errorlimits(self):
         return self._errorlimits
-    
+
     @errorlimits.setter
     def errorlimits(self, lims):
         self._errorlimits = lims
@@ -390,7 +389,7 @@ class HistogramWindow(QtWidgets.QWidget):
             mask &= self.rz_mask
         if self.fmt1_masked:
             mask &= self.fmt1_mask
-        for i0, i1 in self.model.bad_times_indices:
+        for i0, i1 in self.model.mask_times_indices:
             mask[i0:i1] = False
         resids = self.comp.resids[mask]
         dvals = self.comp.dvals[mask]
@@ -505,7 +504,8 @@ class HistogramWindow(QtWidgets.QWidget):
                 xpos_max, ystart, 'Maximum Error', 
                 ha="left", va="center", rotation=90, clip_on=True)
 
-        self.canvas.draw_idle()
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
 
 
 class PlotBox(QtWidgets.QVBoxLayout):
@@ -541,11 +541,10 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ax = self.fig.add_subplot(111, sharex=plots_box.default_ax)
             self.ax.autoscale(enable=False, axis='x')
 
-        self.canvas = canvas
         self.plots_box = plots_box
         self.main_window = self.plots_box.main_window
-        self.selecter = self.canvas.mpl_connect("button_press_event", self.select)
-        self.releaser = self.canvas.mpl_connect("button_release_event", self.release)
+        self.selecter = self.fig.canvas.mpl_connect("button_press_event", self.select)
+        self.releaser = self.fig.canvas.mpl_connect("button_release_event", self.release)
 
         self.ly = None
         self.limits = None
@@ -556,7 +555,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         grab = event.inaxes and self.main_window.show_line and \
                not self.ax.get_navigate_mode()
         if grab:
-            self.mover = self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+            self.mover = self.fig.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
             self.plots_box.xline = event.xdata
             self.plots_box.update_xline()
         else:
@@ -571,12 +570,12 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def release(self, event):
         if hasattr(self, "mover"):
-            self.canvas.mpl_disconnect(self.mover)
+            self.fig.canvas.mpl_disconnect(self.mover)
 
     def update_xline(self):
         if self.plot_name.endswith("time") and self.ly is not None:
             self.ly.set_xdata(self.plots_box.xline)
-            self.canvas.draw_idle()
+            self.fig.canvas.draw_idle()
 
     _rz_times = None
 
@@ -657,7 +656,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
                 self.add_annotation("line")
             if mw.show_limits:
                 self.add_annotation("limits")
-        self.canvas.draw_idle()
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
 
 
 class PlotsBox(QtWidgets.QVBoxLayout):

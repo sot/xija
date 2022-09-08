@@ -300,6 +300,8 @@ class Node(TelemData):
         resids = self.resids
         if self.mask:
             resids[~self.mask.mask] = np.nan
+        for i0, i1 in self.model.mask_times_indices:
+            resids[i0:i1] = np.nan
 
         if not lines:
             plot_cxctime(self.model.times, resids, ls='-', color='#386cb0', fig=fig, ax=ax)
@@ -312,12 +314,16 @@ class Node(TelemData):
             ax.set_ylabel('Temperature (%s)' % self.units)
         else:
             lines[0].set_ydata(resids)
+            ax.relim()
+            ax.autoscale()
 
     def plot_resid__data(self, fig, ax):
         lines = ax.get_lines()
         resids = self.resids
         if self.mask:
             resids[~self.mask.mask] = np.nan
+        for i0, i1 in self.model.mask_times_indices:
+            resids[i0:i1] = np.nan
 
         if not lines:
             ax.plot(self.dvals + self.randx, resids, 'o',
@@ -328,6 +334,8 @@ class Node(TelemData):
             ax.set_ylabel('Temperature (%s)' % self.units)
         else:
             lines[0].set_ydata(resids)
+            ax.relim()
+            ax.autoscale()
 
 
 class Coupling(ModelComponent):
