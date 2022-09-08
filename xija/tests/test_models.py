@@ -6,6 +6,7 @@ import pytest
 from pathlib import Path
 
 from xija import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
+from xija.get_model_spec import get_xija_model_spec
 import xija
 from numpy import sin, cos, abs
 
@@ -350,3 +351,52 @@ def test_fewer_dP_pitches(solar_class):
     model2.calc()
 
     assert np.allclose(model1.comp[msid].mvals, model2.comp[msid].mvals)
+
+
+def test_bad_times():
+    """
+    Test bad times handling for PM2THV1T model which has a large number of bad
+    times defined, including in particular:
+
+        ['2022:083:21:43:01.949', '2022:083:21:52:52.349'],
+        ['2022:083:22:02:09.949', '2022:083:22:40:58.749'],
+        ['2022:083:23:03:56.349', '2022:084:03:45:28.350'],
+        ['2022:084:07:13:45.151', '2022:084:14:54:02.753'],
+    """
+    spec1 = get_xija_model_spec('pm2thv1t', version='3.40.2')[0]
+    assert len(spec1['bad_times']) == 5876
+
+    # Straddling two bad time intervals (model starts within first and ends
+    # after second).
+    mdl = xija.XijaModel(
+        'test', '2022:083:22:30:00', '2022:084:04:00:00', model_spec=spec1,
+    )
+    exp = [['2022:083:22:02:09.949', '2022:083:22:40:58.749'],
+           ['2022:083:23:03:56.349', '2022:084:03:45:28.350']]
+    assert mdl.bad_times == exp
+    assert mdl.bad_times_indices == [[0, 2], [6, 58]]
+    assert 58 < mdl.n_times
+
+    # Within one bad time interval
+    mdl = xija.XijaModel(
+        'test', '2022:084:00:00:00', '2022:084:01:00:00', model_spec=spec1,
+    )
+    exp = [['2022:083:23:03:56.349', '2022:084:03:45:28.350']]
+    assert mdl.bad_times == exp
+    assert mdl.bad_times_indices == [[0, len(mdl.times)]]
+
+    # Within one bad time interval
+    mdl = xija.XijaModel(
+        'test', '2022:084:00:00:00', '2022:084:01:00:00', model_spec=spec1,
+    )
+    exp = [['2022:083:23:03:56.349', '2022:084:03:45:28.350']]
+    assert mdl.bad_times == exp
+    assert mdl.bad_times_indices == [[0, len(mdl.times)]]
+
+    # Within no bad time interval
+    mdl = xija.XijaModel(
+        'test', '2022:084:04:00:00', '2022:084:07:00:00', model_spec=spec1,
+    )
+    exp = []
+    assert mdl.bad_times == exp
+    assert mdl.bad_times_indices == []

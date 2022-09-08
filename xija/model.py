@@ -12,6 +12,7 @@ import ctypes
 from collections import OrderedDict
 from io import StringIO
 from pathlib import Path
+from typing import List, Tuple, Optional
 
 import numpy as np
 
@@ -19,7 +20,8 @@ from . import component
 from . import tmal
 
 # Optional packages for model fitting or use on HEAD LAN
-from Chandra.Time import DateTime, date2secs
+from Chandra.Time import DateTime
+from cxotime import date2secs
 from astropy.io import ascii
 import Ska.Numpy
 import Ska.DBI
@@ -49,6 +51,41 @@ dt_factors = np.array([1.0, 0.5, 0.25, 0.2, 0.125, 0.1, 0.05, 0.025])
 def convert_type_star_star(array, ctype_type):
     f4ptr = ctypes.POINTER(ctype_type)
     return (f4ptr * len(array))(*[row.ctypes.data_as(f4ptr) for row in array])
+
+
+def _get_bad_times(
+    times: np.ndarray,
+    datestart: str,
+    datestop: str,
+    bad_times_in: Optional[List[Tuple[str, str]]] = None,
+) -> Tuple[List[Tuple[str, str]], List[Tuple[int, int]]]:
+    """Return bad_times, bad_times_indices into ``times`` for elements in the
+    ``bad_times_in`` list that overlap with the ``datestart`` to ``datestop``.
+
+    NOTE: bad_times_in is a list of [datestart, datestop] lists. The "time"
+    name is unfortunate since it has string dates, not float CXCsec times.
+
+    :returns: bad_times: List[List[str, str]]], bad_times_indices: List[List[int, int]]
+    """
+    if bad_times_in is None or len(bad_times_in) == 0:
+        return [], []
+
+    bad_times: np.ndarray = np.array(bad_times_in)
+
+    # Get inclusive overlap of bad_times with datestart to datestop
+    ok = (bad_times[:, 1] > datestart) & (bad_times[:, 0] < datestop)
+    if np.any(ok):
+        bad_times = bad_times[ok]
+        bad_times_secs = date2secs(bad_times)
+        idxs = np.searchsorted(times, bad_times_secs)
+        ok = idxs[:, 0] < idxs[:, 1]
+        bad_times_out = bad_times[ok].tolist()
+        bad_times_indices = idxs[ok].tolist()
+    else:
+        bad_times_out = []
+        bad_times_indices = []
+
+    return bad_times_out, bad_times_indices
 
 
 class FetchError(Exception):
@@ -144,15 +181,10 @@ class XijaModel(object):
         self.rk4 = rk4
         self.limits = limits
 
-        self.bad_times_indices = []
-        self.bad_times = []
-        if model_spec is not None and 'bad_times' in model_spec:
-            self.bad_times = model_spec['bad_times']
-            for d0, d1 in self.bad_times:
-                t0, t1 = DateTime([d0, d1]).secs
-                i0, i1 = np.searchsorted(self.times, [t0, t1])
-                if i1 > i0:
-                    self.bad_times_indices.append((i0, i1))
+        bad_times = None if (model_spec is None) else model_spec.get('bad_times')
+        self.bad_times, self.bad_times_indices = _get_bad_times(
+            self.times, self.datestart, self.datestop, bad_times
+        )
         # This is really setting the mask times for the first
         # time in this case
         self.reset_mask_times()
