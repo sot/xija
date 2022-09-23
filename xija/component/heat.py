@@ -768,13 +768,13 @@ class DetectorHousingHeater(TelemData):
     def __str__(self):
         return 'dh_heater'
 
-
-class AcisPsmcSolarHeat(PrecomputedHeatPower):
-    """Solar heating of PSMC box.  This is dependent on SIM-Z"""
-    def __init__(self, model, node, pitch_comp='pitch', simz_comp='sim_z',
-                 dh_heater_comp='dh_heater', P_pitches=None,
-                 P_vals=None, dPs=None, var_func='linear',
-                 tau=1732.0, ampl=0.05, epoch='2013:001:12:00:00', dh_heater=0.05):
+class SimZDepSolarHeat(PrecomputedHeatPower):
+    """SIM-Z dependent solar heating"""
+    def __init__(self, model, node, simz_lims, instr_names, 
+                 pitch_comp='pitch', simz_comp='sim_z', 
+                 dh_heater_comp='dh_heater', P_pitches=None, P_vals=None, 
+                 dPs=None, var_func='linear', tau=1732.0, ampl=0.05, 
+                 epoch='2013:001:12:00:00', dh_heater=0.05):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = self.model.get_comp(node)
@@ -784,12 +784,9 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
         self.P_pitches = np.array([45., 55., 70., 90., 150.] if (P_pitches is None)
                                   else P_pitches, dtype=np.float)
         self.dPs = np.zeros_like(self.P_pitches) if dPs is None else np.array(dPs, dtype=np.float)
-        self.simz_lims = ((-400000.0, -85000.0),  # HRC-S
-                          (-85000.0, 0.0),        # HRC-I
-                          (0.0, 83000.0),         # ACIS-S
-                          (83000.0, 400000.0))    # ACIS-I
+        self.simz_lims = simz_lims
 
-        self.instr_names = ['hrcs', 'hrci', 'aciss', 'acisi']
+        self.instr_names = instr_names
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
                 self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)),
@@ -869,7 +866,8 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
                 lines[i].set_data(self.P_pitches, P_vals[instr_name])
                 # lines[i * 2 + 1].set_data(self.P_pitches, P_vals[instr_name], '-b')
         else:
-            for instr_name, color in zip(self.instr_names, colors):
+            for i, instr_name in enumerate(self.instr_names):
+                color = colors[i]
                 ax.plot(self.P_pitches, P_vals[instr_name], 'o-{}'.format(color), markersize=5,
                         label=instr_name)
             ax.set_title('{} solar heat input'.format(self.node.name))
@@ -878,7 +876,48 @@ class AcisPsmcSolarHeat(PrecomputedHeatPower):
             ax.legend(loc='best')
 
     def __str__(self):
+        return 'simz_solarheat__{0}'.format(self.node)
+
+
+class AcisPsmcSolarHeat(SimZDepSolarHeat):
+    """Solar heating of PSMC box.  This is dependent on SIM-Z"""
+    def __init__(self, model, node, pitch_comp='pitch', simz_comp='sim_z',
+                 dh_heater_comp='dh_heater', P_pitches=None,
+                 P_vals=None, dPs=None, var_func='linear',
+                 tau=1732.0, ampl=0.05, epoch='2013:001:12:00:00', dh_heater=0.05):
+        simz_lims = [[-400000.0, -85000.0],  # HRC-S
+                     [-85000.0, 0.0],        # HRC-I
+                     [0.0, 83000.0],         # ACIS-S
+                     [83000.0, 400000.0]]    # ACIS-I
+        instr_names = ['hrcs', 'hrci', 'aciss', 'acisi']
+        super().__init__(model, node, simz_lims, instr_names,
+                         pitch_comp=pitch_comp, simz_comp=simz_comp, 
+                         dh_heater_comp=dh_heater_comp, P_pitches=P_pitches,
+                         P_vals=P_vals, dPs=dPs, var_func=var_func, tau=tau,
+                         ampl=ampl, epoch=epoch, dh_heater=dh_heater)
+
+    def __str__(self):
         return 'psmc_solarheat__{0}'.format(self.node)
+
+
+class HrcCeaSolarHeat(SimZDepSolarHeat):
+    """Solar heating of CEA box.  This is dependent on SIM-Z"""
+    def __init__(self, model, node, pitch_comp='pitch', simz_comp='sim_z',
+                 dh_heater_comp='dh_heater', P_pitches=None,
+                 P_vals=None, dPs=None, var_func='linear',
+                 tau=1732.0, ampl=0.05, epoch='2013:001:12:00:00', dh_heater=0.05):
+        simz_lims = [[-400000.0, -85000.0],  # HRC-S
+                     [-85000.0, 0.0],        # HRC-I
+                     [0.0, 400000.0]]        # ACIS
+        instr_names = ['hrcs', 'hrci', 'acis']
+        super().__init__(model, node, simz_lims, instr_names,
+                         pitch_comp=pitch_comp, simz_comp=simz_comp, 
+                         dh_heater_comp=dh_heater_comp, P_pitches=P_pitches,
+                         P_vals=P_vals, dPs=dPs, var_func=var_func, tau=tau,
+                         ampl=ampl, epoch=epoch, dh_heater=dh_heater)
+
+    def __str__(self):
+        return 'cea_solarheat__{0}'.format(self.node)
 
 
 class AcisPsmcPower(PrecomputedHeatPower):
