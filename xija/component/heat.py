@@ -807,7 +807,6 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
 
         if not hasattr(self, 'simzs'):
             self.simzs = self.simz_comp.dvals
-            # Instrument 0=HRC-S 1=HRC-I 2=ACIS
             self.instrs = np.zeros(self.model.n_times, dtype=np.int8)
             for i, lims in enumerate(self.simz_lims):
                 ok = (self.simzs > lims[0]) & (self.simzs <= lims[1])
