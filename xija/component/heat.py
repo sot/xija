@@ -853,7 +853,6 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
 
     def plot_solar_heat__pitch(self, fig, ax):
         P_vals = {}
-        self.instr_names = ['hrcs', 'hrci', 'aciss', 'acisi']
         for instr_name in self.instr_names:
             P_vals[instr_name] = []
             for pitch in self.P_pitches:
