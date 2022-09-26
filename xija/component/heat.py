@@ -768,6 +768,7 @@ class DetectorHousingHeater(TelemData):
     def __str__(self):
         return 'dh_heater'
 
+
 class SimZDepSolarHeat(PrecomputedHeatPower):
     """SIM-Z dependent solar heating"""
     simz_lims = None
@@ -784,6 +785,10 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         self.dh_heater_comp = self.model.get_comp(dh_heater_comp)
         self.P_pitches = np.array([45., 55., 70., 90., 150.] if (P_pitches is None)
                                   else P_pitches, dtype=np.float)
+        self.n_p = len(self.P_pitches)
+        self.n_instr = len(self.instr_names)
+        if P_vals is None:
+            P_vals = np.ones((self.n_instr, self.n_p))
         self.dPs = np.zeros_like(self.P_pitches) if dPs is None else np.array(dPs, dtype=np.float)
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
@@ -824,16 +829,14 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
 
         # Interpolate power(pitch) for each instrument separately and make 2d
         # stack
-        n_p = len(self.P_pitches)
-        n_instr = len(self.instr_names)
         heats = []
-        dPs = self.parvals[n_instr * n_p:(n_instr + 1) * n_p]
+        dPs = self.parvals[self.n_instr * self.n_p:(self.n_instr + 1) * self.n_p]
         dP_vals = Ska.Numpy.interpolate(dPs, self.P_pitches, self.pitches)
         d_heat = (dP_vals * self.var_func(self.t_days, self.tau)
                   + self.ampl * np.cos(self.t_phase)).ravel()
 
-        for i in range(n_instr):
-            P_vals = self.parvals[i * n_p:(i + 1) * n_p]
+        for i in range(self.n_instr):
+            P_vals = self.parvals[i * self.n_p:(i + 1) * self.n_p]
             heat = Ska.Numpy.interpolate(P_vals, self.P_pitches, self.pitches)
             heats.append(heat + d_heat)
 
