@@ -917,6 +917,17 @@ class HrcISAcisSimZSolarHeat(SimZDepSolarHeat):
         return f'hrc_is_acis_simz_solarheat__{self.node}'
 
 
+class AcisISHrcSimZSolarHeat(SimZDepSolarHeat):
+    """Solar Heating, SIM-Z for ACIS-I/S, HRC positions"""
+    simz_lims = ((-400000.0, 0.0),  # HRC
+                 (0.0, 83000.0),         # ACIS-S
+                 (83000.0, 400000.0))    # ACIS-I
+    instr_names = ['acisi', 'aciss', 'hrc']
+
+    def __str__(self):
+        return f'hrc_acis_is_simz_solarheat__{self.node}'
+
+
 class AcisPsmcPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
     def __init__(self, model, node, k=1.0):
