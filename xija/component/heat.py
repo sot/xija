@@ -775,8 +775,8 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
     instr_names = None
     def __init__(self, model, node, pitch_comp='pitch', simz_comp='sim_z', 
                  dh_heater_comp='dh_heater', P_pitches=None, P_vals=None, 
-                 dPs=None, var_func='linear', tau=1732.0, ampl=0.05, 
-                 epoch='2013:001:12:00:00', dh_heater=0.05):
+                 dP_pitches=None, dPs=None, var_func='linear', tau=1732.0,
+                 ampl=0.05, epoch='2013:001:12:00:00', dh_heater=0.05):
         ModelComponent.__init__(self, model)
         self.n_mvals = 1
         self.node = self.model.get_comp(node)
@@ -785,18 +785,27 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         self.dh_heater_comp = self.model.get_comp(dh_heater_comp)
         self.P_pitches = np.array([45., 55., 70., 90., 150.] if (P_pitches is None)
                                   else P_pitches, dtype=np.float)
+        if dP_pitches is None:
+            dP_pitches = self.P_pitches
+        self.dP_pitches = np.array(dP_pitches, dtype=np.float)
+
+        if (self.dP_pitches[0] != self.P_pitches[0]
+                or self.dP_pitches[-1] != self.P_pitches[-1]):
+            raise ValueError('P_pitches and dP_pitches must span the same pitch range')
+
         self.n_p = len(self.P_pitches)
+        self.n_dp = len(self.dP_pitches)
         self.n_instr = len(self.instr_names)
         if P_vals is None:
             P_vals = np.ones((self.n_instr, self.n_p))
-        self.dPs = np.zeros_like(self.P_pitches) if dPs is None else np.array(dPs, dtype=np.float)
+        self.dPs = np.zeros_like(self.dP_pitches) if dPs is None else np.array(dPs, dtype=np.float)
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
                 self.add_par('P_{0}_{1:d}'.format(instr_name, int(pitch)),
                              P_vals[i][j], min=-10.0, max=10.0)
 
         for j, pitch in enumerate(self.dPs):
-            self.add_par('dP_{0:d}'.format(int(self.P_pitches[j])),
+            self.add_par('dP_{0:d}'.format(int(self.dP_pitches[j])),
                          self.dPs[j], min=-1.0, max=1.0)
 
         self.add_par('tau', tau, min=1000., max=3000.)
@@ -830,8 +839,8 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         # Interpolate power(pitch) for each instrument separately and make 2d
         # stack
         heats = []
-        dPs = self.parvals[self.n_instr * self.n_p:(self.n_instr + 1) * self.n_p]
-        dP_vals = Ska.Numpy.interpolate(dPs, self.P_pitches, self.pitches)
+        dPs = self.parvals[self.n_instr * self.n_p:(self.n_instr * self.n_p + self.n_dp)]
+        dP_vals = Ska.Numpy.interpolate(dPs, self.dP_pitches, self.pitches)
         d_heat = (dP_vals * self.var_func(self.t_days, self.tau)
                   + self.ampl * np.cos(self.t_phase)).ravel()
 
