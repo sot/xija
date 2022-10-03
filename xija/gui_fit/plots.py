@@ -715,25 +715,25 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     def add_annotations(self, atype):
         for pb in self.plot_boxes:
             pb.add_annotation(atype)
-            pb.canvas.draw_idle()
+            pb.fig.canvas.draw_idle()
 
     def remove_annotations(self, atype):
         for pb in self.plot_boxes:
             pb.remove_annotation(atype)
-            pb.canvas.draw_idle()
+            pb.fig.canvas.draw_idle()
 
     def add_fill(self, t0, t1, bad=False):
         for i, pb in enumerate(self.plot_boxes):
             if "time" in self.plot_names[i]:
                 pb.add_fill(t0, t1, bad=bad)
-                pb.canvas.draw_idle()
+                pb.fig.canvas.draw_idle()
         self.update_plots()
 
     def remove_ignores(self):
         for i, pb in enumerate(self.plot_boxes):
             if "time" in self.plot_names[i]:
                 pb.remove_ignores()
-                pb.canvas.draw_idle()
+                pb.fig.canvas.draw_idle()
         self.update_plots()
 
     def update_plot_boxes(self):
