@@ -812,9 +812,7 @@ class XijaModel(object):
         i0, i1 = np.searchsorted(self.times, [t0, t1])
         if i1 > i0:
             self.mask_times_indices.append((i0, i1))
-            # self.mask_times.append(new_times)
             self.mask_times_bad = np.append(self.mask_times_bad, bad)
-        # self.mask_time_secs = date2secs(self.mask_times)
 
     def append_bad_time(self, new_times):
         self.append_mask_time(new_times, bad=True)
@@ -825,9 +823,7 @@ class XijaModel(object):
             self.bad_times_indices.append([i0, i1])
 
     def reset_mask_times(self):
-        # self.mask_times = self.bad_times.copy()
         self.mask_times_indices = self.bad_times_indices.copy()
-        # self.mask_time_secs = date2secs(self.mask_times)
         self.mask_times_bad = np.ones(len(self.mask_times_indices), dtype='bool')
 
 
