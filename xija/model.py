@@ -53,22 +53,22 @@ def convert_type_star_star(array, ctype_type):
     return (f4ptr * len(array))(*[row.ctypes.data_as(f4ptr) for row in array])
 
 
-def _get_bad_times(
+def _get_bad_times_indices(
     times: np.ndarray,
     datestart: str,
     datestop: str,
-    bad_times_in: Optional[List[Tuple[str, str]]] = None,
+    bad_times_in: List[Tuple[str, str]]
 ) -> Tuple[List[Tuple[str, str]], List[Tuple[int, int]]]:
-    """Return bad_times, bad_times_indices into ``times`` for elements in the
+    """Return bad_times_indices into ``times`` for elements in the
     ``bad_times_in`` list that overlap with the ``datestart`` to ``datestop``.
 
     NOTE: bad_times_in is a list of [datestart, datestop] lists. The "time"
     name is unfortunate since it has string dates, not float CXCsec times.
 
-    :returns: bad_times: List[List[str, str]]], bad_times_indices: List[List[int, int]]
+    :returns: bad_times_indices: List[List[int, int]]
     """
-    if bad_times_in is None or len(bad_times_in) == 0:
-        return [], []
+    if len(bad_times_in) == 0:
+        return []
 
     bad_times: np.ndarray = np.array(bad_times_in)
 
@@ -79,13 +79,11 @@ def _get_bad_times(
         bad_times_secs = date2secs(bad_times)
         idxs = np.searchsorted(times, bad_times_secs)
         ok = idxs[:, 0] < idxs[:, 1]
-        bad_times_out = bad_times[ok].tolist()
         bad_times_indices = idxs[ok].tolist()
     else:
-        bad_times_out = []
         bad_times_indices = []
 
-    return bad_times_out, bad_times_indices
+    return bad_times_indices
 
 
 class FetchError(Exception):
@@ -181,9 +179,9 @@ class XijaModel(object):
         self.rk4 = rk4
         self.limits = limits
 
-        bad_times = None if (model_spec is None) else model_spec.get('bad_times')
-        self.bad_times, self.bad_times_indices = _get_bad_times(
-            self.times, self.datestart, self.datestop, bad_times
+        self.bad_times = [] if (model_spec is None) else model_spec.get('bad_times')
+        self.bad_times_indices = _get_bad_times_indices(
+            self.times, self.datestart, self.datestop, self.bad_times
         )
         # This is really setting the mask times for the first
         # time in this case
@@ -814,9 +812,9 @@ class XijaModel(object):
         i0, i1 = np.searchsorted(self.times, [t0, t1])
         if i1 > i0:
             self.mask_times_indices.append((i0, i1))
-            self.mask_times.append(new_times)
+            # self.mask_times.append(new_times)
             self.mask_times_bad = np.append(self.mask_times_bad, bad)
-        self.mask_time_secs = date2secs(self.mask_times)
+        # self.mask_time_secs = date2secs(self.mask_times)
 
     def append_bad_time(self, new_times):
         self.append_mask_time(new_times, bad=True)
@@ -827,10 +825,10 @@ class XijaModel(object):
             self.bad_times_indices.append([i0, i1])
 
     def reset_mask_times(self):
-        self.mask_times = self.bad_times.copy()
+        # self.mask_times = self.bad_times.copy()
         self.mask_times_indices = self.bad_times_indices.copy()
-        self.mask_time_secs = date2secs(self.mask_times)
-        self.mask_times_bad = np.ones(self.mask_time_secs.shape[0], dtype='bool')
+        # self.mask_time_secs = date2secs(self.mask_times)
+        self.mask_times_bad = np.ones(len(self.mask_times_indices), dtype='bool')
 
 
 ThermalModel = XijaModel

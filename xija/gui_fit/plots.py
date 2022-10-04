@@ -49,7 +49,7 @@ def calcquantiles(errors):
     error :
         model errors (telemetry - model)
     errors :
-        
+
 
     Returns
     -------
@@ -76,7 +76,7 @@ def calcquantstats(Ttelem, error):
     -------
     type
         coordinates for error quantile line
-        
+
         This is used for the telemetry vs. error plot (axis 3).
 
     """
@@ -109,7 +109,7 @@ def getQuantPlotPoints(quantstats, quantile):
     -------
     type
         coordinates for error quantile line
-        
+
         This is used to calculate the quantile lines plotted on the telemetry vs. error plot (axis 3)
         enclosing the data (i.e. the 1 and 99 percentile lines).
 
@@ -139,7 +139,7 @@ def clearLayout(layout):
     Parameters
     ----------
     layout :
-        
+
 
     Returns
     -------
@@ -163,16 +163,16 @@ def annotate_limits(limits, ax, dir='h'):
     ----------
     limits : dict
         Dictionary of limits obtained from the model
-        specification file. 
+        specification file.
     ax : Matplotlib Axes object
-        The Axes object on which the line is to be 
-        written. 
+        The Axes object on which the line is to be
+        written.
     dir : str, optional
         The direction of the line, "h" for horizontal
         or "v" for vertical. Default: "h"
 
     Returns
-    ------- 
+    -------
     list
         A list of matplotlib.lines.Line2D objects
     """
@@ -442,16 +442,16 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict["step"] = self.ax2.step(
                 bin_mid, hist, '#386cb0', where='mid')[0]
             self.plot_dict["q01"] = self.ax2.axvline(
-                stats['q01'], color='k', linestyle='--', 
+                stats['q01'], color='k', linestyle='--',
                 linewidth=1.5, alpha=1)
             self.plot_dict["q99"] = self.ax2.axvline(
-                stats['q99'], color='k', linestyle='--', 
+                stats['q99'], color='k', linestyle='--',
                 linewidth=1.5, alpha=1)
             self.plot_dict["min_hist"] = self.ax2.axvline(
-                min_resid, color='k', linestyle='--', 
+                min_resid, color='k', linestyle='--',
                 linewidth=1.5, alpha=1)
             self.plot_dict["max_hist"] = self.ax2.axvline(
-                max_resid, color='k', linestyle='--', 
+                max_resid, color='k', linestyle='--',
                 linewidth=1.5, alpha=1)
         else:
             self.plot_dict['resids'].set_data(resids, dvalsr)
@@ -492,16 +492,16 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict["max_text"].set_position((xpos_max, ystart))
         else:
             self.plot_dict["q01_text"] = self.ax2.text(
-                xpos_q01, ystart, '1% Quantile', 
+                xpos_q01, ystart, '1% Quantile',
                 ha="right", va="center", rotation=90, clip_on=True)
             self.plot_dict["q99_text"] = self.ax2.text(
-                xpos_q99, ystart, '99% Quantile', 
+                xpos_q99, ystart, '99% Quantile',
                 ha="left", va="center", rotation=90, clip_on=True)
             self.plot_dict["min_text"] = self.ax2.text(
-                xpos_min, ystart, 'Minimum Error', 
+                xpos_min, ystart, 'Minimum Error',
                 ha="right", va="center", rotation=90, clip_on=True)
             self.plot_dict["max_text"] = self.ax2.text(
-                xpos_max, ystart, 'Maximum Error', 
+                xpos_max, ystart, 'Maximum Error',
                 ha="left", va="center", rotation=90, clip_on=True)
 
         self.fig.canvas.draw_idle()
@@ -535,7 +535,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         # Add shared x-axes for plots with time on the x-axis
         xaxis = plot_method.split('__')
-        if len(xaxis) == 1 or not plot_method.endswith("time"): 
+        if len(xaxis) == 1 or not plot_method.endswith("time"):
             self.ax = self.fig.add_subplot(111)
         else:
             self.ax = self.fig.add_subplot(111, sharex=plots_box.default_ax)
@@ -631,10 +631,10 @@ class PlotBox(QtWidgets.QVBoxLayout):
             self.ignores.append(fill)
 
     def show_fills(self):
-        if len(self.plots_box.model.mask_time_secs) == 0:
-            return
-        for i, t in enumerate(self.plots_box.model.mask_time_secs):
-            self.add_fill(t[0], t[1], self.plots_box.model.mask_times_bad[i])
+        model = self.plots_box.model
+        for (i0, i1), bad in zip(model.mask_times_indices, model.mask_times_bad):
+            t0, t1 = model.times[i0], model.times[i1]
+            self.add_fill(t0, t1, bad)
 
     def remove_ignores(self):
         [fill.remove() for fill in self.ignores]
@@ -673,7 +673,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
         # Set up a default axis that will act as the scaling reference
         self.default_fig, self.default_ax = plt.subplots()
-        plot_cxctime(self.model.times, np.ones_like(self.model.times), 
+        plot_cxctime(self.model.times, np.ones_like(self.model.times),
                      fig=self.default_fig, ax=self.default_ax)
 
     def add_plot_box(self, plot_name):
