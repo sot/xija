@@ -179,7 +179,7 @@ class XijaModel(object):
         self.rk4 = rk4
         self.limits = limits
 
-        self.bad_times = None if (model_spec is None) else model_spec.get('bad_times')
+        self.bad_times = [] if (model_spec is None) else model_spec.get('bad_times', [])
         self.bad_times_indices = _get_bad_times_indices(
             self.times, self.datestart, self.datestop, self.bad_times
         )
