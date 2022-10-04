@@ -332,7 +332,6 @@ def _get_model_for_dP_pitches(solar_class, msid, dP_pitches, dPs):
 
 
 @pytest.mark.parametrize('solar_class', [xija.SolarHeat,
-                                         xija.SolarHeatAcisCameraBody,
                                          xija.SolarHeatHrc,
                                          xija.SolarHeatHrcMult,
                                          xija.SolarHeatHrcOpts,

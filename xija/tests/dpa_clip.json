@@ -71,7 +71,7 @@
             "name": "clocking"
         }, 
         {
-            "class_name": "DpaSolarHeat", 
+            "class_name": "SolarHeatHrc", 
             "init_args": [
                 "1dpamzt"
             ], 
