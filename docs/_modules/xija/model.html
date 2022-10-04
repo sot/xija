@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.model &#8212; xija 4.27.0 documentation</title>
+    <title>xija.model &#8212; xija 4.28.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css" />
     
@@ -46,7 +46,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.27.0 documentation</a>
+	<a href="../../index.html">xija 4.28.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -76,6 +76,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -83,7 +84,8 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">tmal</span>
 
 <span class="c1"># Optional packages for model fitting or use on HEAD LAN</span>
-<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">date2secs</span>
+<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
+<span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">date2secs</span>
 <span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">ascii</span>
 <span class="kn">import</span> <span class="nn">Ska.Numpy</span>
 <span class="kn">import</span> <span class="nn">Ska.DBI</span>
@@ -113,6 +115,41 @@
 <span class="k">def</span> <span class="nf">convert_type_star_star</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">ctype_type</span><span class="p">):</span>
     <span class="n">f4ptr</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctype_type</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">f4ptr</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">))(</span><span class="o">*</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data_as</span><span class="p">(</span><span class="n">f4ptr</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">_get_bad_times</span><span class="p">(</span>
+    <span class="n">times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">datestart</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">datestop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">bad_times_in</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
+    <span class="sd">&quot;&quot;&quot;Return bad_times, bad_times_indices into ``times`` for elements in the</span>
+<span class="sd">    ``bad_times_in`` list that overlap with the ``datestart`` to ``datestop``.</span>
+
+<span class="sd">    NOTE: bad_times_in is a list of [datestart, datestop] lists. The &quot;time&quot;</span>
+<span class="sd">    name is unfortunate since it has string dates, not float CXCsec times.</span>
+
+<span class="sd">    :returns: bad_times: List[List[str, str]]], bad_times_indices: List[List[int, int]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">bad_times_in</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_times_in</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="n">bad_times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bad_times_in</span><span class="p">)</span>
+
+    <span class="c1"># Get inclusive overlap of bad_times with datestart to datestop</span>
+    <span class="n">ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">bad_times</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">datestart</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">bad_times</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">datestop</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ok</span><span class="p">):</span>
+        <span class="n">bad_times</span> <span class="o">=</span> <span class="n">bad_times</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span>
+        <span class="n">bad_times_secs</span> <span class="o">=</span> <span class="n">date2secs</span><span class="p">(</span><span class="n">bad_times</span><span class="p">)</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">bad_times_secs</span><span class="p">)</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">idxs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">bad_times_out</span> <span class="o">=</span> <span class="n">bad_times</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">bad_times_indices</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bad_times_out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">bad_times_indices</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">return</span> <span class="n">bad_times_out</span><span class="p">,</span> <span class="n">bad_times_indices</span>
 
 
 <div class="viewcode-block" id="FetchError"><a class="viewcode-back" href="../../api.html#xija.model.FetchError">[docs]</a><span class="k">class</span> <span class="nc">FetchError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -208,15 +245,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rk4</span> <span class="o">=</span> <span class="n">rk4</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">limits</span> <span class="o">=</span> <span class="n">limits</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">model_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;bad_times&#39;</span> <span class="ow">in</span> <span class="n">model_spec</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span> <span class="o">=</span> <span class="n">model_spec</span><span class="p">[</span><span class="s1">&#39;bad_times&#39;</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">d0</span><span class="p">,</span> <span class="n">d1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="p">:</span>
-                <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">([</span><span class="n">d0</span><span class="p">,</span> <span class="n">d1</span><span class="p">])</span><span class="o">.</span><span class="n">secs</span>
-                <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">))</span>
+        <span class="n">bad_times</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="p">(</span><span class="n">model_spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="n">model_spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bad_times&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span> <span class="o">=</span> <span class="n">_get_bad_times</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datestart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datestop</span><span class="p">,</span> <span class="n">bad_times</span>
+        <span class="p">)</span>
         <span class="c1"># This is really setting the mask times for the first</span>
         <span class="c1"># time in this case</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset_mask_times</span><span class="p">()</span>
