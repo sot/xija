@@ -371,7 +371,7 @@ def test_bad_times():
     mdl = xija.XijaModel(
         'test', '2022:083:22:30:00', '2022:084:04:00:00', model_spec=spec1,
     )
-    assert len(mdl.bad_times) == len(spec1["bad_times"])
+    assert mdl.bad_times == spec1["bad_times"]
     assert mdl.bad_times_indices == [[0, 2], [6, 58]]
     assert 58 < mdl.n_times
 
@@ -379,7 +379,6 @@ def test_bad_times():
     mdl = xija.XijaModel(
         'test', '2022:084:00:00:00', '2022:084:01:00:00', model_spec=spec1,
     )
-    exp = [['2022:083:23:03:56.349', '2022:084:03:45:28.350']]
     assert mdl.bad_times == spec1["bad_times"]
     assert mdl.bad_times_indices == [[0, len(mdl.times)]]
 
