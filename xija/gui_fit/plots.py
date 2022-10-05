@@ -629,6 +629,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
             ybot, ytop, where=where, color=color, alpha=0.5)
         if not bad:
             self.ignores.append(fill)
+        ybot, ytop = self.ax.set_ylim(ybot, ytop)
 
     def show_fills(self):
         model = self.plots_box.model
