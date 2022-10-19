@@ -437,8 +437,8 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
     """SIM-Z dependent solar heating"""
     simz_lims = None
     instr_names = None
-    def __init__(self, model, node, pitch_comp='pitch', simz_comp='sim_z', 
-                 dh_heater_comp='dh_heater', P_pitches=None, P_vals=None, 
+    def __init__(self, model, node, pitch_comp='pitch', simz_comp='sim_z',
+                 dh_heater_comp='dh_heater', P_pitches=None, P_vals=None,
                  dP_pitches=None, dPs=None, var_func='linear', tau=1732.0,
                  ampl=0.05, epoch='2013:001:12:00:00', dh_heater=0.05):
         ModelComponent.__init__(self, model)
@@ -448,10 +448,10 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         self.simz_comp = self.model.get_comp(simz_comp)
         self.dh_heater_comp = self.model.get_comp(dh_heater_comp)
         self.P_pitches = np.array([45., 55., 70., 90., 150.] if (P_pitches is None)
-                                  else P_pitches, dtype=np.float)
+                                  else P_pitches, dtype=float)
         if dP_pitches is None:
             dP_pitches = self.P_pitches
-        self.dP_pitches = np.array(dP_pitches, dtype=np.float)
+        self.dP_pitches = np.array(dP_pitches, dtype=float)
 
         if (self.dP_pitches[0] != self.P_pitches[0]
                 or self.dP_pitches[-1] != self.P_pitches[-1]):
