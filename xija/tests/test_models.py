@@ -6,7 +6,7 @@ import pytest
 from pathlib import Path
 
 from xija import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
-from xija.get_model_spec import get_xija_model_spec
+from xija.get_model_spec import get_xija_model_spec, get_xija_model_names
 import xija
 from numpy import sin, cos, abs
 
@@ -332,7 +332,6 @@ def _get_model_for_dP_pitches(solar_class, msid, dP_pitches, dPs):
 
 
 @pytest.mark.parametrize('solar_class', [xija.SolarHeat,
-                                         xija.SolarHeatAcisCameraBody,
                                          xija.SolarHeatHrc,
                                          xija.SolarHeatHrcMult,
                                          xija.SolarHeatHrcOpts,
@@ -395,3 +394,22 @@ def test_bad_times():
     )
     assert mdl.bad_times == spec1["bad_times"]
     assert mdl.bad_times_indices == []
+
+
+model_names = get_xija_model_names()
+
+
+@pytest.mark.parametrize('model_name', model_names)
+def test_model_from_chandra_models(model_name):
+    """
+    Test that every model in the chandra_models repo can be run with xija.
+    """
+    from cheta import fetch
+    model_spec, _ = get_xija_model_spec(model_name)
+    mdl = xija.XijaModel(model_name, '2021:001', '2021:007', model_spec=model_spec)
+    for comp in mdl.comps:
+        if isinstance(comp, Node):
+            if comp.msid.upper() not in fetch.content:
+                comp.set_data(0.0)
+    mdl.make()
+    mdl.calc()
