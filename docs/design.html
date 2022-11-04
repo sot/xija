@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Design overview &#8212; xija 4.28.1 documentation</title>
+    <title>Design overview &#8212; xija 4.29.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css" />
     
@@ -60,7 +60,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">xija 4.28.1 documentation</a>
+	<a href="index.html">xija 4.29.0 documentation</a>
 	 &#187;
       </li>
       
@@ -141,11 +141,11 @@ separate Python class.  Some currently implemented examples include:</p>
 <li><p><a class="reference internal" href="api.html#xija.component.base.Node" title="xija.component.base.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> : single node with a temperature, sigma, data_quantization, etc</p></li>
 <li><p><a class="reference internal" href="api.html#xija.component.base.Coupling" title="xija.component.base.Coupling"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coupling</span></code></a> : Couple two nodes together (one-way coupling)</p></li>
 <li><p><a class="reference internal" href="api.html#xija.component.base.HeatSink" title="xija.component.base.HeatSink"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeatSink</span></code></a> : Fixed temperature external heat bath</p></li>
-<li><p><a class="reference internal" href="api.html#xija.component.heat.SolarHeat" title="xija.component.heat.SolarHeat"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolarHeat</span></code></a> : Solar heating (pitch dependent)</p></li>
-<li><p><a class="reference internal" href="api.html#xija.component.heat.EarthHeat" title="xija.component.heat.EarthHeat"><code class="xref py py-class docutils literal notranslate"><span class="pre">EarthHeat</span></code></a> : Earth heating of ACIS cold radiator (attitude, ephem dependent)</p></li>
-<li><p><a class="reference internal" href="api.html#xija.component.heat.PropHeater" title="xija.component.heat.PropHeater"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropHeater</span></code></a> : Proportional heater (P = k * (T - T_set) for T &gt; T_set)</p></li>
-<li><p><a class="reference internal" href="api.html#xija.component.heat.ThermostatHeater" title="xija.component.heat.ThermostatHeater"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThermostatHeater</span></code></a> : Thermostat heater (with configurable deadband)</p></li>
-<li><p><a class="reference internal" href="api.html#xija.component.heat.AcisDpaStatePower" title="xija.component.heat.AcisDpaStatePower"><code class="xref py py-class docutils literal notranslate"><span class="pre">AcisDpaStatePower</span></code></a> : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SolarHeat</span></code> : Solar heating (pitch dependent)</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">EarthHeat</span></code> : Earth heating of ACIS cold radiator (attitude, ephem dependent)</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">PropHeater</span></code> : Proportional heater (P = k * (T - T_set) for T &gt; T_set)</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ThermostatHeater</span></code> : Thermostat heater (with configurable deadband)</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">AcisDpaStatePower</span></code> : Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)</p></li>
 </ul>
 <p>As needed additional model components can be added.</p>
 </section>
