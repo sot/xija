@@ -11,7 +11,7 @@ from ..get_model_spec import (get_xija_model_spec, get_xija_model_names,
 
 try:
     # Fast request to see if GitHub is available
-    req = requests.get('https://raw.githubusercontent.com/sot/chandra_models/master/README',
+    req = requests.get('https://raw.githubusercontent.com/sot/chandra_models/master/README.md',
                        timeout=5)
     HAS_GITHUB = req.status_code == 200
 except Exception:
