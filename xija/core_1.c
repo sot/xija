@@ -16,8 +16,10 @@ int calc_model_1(int n_times, int n_preds, int n_tmals, double dt,
 {
     double deriv[100];  /* n_preds -- learn to malloc! */
     double y[100];
-    double k2, dt2;
-    int i, j, j0, i1, i2, i3, rki, opcode;    
+    double k2, dt2, tempk1, tempk2;
+    int i, j, j0, i1, i2, i3, rki, opcode;
+
+    double c2k = 273.15;
 
     for (j0 = 0; j0 < n_times-2; j0 += 2) {
         for (rki = 0; rki < 2; rki++) {
@@ -75,6 +77,17 @@ int calc_model_1(int n_times, int n_preds, int n_tmals, double dt,
                         } else {
                             mvals[i3][j] = 0.0;
                         }
+                        break;
+                    case 5:  /* Node to node radiative coupling */
+                        tempk1 = (y[i1] + c2k) / 300;
+                        if (i2 < n_preds && i1 < n_preds) {
+                            tempk2 = (y[i2] + c2k) / 300;
+                        }
+                        else {
+                            tempk2 = (mvals[i2][j] + c2k) / 300;
+                        }
+                        deriv[i1] += (pow(tempk2, tmal_floats[i][1]) -
+                            pow(tempk1, tmal_floats[i][1])) * tmal_floats[i][0];
                         break;
                     }
             }

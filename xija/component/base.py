@@ -369,6 +369,40 @@ class Coupling(ModelComponent):
         return 'coupling__{0}__{1}'.format(self.node1, self.node2)
 
 
+class RadiativeCoupling(ModelComponent):
+    """\
+    Radiative coupling between Nodes `node1` and `node2`
+    ::
+
+      dy1/dt = -(y1 ** 4 - y2 ** 4) * sb_const * factor
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
+    def __init__(self, model, node1, node2, factor, order=4):
+        ModelComponent.__init__(self, model)
+        self.node1 = self.model.get_comp(node1)
+        self.node2 = self.model.get_comp(node2)
+        self.order = order
+        self.add_par('factor', factor, min=-50, max=50.0)
+
+    def update(self):
+        self.tmal_ints = (tmal.OPCODES['radiative_coupling'],
+                          self.node1.mvals_i,  # y1 index
+                          self.node2.mvals_i   # y2 index
+                          )
+
+        # the C pow takes the power value as a double
+        self.tmal_floats = (self.factor, self.order)
+
+    def __str__(self):
+        return 'radiative_coupling__{0}__{1}'.format(self.node1, self.node2)
+
+
 class Delay(ModelComponent):
     """Delay mval from ``node`` by ``delay`` ksec
 
