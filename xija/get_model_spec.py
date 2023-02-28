@@ -16,17 +16,12 @@ from typing import List, Optional, Union
 import git
 import requests
 from Ska.File import get_globfiles
+from ska_helpers.paths import xija_models_path, chandra_models_repo_path
 
 __all__ = ['get_xija_model_spec', 'get_xija_model_names', 'get_repo_version',
            'get_github_version']
 
-REPO_PATH = Path(os.environ['SKA'], 'data', 'chandra_models')
-MODELS_PATH = REPO_PATH / 'chandra_models' / 'xija'
 CHANDRA_MODELS_LATEST_URL = 'https://api.github.com/repos/sot/chandra_models/releases/latest'
-
-
-def _models_path(repo_path=REPO_PATH) -> Path:
-    return Path(repo_path) / 'chandra_models' / 'xija'
 
 
 @contextlib.contextmanager
@@ -96,7 +91,8 @@ def get_xija_model_spec(model_name, version=None, repo_path=None,
         Xija model specification dict, chandra_models version
     """
     if repo_path is None:
-        repo_path = REPO_PATH
+        repo_path = chandra_models_repo_path()
+
     with temp_directory() as repo_path_local:
         repo = git.Repo.clone_from(repo_path, repo_path_local)
         if version is not None:
@@ -106,10 +102,10 @@ def get_xija_model_spec(model_name, version=None, repo_path=None,
     return model_spec, version
 
 
-def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
-                         check_version=False, timeout=5) -> dict:
+def _get_xija_model_spec(model_name, version=None, repo_path=None,
+                         check_version=False, timeout=5) -> tuple:
 
-    models_path = _models_path(repo_path)
+    models_path = xija_models_path(repo_path)
 
     if not models_path.exists():
         raise FileNotFoundError(f'xija models directory {models_path} does not exist')
@@ -141,7 +137,7 @@ def _get_xija_model_spec(model_name, version=None, repo_path=REPO_PATH,
     return model_spec, version
 
 
-def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:
+def get_xija_model_names(repo_path=None) -> List[str]:
     """Return list of available xija model names.
 
     Examples
@@ -174,7 +170,7 @@ def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:
     list
         List of available xija model names
     """
-    models_path = _models_path(repo_path)
+    models_path = xija_models_path(repo_path)
 
     fns = get_globfiles(str(models_path / '*' / '*_spec.json'), minfiles=0, maxfiles=None)
     names = [re.sub(r'_spec\.json', '', Path(fn).name) for fn in sorted(fns)]
@@ -182,7 +178,7 @@ def get_xija_model_names(repo_path=REPO_PATH) -> List[str]:
     return names
 
 
-def get_repo_version(repo_path: Path = REPO_PATH) -> str:
+def get_repo_version(repo_path: Optional[Path] = None) -> str:
     """Return version (most recent tag) of models repository.
 
     Returns
@@ -190,6 +186,9 @@ def get_repo_version(repo_path: Path = REPO_PATH) -> str:
     str
         Version (most recent tag) of models repository
     """
+    if repo_path is None:
+        repo_path = chandra_models_repo_path()
+
     with temp_directory() as repo_path_local:
         if platform.system() == 'Windows':
             repo = git.Repo.clone_from(repo_path, repo_path_local)
