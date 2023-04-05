@@ -13,6 +13,7 @@ from . import tmal
 
 class AcisDpaPower6(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
+
     def __init__(self, model, node, k=1.0, dp611=0.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
@@ -31,9 +32,11 @@ class AcisDpaPower6(PrecomputedHeatPower):
             dpabv = self.model.fetch('1dp28bvo')
             dpabi = self.model.fetch('1dpicbcu')
             states = self.model.cmd_states
-            self.mask611 = ((states['fep_count'] == 6) &
-                            (states['clocking'] == 1) &
-                            (states['vid_board'] == 1))
+            self.mask611 = (
+                (states['fep_count'] == 6)
+                & (states['clocking'] == 1)
+                & (states['vid_board'] == 1)
+            )
 
             self._dvals = dpaav * dpaai + dpabv * dpabi
         return self._dvals
@@ -41,15 +44,17 @@ class AcisDpaPower6(PrecomputedHeatPower):
     def update(self):
         self.mvals = self.k * self.dvals / 10.0
         self.mvals[self.mask611] += self.dp611
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,
+        )
         self.tmal_floats = ()
 
 
 class AcisDpaPowerClipped(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
+
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
@@ -74,10 +79,11 @@ class AcisDpaPowerClipped(PrecomputedHeatPower):
     def update(self):
         clipped_power = np.clip(self.dvals, self.minpwr, 1e38)
         self.mvals = self.k * clipped_power / 10.0
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,  # mvals with precomputed heat input
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,  # mvals with precomputed heat input
+        )
         self.tmal_floats = ()
 
     def plot_data__time(self, fig, ax):
@@ -93,13 +99,41 @@ class AcisDpaPowerClipped(PrecomputedHeatPower):
 
 class SolarHeatSimZ(SolarHeat):
     """Solar heating (pitch and SimZ dependent)"""
-    def __init__(self, model, node, simz_comp, pitch_comp, eclipse_comp=None,
-                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
-                 hrci_bias=0.0, hrcs_bias=0.0, acisi_bias=0.0):
-        SolarHeat.__init__(self, model, node, pitch_comp, eclipse_comp,
-                           P_pitches, Ps, dPs, var_func, tau, ampl, bias,
-                           epoch)
+
+    def __init__(
+        self,
+        model,
+        node,
+        simz_comp,
+        pitch_comp,
+        eclipse_comp=None,
+        P_pitches=None,
+        Ps=None,
+        dPs=None,
+        var_func='exp',
+        tau=1732.0,
+        ampl=0.05,
+        bias=0.0,
+        epoch='2010:001:12:00:00',
+        hrci_bias=0.0,
+        hrcs_bias=0.0,
+        acisi_bias=0.0,
+    ):
+        SolarHeat.__init__(
+            self,
+            model,
+            node,
+            pitch_comp,
+            eclipse_comp,
+            P_pitches,
+            Ps,
+            dPs,
+            var_func,
+            tau,
+            ampl,
+            bias,
+            epoch,
+        )
         self.simz_comp = model.get_comp(simz_comp)
         self.add_par('hrcs_bias', hrcs_bias, min=-1.0, max=1.0)
         self.add_par('hrci_bias', hrci_bias, min=-1.0, max=1.0)
@@ -110,8 +144,7 @@ class SolarHeatSimZ(SolarHeat):
         if not hasattr(self, 'pitches'):
             self.pitches = self.pitch_comp.dvals
         if not hasattr(self, 't_days'):
-            self.t_days = (self.pitch_comp.times
-                           - DateTime(self.epoch).secs) / 86400.0
+            self.t_days = (self.pitch_comp.times - DateTime(self.epoch).secs) / 86400.0
         if not hasattr(self, 't_phase'):
             time2000 = DateTime('2000:001:00:00:00').secs
             time2010 = DateTime('2010:001:00:00:00').secs
@@ -127,17 +160,18 @@ class SolarHeatSimZ(SolarHeat):
         if not hasattr(self, 'acisi_mask'):
             self.acisi_mask = simz > 80000
 
-        Ps = self.parvals[0:self.n_pitches] + self.bias
-        dPs = self.parvals[self.n_pitches:2 * self.n_pitches]
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps,
-                                               kind='linear')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs,
-                                                kind='linear')
+        Ps = self.parvals[0 : self.n_pitches] + self.bias
+        dPs = self.parvals[self.n_pitches : 2 * self.n_pitches]
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
-        self._dvals = (P_vals + dP_vals * self.var_func(self.t_days, self.tau)
-                       + self.ampl * np.cos(self.t_phase)).reshape(-1)
+        self._dvals = (
+            P_vals
+            + dP_vals * self.var_func(self.t_days, self.tau)
+            + self.ampl * np.cos(self.t_phase)
+        ).reshape(-1)
 
         # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
         if self.eclipse_comp is not None:

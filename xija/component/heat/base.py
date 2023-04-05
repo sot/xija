@@ -10,10 +10,11 @@ class PrecomputedHeatPower(ModelComponent):
 
     def update(self):
         self.mvals = self.dvals
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                          self.node.mvals_i,  # dy1/dt index
-                          self.mvals_i,
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,
+        )
         self.tmal_floats = ()
 
     @staticmethod
@@ -36,6 +37,5 @@ class ActiveHeatPower(ModelComponent):
     -------
 
     """
+
     pass
-
-

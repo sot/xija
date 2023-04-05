@@ -12,6 +12,7 @@ from numpy import sin, cos, abs
 
 try:
     import Ska.Matplotlib  # noqa
+
     HAS_PLOTDATE = True
 except ImportError:
     HAS_PLOTDATE = False
@@ -31,8 +32,12 @@ def abs_path(spec, as_path=False):
 
 @pytest.mark.parametrize('as_path', [True, False])
 def test_dpa_real(as_path):
-    mdl = ThermalModel('dpa', start='2020:001:12:00:00', stop='2020:007:12:00:00',
-                       model_spec=abs_path('dpa.json'))
+    mdl = ThermalModel(
+        'dpa',
+        start='2020:001:12:00:00',
+        stop='2020:007:12:00:00',
+        model_spec=abs_path('dpa.json'),
+    )
     mdl._get_cmd_states()
 
     mdl.make()
@@ -41,8 +46,7 @@ def test_dpa_real(as_path):
     reffile = abs_path('dpa_real.npz')
     if not os.path.exists(reffile):
         print('Writing reference file', reffile)
-        np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
-                 mvals=dpa.mvals)
+        np.savez(reffile, times=mdl.times, dvals=dpa.dvals, mvals=dpa.mvals)
 
     regr = np.load(reffile)
     assert np.allclose(mdl.times, regr['times'])
@@ -62,8 +66,12 @@ def test_pitch_clip():
     -------
 
     """
-    mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
-                       model_spec=abs_path('dpa_clip.json'))
+    mdl = ThermalModel(
+        'dpa',
+        start='2012:001:12:00:00',
+        stop='2012:007:12:00:00',
+        model_spec=abs_path('dpa_clip.json'),
+    )
     mdl._get_cmd_states()
 
     mdl.make()
@@ -85,8 +93,12 @@ def test_pitch_range_clip():
     -------
 
     """
-    mdl = ThermalModel('tank', start='2019:120:12:00:00', stop='2019:122:12:00:00',
-                       model_spec=abs_path('pftank2t.json'))
+    mdl = ThermalModel(
+        'tank',
+        start='2019:120:12:00:00',
+        stop='2019:122:12:00:00',
+        model_spec=abs_path('pftank2t.json'),
+    )
 
     mdl.comp['pf0tank2t'].set_data(20.0)
     mdl.make()
@@ -98,8 +110,12 @@ def test_pitch_range_clip():
 
 
 def test_dpa_remove_pow():
-    mdl = ThermalModel('dpa', start='2019:001:12:00:00', stop='2019:007:12:00:00',
-                       model_spec=abs_path('dpa_remove_pow.json'))
+    mdl = ThermalModel(
+        'dpa',
+        start='2019:001:12:00:00',
+        stop='2019:007:12:00:00',
+        model_spec=abs_path('dpa_remove_pow.json'),
+    )
     mdl._get_cmd_states()
 
     mdl.make()
@@ -108,30 +124,30 @@ def test_dpa_remove_pow():
     reffile = abs_path('dpa_remove_pow.npz')
     if not os.path.exists(reffile):
         print('Writing reference file', reffile)
-        np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
-                 mvals=dpa.mvals)
+        np.savez(reffile, times=mdl.times, dvals=dpa.dvals, mvals=dpa.mvals)
 
     regr = np.load(reffile)
     assert np.allclose(mdl.times, regr['times'])
     assert np.allclose(dpa.dvals, regr['dvals'])
     assert np.allclose(dpa.mvals, regr['mvals'])
 
+
 def get_dpa_model():
-    mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
-                            model_spec=abs_path('dpa.json'))
+    mdl = ThermalModel(
+        'dpa',
+        start='2012:001:12:00:00',
+        stop='2012:007:12:00:00',
+        model_spec=abs_path('dpa.json'),
+    )
     times = (mdl.times - mdl.times[0]) / 10000.0
     mdl.comp['1dpamzt'].set_data(30.0)
     mdl.comp['sim_z'].set_data((100000 * sin(times)).astype(int))
     mdl.comp['pitch'].set_data(45.1 + 55 * (1 + sin(times / 2)))
     mdl.comp['eclipse'].set_data(cos(times) > 0.95)
-    mdl.comp['fep_count'].set_data((abs(sin(times / 7.89)) * 6.5
-                                    ).astype(int))
-    mdl.comp['ccd_count'].set_data((abs(sin(times / 3.111)) * 6.5
-                                    ).astype(int))
-    mdl.comp['vid_board'].set_data((abs(sin(times / 2.5)) * 1.5
-                                    ).astype(int))
-    mdl.comp['clocking'].set_data((abs(cos(times) / 1.4) * 1.5
-                                   ).astype(int))
+    mdl.comp['fep_count'].set_data((abs(sin(times / 7.89)) * 6.5).astype(int))
+    mdl.comp['ccd_count'].set_data((abs(sin(times / 3.111)) * 6.5).astype(int))
+    mdl.comp['vid_board'].set_data((abs(sin(times / 2.5)) * 1.5).astype(int))
+    mdl.comp['clocking'].set_data((abs(cos(times) / 1.4) * 1.5).astype(int))
     mdl.comp['dpa_power'].set_data(60)
 
     mdl.make()
@@ -145,8 +161,7 @@ def test_dpa():
     reffile = abs_path('dpa.npz')
     if not os.path.exists(reffile):
         print('Writing reference file dpa.npz')
-        np.savez(reffile, times=mdl.times, dvals=dpa.dvals,
-                 mvals=dpa.mvals)
+        np.savez(reffile, times=mdl.times, dvals=dpa.dvals, mvals=dpa.mvals)
 
     regr = np.load(reffile)
     assert np.allclose(mdl.times, regr['times'], rtol=0, atol=1e-3)
@@ -162,9 +177,21 @@ def test_plotdate():
 
 
 def test_data_types():
-    for data_type in (int, float, np.float32, np.float64, np.int32, np.int64, np.complex64):
-        mdl = ThermalModel('dpa', start='2012:001:12:00:00', stop='2012:007:12:00:00',
-                           model_spec=abs_path('dpa.json'))
+    for data_type in (
+        int,
+        float,
+        np.float32,
+        np.float64,
+        np.int32,
+        np.int64,
+        np.complex64,
+    ):
+        mdl = ThermalModel(
+            'dpa',
+            start='2012:001:12:00:00',
+            stop='2012:007:12:00:00',
+            model_spec=abs_path('dpa.json'),
+        )
         dpa = mdl.comp['1dpamzt']
         dpa.set_data(data_type(30.0))
         if data_type is np.complex64:
@@ -175,8 +202,12 @@ def test_data_types():
 
 
 def test_minusz():
-    mdl = ThermalModel('minusz', start='2012:001:12:00:00', stop='2012:004:12:00:00',
-                       model_spec=abs_path('minusz.json'))
+    mdl = ThermalModel(
+        'minusz',
+        start='2012:001:12:00:00',
+        stop='2012:004:12:00:00',
+        model_spec=abs_path('minusz.json'),
+    )
     times = (mdl.times - mdl.times[0]) / 10000.0
     msids = ('tephin', 'tcylaft6', 'tcylfmzm', 'tmzp_my', 'tfssbkt1')
     for msid in msids:
@@ -200,8 +231,12 @@ def test_minusz():
 
 
 def test_pftank2t():
-    mdl = ThermalModel('pftank2t', start='2012:001:12:00:00', stop='2012:004:12:00:00',
-                       model_spec=abs_path('pftank2t.json'))
+    mdl = ThermalModel(
+        'pftank2t',
+        start='2012:001:12:00:00',
+        stop='2012:004:12:00:00',
+        model_spec=abs_path('pftank2t.json'),
+    )
     times = (mdl.times - mdl.times[0]) / 10000.0
     msids = ('pftank2t', 'pf0tank2t')
     for msid in msids:
@@ -273,8 +308,12 @@ def test_multi_solar_heat_values():
     # Make sure we can round-trip the model through a JSON file
     temp_name = tempfile.NamedTemporaryFile(delete=False).name
     model.write(temp_name)
-    model2 = ThermalModel('test', model_spec=temp_name,
-                          start='2011:001:12:00:00', stop='2011:005:12:00:00')
+    model2 = ThermalModel(
+        'test',
+        model_spec=temp_name,
+        start='2011:001:12:00:00',
+        stop='2011:005:12:00:00',
+    )
     os.unlink(temp_name)
     model2.get_comp('tephin').set_data(30.0)
     model2.get_comp('tcylaft6').set_data(30.0)
@@ -306,39 +345,40 @@ def _get_model_for_dP_pitches(solar_class, msid, dP_pitches, dPs):
     model.add(xija.SimZ)
     model.add(xija.Roll)
     model.add(xija.DetectorHousingHeater)
-    model.add(solar_class,
-              P_pitches=[45, 90, 135, 180],
-              dP_pitches=dP_pitches,
-              Ps=[0.0, 1.0, 1.0, 0.0],
-              dPs=dPs,
-              ampl=0.0,
-              eclipse_comp='eclipse',
-              epoch='2020:001',
-              node=msid,
-              pitch_comp='pitch',
-              )
-    model.add(xija.HeatSink,
-              T=-20.0,
-              node=msid,
-              tau=30.0,
-              )
-    model.add(xija.StepFunctionPower,
-              P=0.1,
-              id='_1iru',
-              node=msid,
-              time='2021:003'
-              )
+    model.add(
+        solar_class,
+        P_pitches=[45, 90, 135, 180],
+        dP_pitches=dP_pitches,
+        Ps=[0.0, 1.0, 1.0, 0.0],
+        dPs=dPs,
+        ampl=0.0,
+        eclipse_comp='eclipse',
+        epoch='2020:001',
+        node=msid,
+        pitch_comp='pitch',
+    )
+    model.add(
+        xija.HeatSink,
+        T=-20.0,
+        node=msid,
+        tau=30.0,
+    )
+    model.add(xija.StepFunctionPower, P=0.1, id='_1iru', node=msid, time='2021:003')
     return model
 
 
-@pytest.mark.parametrize('solar_class', [xija.SolarHeat,
-                                         xija.SolarHeatHrc,
-                                         xija.SolarHeatHrcMult,
-                                         xija.SolarHeatHrcOpts,
-                                         xija.SolarHeatMulplicative])
+@pytest.mark.parametrize(
+    'solar_class',
+    [
+        xija.SolarHeat,
+        xija.SolarHeatHrc,
+        xija.SolarHeatHrcMult,
+        xija.SolarHeatHrcOpts,
+        xija.SolarHeatMulplicative,
+    ],
+)
 def test_fewer_dP_pitches(solar_class):
-    """Test providing fewer dP_pitches than P_pitches for SolarHeat model
-    """
+    """Test providing fewer dP_pitches than P_pitches for SolarHeat model"""
     msid = '4hfspat'
     model1 = _get_model_for_dP_pitches(solar_class, msid, None, [0.0, 1.0, 2.0, 3.0])
     model2 = _get_model_for_dP_pitches(solar_class, msid, [45, 180], [0.0, 3.0])
@@ -368,7 +408,10 @@ def test_bad_times():
     # Straddling two bad time intervals (model starts within first and ends
     # after second).
     mdl = xija.XijaModel(
-        'test', '2022:083:22:30:00', '2022:084:04:00:00', model_spec=spec1,
+        'test',
+        '2022:083:22:30:00',
+        '2022:084:04:00:00',
+        model_spec=spec1,
     )
     assert mdl.bad_times == spec1["bad_times"]
     assert mdl.bad_times_indices == [[0, 2], [6, 58]]
@@ -376,21 +419,30 @@ def test_bad_times():
 
     # Within one bad time interval
     mdl = xija.XijaModel(
-        'test', '2022:084:00:00:00', '2022:084:01:00:00', model_spec=spec1,
+        'test',
+        '2022:084:00:00:00',
+        '2022:084:01:00:00',
+        model_spec=spec1,
     )
     assert mdl.bad_times == spec1["bad_times"]
     assert mdl.bad_times_indices == [[0, len(mdl.times)]]
 
     # Within one bad time interval
     mdl = xija.XijaModel(
-        'test', '2022:084:00:00:00', '2022:084:01:00:00', model_spec=spec1,
+        'test',
+        '2022:084:00:00:00',
+        '2022:084:01:00:00',
+        model_spec=spec1,
     )
     assert mdl.bad_times == spec1["bad_times"]
     assert mdl.bad_times_indices == [[0, len(mdl.times)]]
 
     # Within no bad time interval
     mdl = xija.XijaModel(
-        'test', '2022:084:04:00:00', '2022:084:07:00:00', model_spec=spec1,
+        'test',
+        '2022:084:04:00:00',
+        '2022:084:07:00:00',
+        model_spec=spec1,
     )
     assert mdl.bad_times == spec1["bad_times"]
     assert mdl.bad_times_indices == []
@@ -405,6 +457,7 @@ def test_model_from_chandra_models(model_name):
     Test that every model in the chandra_models repo can be run with xija.
     """
     from cheta import fetch
+
     model_spec, _ = get_xija_model_spec(model_name)
     mdl = xija.XijaModel(model_name, '2021:001', '2021:007', model_spec=model_spec)
     for comp in mdl.comps:

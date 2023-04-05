@@ -7,18 +7,18 @@ import argparse
 
 import xija
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Convert Xija JSON model spec'
-                                     ' to Python')
-    parser.add_argument('model_spec',
-                        type=str,
-                        help='Input Xija model spec file name')
-    parser.add_argument('--force',
-                        action='store_true',
-                        help='Overwrite existing outfile')
-    parser.add_argument('--outfile',
-                        type=str,
-                        help='Output Python file (default=<model_spec>.py)')
+    parser = argparse.ArgumentParser(
+        description='Convert Xija JSON model spec' ' to Python'
+    )
+    parser.add_argument('model_spec', type=str, help='Input Xija model spec file name')
+    parser.add_argument(
+        '--force', action='store_true', help='Overwrite existing outfile'
+    )
+    parser.add_argument(
+        '--outfile', type=str, help='Output Python file (default=<model_spec>.py)'
+    )
     args = parser.parse_args()
 
     infile = args.model_spec
@@ -37,6 +37,7 @@ def main():
     model = xija.XijaModel(model_spec=infile)
     model.write(outfile)
     print('Wrote', outfile)
+
 
 if __name__ == '__main__':
     main()

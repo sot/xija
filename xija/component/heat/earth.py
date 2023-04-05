@@ -29,11 +29,23 @@ class EarthHeat(PrecomputedHeatPower):
     use_earth_vis_grid = True
     earth_vis_grid_path = Path(__file__).parent / 'earth_vis_grid_nside32.fits.gz'
 
-    def __init__(self, model, node,
-                 orbitephem0_x, orbitephem0_y, orbitephem0_z,
-                 aoattqt1, aoattqt2, aoattqt3, aoattqt4,
-                 solarephem0_x=None, solarephem0_y=None, 
-                 solarephem0_z=None, k=1.0, k2=None):
+    def __init__(
+        self,
+        model,
+        node,
+        orbitephem0_x,
+        orbitephem0_y,
+        orbitephem0_z,
+        aoattqt1,
+        aoattqt2,
+        aoattqt3,
+        aoattqt4,
+        solarephem0_x=None,
+        solarephem0_y=None,
+        solarephem0_z=None,
+        k=1.0,
+        k2=None,
+    ):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.orbitephem0_x = self.model.get_comp(orbitephem0_x)
@@ -55,8 +67,9 @@ class EarthHeat(PrecomputedHeatPower):
             self.solarephem0_z = None
         else:
             self.solarephem0_z = self.model.get_comp(solarephem0_z)
-        self.use_earth_phase = np.all([getattr(self, f"solarephem0_{ax}") is not None
-                                       for ax in "xyz"])
+        self.use_earth_phase = np.all(
+            [getattr(self, f"solarephem0_{ax}") is not None for ax in "xyz"]
+        )
         self.n_mvals = 1
         self.add_par('k', k, min=0.0, max=2.0)
         if k2 is not None:
@@ -65,6 +78,7 @@ class EarthHeat(PrecomputedHeatPower):
 
     def calc_earth_vis_from_grid(self, ephems, q_atts):
         import astropy_healpix
+
         healpix = astropy_healpix.HEALPix(nside=32, order='nested')
 
         if not hasattr(self, 'earth_vis_grid'):
@@ -74,9 +88,9 @@ class EarthHeat(PrecomputedHeatPower):
                 vis_grid = hdu.data / hdr['scale']  # 12288 x 100
                 self.__class__.earth_vis_grid = vis_grid
 
-                alts = np.logspace(np.log10(hdr['alt_min']),
-                                   np.log10(hdr['alt_max']),
-                                   hdr['n_alt'])
+                alts = np.logspace(
+                    np.log10(hdr['alt_min']), np.log10(hdr['alt_max']), hdr['n_alt']
+                )
                 self.__class__.log_earth_vis_dists = np.log(hdr['earthrad'] + alts)
 
         ephems = ephems.astype(np.float64)
@@ -114,12 +128,11 @@ class EarthHeat(PrecomputedHeatPower):
     @property
     def dvals(self):
         if not hasattr(self, '_dvals') and not self.get_cached():
-
             # Collect individual MSIDs for use in calc_earth_vis()
-            ephem_xyzs = [getattr(self, 'orbitephem0_{}'.format(x))
-                          for x in ('x', 'y', 'z')]
-            aoattqt_1234s = [getattr(self, 'aoattqt{}'.format(x))
-                             for x in range(1, 5)]
+            ephem_xyzs = [
+                getattr(self, 'orbitephem0_{}'.format(x)) for x in ('x', 'y', 'z')
+            ]
+            aoattqt_1234s = [getattr(self, 'aoattqt{}'.format(x)) for x in range(1, 5)]
             # Note: the copy() here is so that the array becomes contiguous in
             # memory and allows numba to run faster (and avoids NumbaPerformanceWarning:
             # np.dot() is faster on contiguous arrays).
@@ -130,11 +143,13 @@ class EarthHeat(PrecomputedHeatPower):
             # Ska eng 5-min "midvals" are not lined up, but I'm not quite sure.
             # TODO: this (legacy) solution isn't great.  Investigate what's
             # really happening.
-            q_norm = np.sqrt(np.sum(q_atts ** 2, axis=1))
+            q_norm = np.sqrt(np.sum(q_atts**2, axis=1))
             bad = np.abs(q_norm - 1.0) > 0.1
             if np.any(bad):
-                print(f"Replacing bad midval quaternions with [1,0,0,0] at times "
-                      f"{self.model.times[bad]}")
+                print(
+                    f"Replacing bad midval quaternions with [1,0,0,0] at times "
+                    f"{self.model.times[bad]}"
+                )
                 q_atts[bad, :] = [0.0, 0.0, 0.0, 1.0]
             q_atts[~bad, :] = q_atts[~bad, :] / q_norm[~bad, np.newaxis]
 
@@ -155,10 +170,10 @@ class EarthHeat(PrecomputedHeatPower):
             if self.use_earth_phase:
                 solars = np.array([x.dvals for x in solar_xyzs]).transpose().copy()
 
-                cos = np.sum(ephems*solars, axis=1)
-                es = np.sum(ephems*ephems, axis=1)*np.sum(solars*solars, axis=1)
+                cos = np.sum(ephems * solars, axis=1)
+                es = np.sum(ephems * ephems, axis=1) * np.sum(solars * solars, axis=1)
                 cos /= np.sqrt(es)
-                self.earth_phase = 0.5*(1.0+cos)
+                self.earth_phase = 0.5 * (1.0 + cos)
 
             self.put_cache()
 
@@ -167,9 +182,9 @@ class EarthHeat(PrecomputedHeatPower):
     def put_cache(self):
         if os.path.exists('esa_cache'):
             cachefile = 'esa_cache/{}-{}.npz'.format(
-                self.model.datestart, self.model.datestop)
-            np.savez(cachefile, times=self.model.times,
-                     dvals=self.dvals)
+                self.model.datestart, self.model.datestop
+            )
+            np.savez(cachefile, times=self.model.times, dvals=self.dvals)
 
     def get_cached(self):
         """Find a cached version of the Earth solid angle values from
@@ -190,14 +205,17 @@ class EarthHeat(PrecomputedHeatPower):
             m = re.search(re_cache_file, name)
             if m:
                 f_datestart, f_datestop = m.groups()
-                if (f_datestart <= self.model.datestart and
-                    f_datestop >= self.model.datestop):
+                if (
+                    f_datestart <= self.model.datestart
+                    and f_datestop >= self.model.datestop
+                ):
                     dts[name] = DateTime(f_datestop) - DateTime(f_datestart)
         if dts:
             cachefile = sorted(dts.items(), key=lambda x: x[1])[0][0]
             arrays = np.load(cachefile)
             self._dvals = self.model.interpolate_data(
-                arrays['dvals'], arrays['times'], comp=self)
+                arrays['dvals'], arrays['times'], comp=self
+            )
             return True
         else:
             return False
@@ -206,17 +224,24 @@ class EarthHeat(PrecomputedHeatPower):
         self.mvals = self.k * self.dvals
         if self.use_earth_phase:
             self.mvals += self.k2 * self.earth_phase * self.dvals
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                          self.node.mvals_i,  # dy1/dt index
-                          self.mvals_i,  # mvals with precomputed heat input
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,  # mvals with precomputed heat input
+        )
         self.tmal_floats = ()
 
     def plot_earth_phase__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.earth_phase, ls='-',
-                         color='#386cb0', fig=fig, ax=ax)
+            plot_cxctime(
+                self.model.times,
+                self.earth_phase,
+                ls='-',
+                color='#386cb0',
+                fig=fig,
+                ax=ax,
+            )
             ax.grid()
             ax.set_title('Earth Phase')
             ax.set_ylabel('Earth Phase')
@@ -226,8 +251,9 @@ class EarthHeat(PrecomputedHeatPower):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, ls='-',
-                         color='#386cb0', fig=fig, ax=ax)
+            plot_cxctime(
+                self.model.times, self.dvals, ls='-', color='#386cb0', fig=fig, ax=ax
+            )
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Illumination (sr)')
@@ -290,14 +316,14 @@ def quat_to_transform_transpose(q):
     wx2 = 2 * w * x
 
     rmat = np.empty((3, 3), np.float64)
-    rmat[0, 0] = 1. - yy2 - zz2
+    rmat[0, 0] = 1.0 - yy2 - zz2
     rmat[1, 0] = xy2 - wz2
     rmat[2, 0] = zx2 + wy2
     rmat[0, 1] = xy2 + wz2
-    rmat[1, 1] = 1. - xx2 - zz2
+    rmat[1, 1] = 1.0 - xx2 - zz2
     rmat[2, 1] = yz2 - wx2
     rmat[0, 2] = zx2 - wy2
     rmat[1, 2] = yz2 + wx2
-    rmat[2, 2] = 1. - xx2 - yy2
+    rmat[2, 2] = 1.0 - xx2 - yy2
 
     return rmat

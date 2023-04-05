@@ -6,13 +6,19 @@ import pytest
 import requests
 import git
 
-from ..get_model_spec import (get_xija_model_spec, get_xija_model_names,
-                              get_repo_version, get_github_version)
+from ..get_model_spec import (
+    get_xija_model_spec,
+    get_xija_model_names,
+    get_repo_version,
+    get_github_version,
+)
 
 try:
     # Fast request to see if GitHub is available
-    req = requests.get('https://raw.githubusercontent.com/sot/chandra_models/master/README.md',
-                       timeout=5)
+    req = requests.get(
+        'https://raw.githubusercontent.com/sot/chandra_models/master/README.md',
+        timeout=5,
+    )
     HAS_GITHUB = req.status_code == 200
 except Exception:
     HAS_GITHUB = False

@@ -11,9 +11,11 @@ fit_logger = logging.getLogger("fit")
 
 # Default configurations for fit methods
 sherpa_configs = dict(
-    simplex = dict(ftol=1e-3,
-                   finalsimplex=0,   # converge based only on length of simplex
-                   maxfev=None),
+    simplex=dict(
+        ftol=1e-3,
+        finalsimplex=0,  # converge based only on length of simplex
+        maxfev=None,
+    ),
 )
 
 
@@ -31,7 +33,9 @@ class CalcModel(object):
         allows for multiprocessing where only the fit statistic gets passed between nodes.
         """
         fit_logger.info('Calculating params:')
-        for parname, parval, newparval in zip(self.model.parnames, self.model.parvals, parvals):
+        for parname, parval, newparval in zip(
+            self.model.parnames, self.model.parvals, parvals
+        ):
             if parval != newparval:
                 fit_logger.info('  {0}: {1}'.format(parname, newparval))
         self.model.parvals = parvals
@@ -61,12 +65,14 @@ class CalcStat(object):
             self.min_fit_stat = fit_stat
             self.min_parvals = self.model.parvals
 
-        self.message = {'status': 'fitting',
-                        'time': time.time(),
-                        'parvals': self.model.parvals,
-                        'fit_stat': fit_stat,
-                        'min_parvals': self.min_parvals,
-                        'min_fit_stat': self.min_fit_stat}
+        self.message = {
+            'status': 'fitting',
+            'time': time.time(),
+            'parvals': self.model.parvals,
+            'fit_stat': fit_stat,
+            'min_parvals': self.min_parvals,
+            'min_fit_stat': self.min_fit_stat,
+        }
         self.pipe.send(self.message)
 
         while self.pipe.poll():
@@ -77,7 +83,9 @@ class CalcStat(object):
 
         self.niter += 1
         if self.niter >= self.maxiter:
-            fit_logger.warning('Reached maximum number of iterations: %d' % self.maxiter)
+            fit_logger.warning(
+                'Reached maximum number of iterations: %d' % self.maxiter
+            )
             self.model.parvals = self.min_parvals
             raise FitTerminated('terminated')
 

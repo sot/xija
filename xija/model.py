@@ -34,12 +34,16 @@ from . import clogging
 H5FILE = '/proj/sot/ska/data/cmd_states/cmd_states.h5'
 
 src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
-files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
-         pyc.ContextDict('files', basedir=os.getcwd()))
+files = (
+    pyc.CONTEXT['file']
+    if 'file' in pyc.CONTEXT
+    else pyc.ContextDict('files', basedir=os.getcwd())
+)
 files.update(xija_files)
 
 if 'debug' in globals():
     from IPython.Debugger import Tracer
+
     pdb_settrace = Tracer()
 
 logger = clogging.config_logger('xija', level=clogging.INFO)
@@ -57,7 +61,7 @@ def _get_bad_times_indices(
     times: np.ndarray,
     datestart: str,
     datestop: str,
-    bad_times_in: List[Tuple[str, str]]
+    bad_times_in: List[Tuple[str, str]],
 ) -> Tuple[List[Tuple[str, str]], List[Tuple[int, int]]]:
     """Return bad_times_indices into ``times`` for elements in the
     ``bad_times_in`` list that overlap with the ``datestart`` to ``datestop``.
@@ -132,9 +136,19 @@ class XijaModel(object):
     -------
 
     """
-    def __init__(self, name=None, start=None, stop=None, dt=None,
-                 model_spec=None, cmd_states=None, evolve_method=None,
-                 rk4=None, limits=None):
+
+    def __init__(
+        self,
+        name=None,
+        start=None,
+        stop=None,
+        dt=None,
+        model_spec=None,
+        cmd_states=None,
+        evolve_method=None,
+        rk4=None,
+        limits=None,
+    ):
         # If model_spec is a str or Path then read that file
         if isinstance(model_spec, (str, Path)):
             model_spec = json.load(open(model_spec, 'r'))
@@ -167,11 +181,11 @@ class XijaModel(object):
         self.name = name
         self.comp = OrderedDict()
         self.dt = self._get_allowed_timestep(dt)
-        self.dt_ksec = self.dt / 1000.
+        self.dt_ksec = self.dt / 1000.0
         self.times = self._eng_match_times(start, stop)
         self.tstart = self.times[0]
         self.tstop = self.times[-1]
-        self.ksecs = (self.times - self.tstart) / 1000.
+        self.ksecs = (self.times - self.tstart) / 1000.0
         self.datestart = DateTime(self.tstart).date
         self.datestop = DateTime(self.tstop).date
         self.n_times = len(self.times)
@@ -207,9 +221,10 @@ class XijaModel(object):
 
         """
         if dt > DEFAULT_DT:
-            logger.warning("dt = %g s greater than upper "
-                           "limit of %g s! " % (dt, DEFAULT_DT) +
-                           "Setting dt = %g s." % DEFAULT_DT)
+            logger.warning(
+                "dt = %g s greater than upper "
+                "limit of %g s! " % (dt, DEFAULT_DT) + "Setting dt = %g s." % DEFAULT_DT
+            )
             return DEFAULT_DT
         dt_factor = dt / DEFAULT_DT
         idx = np.argmin(np.abs(dt_factor - dt_factors))
@@ -226,8 +241,10 @@ class XijaModel(object):
 
         pars = model_spec['pars']
         if len(pars) != len(self.pars):
-            raise ValueError('Number of spec pars does not match model: \n'
-                             '{0}\n{1}'.format(len(pars), len(self.pars)))
+            raise ValueError(
+                'Number of spec pars does not match model: \n'
+                '{0}\n{1}'.format(len(pars), len(self.pars))
+            )
         for par, specpar in zip(self.pars, pars):
             for attr in specpar:
                 setattr(par, attr, specpar[attr])
@@ -286,10 +303,15 @@ class XijaModel(object):
     def _get_cmd_states(self):
         if not hasattr(self, '_cmd_states'):
             import kadi.commands.states as kadi_states
-            logger.info('Getting kadi commanded states over %s to %s' %
-                        (self.datestart, self.datestop))
+
+            logger.info(
+                'Getting kadi commanded states over %s to %s'
+                % (self.datestart, self.datestop)
+            )
             states = kadi_states.get_states(self.datestart, self.datestop)
-            self._cmd_states = kadi_states.interpolate_states(states, self.times).as_array()
+            self._cmd_states = kadi_states.interpolate_states(
+                states, self.times
+            ).as_array()
 
         return self._cmd_states
 
@@ -306,12 +328,19 @@ class XijaModel(object):
 
         """
         if states is not None:
-            if (states[0]['tstart'] >= self.times[0]
-                    or states[-1]['tstop'] <= self.times[-1]):
-                raise ValueError('cmd_states time range too small:\n'
-                                 '{} : {} versus {} : {}'.format(
-                                     states[0]['tstart'], states[-1]['tstop'],
-                                     self.times[0], self.times[-1]))
+            if (
+                states[0]['tstart'] >= self.times[0]
+                or states[-1]['tstop'] <= self.times[-1]
+            ):
+                raise ValueError(
+                    'cmd_states time range too small:\n'
+                    '{} : {} versus {} : {}'.format(
+                        states[0]['tstart'],
+                        states[-1]['tstop'],
+                        self.times[0],
+                        self.times[-1],
+                    )
+                )
 
             indexes = np.searchsorted(states['tstop'], self.times)
             self._cmd_states = states[indexes]
@@ -338,19 +367,22 @@ class XijaModel(object):
         tpad = DEFAULT_DT * 5.0
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
-        logger.info('Fetching msid: %s over %s to %s' %
-                    (msid, datestart, datestop))
+        logger.info('Fetching msid: %s over %s to %s' % (msid, datestart, datestop))
         try:
             import Ska.engarchive.fetch_sci as fetch
+
             tlm = fetch.MSID(msid, datestart, datestop, stat='5min')
             tlm.filter_bad_times()
         except ImportError:
             raise ValueError('Ska.engarchive.fetch not available')
         if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
-            raise ValueError('Fetched telemetry does not span model start and '
-                             'stop times for {}'.format(msid))
-        vals = Ska.Numpy.interpolate(getattr(tlm, attr), tlm.times,
-                                     self.times, method=method)
+            raise ValueError(
+                'Fetched telemetry does not span model start and '
+                'stop times for {}'.format(msid)
+            )
+        vals = Ska.Numpy.interpolate(
+            getattr(tlm, attr), tlm.times, self.times, method=method
+        )
         return vals
 
     def interpolate_data(self, data, times, comp=None):
@@ -378,28 +410,34 @@ class XijaModel(object):
         """
         if times is None:
             if len(data) != self.n_times:
-                raise ValueError('Data length not equal to model times'
-                                 ' for {} component'.format(comp))
+                raise ValueError(
+                    'Data length not equal to model times'
+                    ' for {} component'.format(comp)
+                )
             return data
 
         if len(data) != times.shape[-1]:
-            raise ValueError('Data length not equal to data times'
-                             ' for {} component'.format(comp))
+            raise ValueError(
+                'Data length not equal to data times' ' for {} component'.format(comp)
+            )
 
         if times.ndim == 1:  # Data value specification
-            vals = Ska.Numpy.interpolate(data, times, self.times,
-                                         method='nearest')
+            vals = Ska.Numpy.interpolate(data, times, self.times, method='nearest')
         elif times.ndim == 2:  # State-value specification
             tstarts = times[0]
             tstops = times[1]
             if self.times[0] < tstarts[0] or self.times[-1] > tstops[-1]:
-                raise ValueError('Model times extend outside the state value'
-                                 ' data_times for component {}'.format(comp))
+                raise ValueError(
+                    'Model times extend outside the state value'
+                    ' data_times for component {}'.format(comp)
+                )
             indexes = np.searchsorted(tstops, self.times)
             vals = data[indexes]
         else:
-            raise ValueError('data_times for {} has {} dimensions, '
-                             ' must be either 1 or 2'.format(comp, times.ndim))
+            raise ValueError(
+                'data_times for {} has {} dimensions, '
+                ' must be either 1 or 2'.format(comp, times.ndim)
+            )
         return vals
 
     def add(self, ComponentClass, *args, **kwargs):
@@ -459,15 +497,17 @@ class XijaModel(object):
         -------
 
         """
-        model_spec = dict(name=self.name,
-                          comps=[],
-                          dt=self.dt,
-                          datestart=self.datestart,
-                          datestop=self.datestop,
-                          tlm_code=None,
-                          mval_names=[],
-                          evolve_method=self.evolve_method,
-                          rk4=self.rk4)
+        model_spec = dict(
+            name=self.name,
+            comps=[],
+            dt=self.dt,
+            datestart=self.datestart,
+            datestop=self.datestop,
+            tlm_code=None,
+            mval_names=[],
+            evolve_method=self.evolve_method,
+            rk4=self.rk4,
+        )
 
         model_spec['bad_times'] = self.bad_times
 
@@ -478,12 +518,15 @@ class XijaModel(object):
         stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent) else x)
         for comp in self.comps:
             init_args = [stringfy(x) for x in comp.init_args]
-            init_kwargs = dict((k, stringfy(v))
-                               for k, v in comp.init_kwargs.items())
-            model_spec['comps'].append(dict(class_name=comp.__class__.__name__,
-                                            name=comp.name,
-                                            init_args=init_args,
-                                            init_kwargs=init_kwargs))
+            init_kwargs = dict((k, stringfy(v)) for k, v in comp.init_kwargs.items())
+            model_spec['comps'].append(
+                dict(
+                    class_name=comp.__class__.__name__,
+                    name=comp.name,
+                    init_args=init_args,
+                    init_kwargs=init_kwargs,
+                )
+            )
         return model_spec
 
     def write_vals(self, filename):
@@ -561,14 +604,23 @@ class XijaModel(object):
 
         print("import sys", file=out)
         print("import xija\n", file=out)
-        print(model_call.format(repr(ms['name']), repr(ms['datestart']),
-                                repr(ms['datestop']), repr(ms['dt']),
-                                repr(ms['evolve_method']), repr(ms['rk4'])), file=out)
+        print(
+            model_call.format(
+                repr(ms['name']),
+                repr(ms['datestart']),
+                repr(ms['datestop']),
+                repr(ms['dt']),
+                repr(ms['evolve_method']),
+                repr(ms['rk4']),
+            ),
+            file=out,
+        )
 
         for comp in ms['comps']:
             args = [repr(x) for x in comp['init_args']]
-            kwargs = ['{}={}'.format(k, repr(v))
-                      for k, v in comp['init_kwargs'].items()]
+            kwargs = [
+                '{}={}'.format(k, repr(v)) for k, v in comp['init_kwargs'].items()
+            ]
             print('model.add(xija.{},'.format(comp['class_name']), file=out)
             for arg in args:
                 print('          {},'.format(arg), file=out)
@@ -584,8 +636,7 @@ class XijaModel(object):
                 print('# Set {} component parameters'.format(comp_name), file=out)
                 print('comp = model.get_comp({})\n'.format(repr(comp_name)), file=out)
             print('par = comp.get_par({})'.format(repr(par['name'])), file=out)
-            par_upds = ['{}={}'.format(attr, repr(par[attr]))
-                        for attr in parattrs]
+            par_upds = ['{}={}'.format(attr, repr(par[attr])) for attr in parattrs]
             print('par.update(dict({}))\n'.format(', '.join(par_upds)), file=out)
             last_comp_name = comp_name
 
@@ -615,8 +666,11 @@ class XijaModel(object):
 
         """
         if len(vals) != len(self.pars):
-            raise ValueError('Length mismatch setting parvals {} vs {}'.format(
-                len(self.pars), len(vals)))
+            raise ValueError(
+                'Length mismatch setting parvals {} vs {}'.format(
+                    len(self.pars), len(vals)
+                )
+            )
         for par, val in zip(self.pars, vals):
             par.val = val
 
@@ -688,13 +742,11 @@ class XijaModel(object):
         for comp in self.comps:
             comp.update()
         tmal_comps = [x for x in self.comps if hasattr(x, 'tmal_ints')]
-        self.tmal_ints = np.zeros((len(tmal_comps), tmal.N_INTS),
-                                  dtype=np.int32)
-        self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS),
-                                    dtype=np.float64)
+        self.tmal_ints = np.zeros((len(tmal_comps), tmal.N_INTS), dtype=np.int32)
+        self.tmal_floats = np.zeros((len(tmal_comps), tmal.N_FLOATS), dtype=np.float64)
         for i, comp in enumerate(tmal_comps):
-            self.tmal_ints[i, 0:len(comp.tmal_ints)] = comp.tmal_ints
-            self.tmal_floats[i, 0:len(comp.tmal_floats)] = comp.tmal_floats
+            self.tmal_ints[i, 0 : len(comp.tmal_ints)] = comp.tmal_ints
+            self.tmal_floats[i, 0 : len(comp.tmal_floats)] = comp.tmal_floats
 
     def calc(self):
         """Calculate the model.  The results appear in the self.mvals array."""
@@ -708,29 +760,43 @@ class XijaModel(object):
 
         if self.evolve_method == 1:
             dt = self.dt_ksec * 2
-            self.core_1.calc_model_1(self.n_times, self.n_preds,
-                                     len(self.tmal_ints), dt, mvals,
-                                     tmal_ints, tmal_floats)
+            self.core_1.calc_model_1(
+                self.n_times,
+                self.n_preds,
+                len(self.tmal_ints),
+                dt,
+                mvals,
+                tmal_ints,
+                tmal_floats,
+            )
         elif self.evolve_method == 2:
             dt = self.dt_ksec
-            self.core_2.calc_model_2(self.rk4, self.n_times, self.n_preds,
-                                     len(self.tmal_ints), dt, mvals,
-                                     tmal_ints, tmal_floats)
+            self.core_2.calc_model_2(
+                self.rk4,
+                self.n_times,
+                self.n_preds,
+                len(self.tmal_ints),
+                dt,
+                mvals,
+                tmal_ints,
+                tmal_floats,
+            )
 
         # hackish fix to ensure last value is a computed value for predicted components
-        self.mvals[:self.n_preds, -1] = self.mvals[:self.n_preds, -2]
+        self.mvals[: self.n_preds, -1] = self.mvals[: self.n_preds, -2]
 
         # Apply Delay components after the model calculation
         for comp in self.comps:
             if isinstance(comp, component.Delay) and comp.delay != 0.0:
                 # Note: starting from index 0 creates an instability in xija_gui_fit,
                 # so just copy from index 1.
-                comp.node.mvals[1:] = np.interp(x=self.times - comp.delay * 1000,
-                                                xp=self.times, fp=comp.node.mvals)[1:]
+                comp.node.mvals[1:] = np.interp(
+                    x=self.times - comp.delay * 1000, xp=self.times, fp=comp.node.mvals
+                )[1:]
 
     def calc_stat(self):
         """Calculate model fit statistic as the sum of component fit stats"""
-        self.calc()            # parvals already set with dummy_calc
+        self.calc()  # parvals already set with dummy_calc
         fit_stat = sum(comp.calc_stat() for comp in self.comps if comp.predict)
         return fit_stat
 
@@ -751,8 +817,10 @@ class XijaModel(object):
     @property
     def date_range(self):
         """ """
-        return '%s_%s' % (DateTime(self.tstart).greta[:7],
-                          DateTime(self.tstop).greta[:7])
+        return '%s_%s' % (
+            DateTime(self.tstart).greta[:7],
+            DateTime(self.tstop).greta[:7],
+        )
 
     @property
     def core_1(self):
@@ -772,11 +840,14 @@ class XijaModel(object):
             _core_1 = np.ctypeslib.load_library('core_1', loader_path)
             _core_1.calc_model_1.restype = ctypes.c_int
             _core_1.calc_model_1.argtypes = [
-                ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
                 ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
-                ctypes.POINTER(ctypes.POINTER(ctypes.c_double))]
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+            ]
             XijaModel._core_1 = _core_1
         return XijaModel._core_1
 
@@ -798,11 +869,14 @@ class XijaModel(object):
             _core_2 = np.ctypeslib.load_library('core_2', loader_path)
             _core_2.calc_model_2.restype = ctypes.c_int
             _core_2.calc_model_2.argtypes = [
-                ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                ctypes.c_int, ctypes.c_double,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_double,
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
                 ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
-                ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
+                ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
             ]
             XijaModel._core_2 = _core_2
         return XijaModel._core_2

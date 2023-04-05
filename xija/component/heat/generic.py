@@ -15,11 +15,13 @@ from xija import tmal
 
 class PropHeater(PrecomputedHeatPower):
     """Proportional heater (P = k * (T_set - T) for T < T_set)."""
+
     def __init__(self, model, node, node_control=None, k=0.1, T_set=20.0):
         super(PropHeater, self).__init__(model)
         self.node = self.model.get_comp(node)
-        self.node_control = (self.node if node_control is None
-                             else self.model.get_comp(node_control))
+        self.node_control = (
+            self.node if node_control is None else self.model.get_comp(node_control)
+        )
         self.add_par('k', k, min=0.0, max=1.0)
         self.add_par('T_set', T_set, min=-50.0, max=100.0)
         self.n_mvals = 1
@@ -32,11 +34,12 @@ class PropHeater(PrecomputedHeatPower):
         return np.zeros_like(self.model.times)
 
     def update(self):
-        self.tmal_ints = (tmal.OPCODES['proportional_heater'],
-                          self.node.mvals_i,  # dy1/dt index
-                          self.node_control.mvals_i,
-                          self.mvals_i
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['proportional_heater'],
+            self.node.mvals_i,  # dy1/dt index
+            self.node_control.mvals_i,
+            self.mvals_i,
+        )
         self.tmal_floats = (self.T_set, self.k)
 
     def plot_data__time(self, fig, ax):
@@ -52,11 +55,13 @@ class PropHeater(PrecomputedHeatPower):
 
 class ThermostatHeater(ActiveHeatPower):
     """Thermostat heater (no deadband): heat = P for T < T_set)."""
+
     def __init__(self, model, node, node_control=None, P=0.1, T_set=20.0):
         super(ThermostatHeater, self).__init__(model)
         self.node = self.model.get_comp(node)
-        self.node_control = (self.node if node_control is None
-                             else self.model.get_comp(node_control))
+        self.node_control = (
+            self.node if node_control is None else self.model.get_comp(node_control)
+        )
         self.add_par('P', P, min=0.0, max=1.0)
         self.add_par('T_set', T_set, min=-50.0, max=100.0)
         self.n_mvals = 1
@@ -69,11 +74,12 @@ class ThermostatHeater(ActiveHeatPower):
         return np.zeros_like(self.model.times)
 
     def update(self):
-        self.tmal_ints = (tmal.OPCODES['thermostat_heater'],
-                          self.node.mvals_i,  # dy1/dt index
-                          self.node_control.mvals_i,
-                          self.mvals_i
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['thermostat_heater'],
+            self.node.mvals_i,  # dy1/dt index
+            self.node_control.mvals_i,
+            self.mvals_i,
+        )
         self.tmal_floats = (self.T_set, self.P)
 
     def plot_data__time(self, fig, ax):
@@ -109,6 +115,7 @@ class StepFunctionPower(PrecomputedHeatPower):
     -------
 
     """
+
     def __init__(self, model, node, time, P=0.0, id=''):
         super(StepFunctionPower, self).__init__(model)
         self.time = DateTime(time).secs
@@ -129,10 +136,11 @@ class StepFunctionPower(PrecomputedHeatPower):
         self.mvals = np.full_like(self.model.times, fill_value=self.P)
         idx0 = np.searchsorted(self.model.times, self.time)
         self.mvals[:idx0] = 0.0
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                          self.node.mvals_i,  # dy1/dt index
-                          self.mvals_i,
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,
+        )
         self.tmal_floats = ()
 
     def plot_data__time(self, fig, ax):
@@ -169,6 +177,7 @@ class MsidStatePower(PrecomputedHeatPower):
         model.comp['cossrbx_on'].set_data(True)
 
     """
+
     def __init__(self, model, node, state_msid, state_val, P=0.0):
         super(MsidStatePower, self).__init__(model)
         self.node = self.model.get_comp(node)
@@ -192,10 +201,11 @@ class MsidStatePower(PrecomputedHeatPower):
     def update(self):
         self.mvals = np.zeros_like(self.model.times)
         self.mvals[self.dvals] = self.P
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                          self.node.mvals_i,  # dy1/dt index
-                          self.mvals_i,
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,
+        )
         self.tmal_floats = ()
 
     def plot_data__time(self, fig, ax):

@@ -11,26 +11,22 @@ def get_limit_spec(limit):
 
     (where the "qualifier" element is optional) return the various pieces
     into a dictionary for convenience.
-    
+
     Parameters
     ----------
     limit : str
-        The input limit string. 
-        
+        The input limit string.
+
     Returns
     -------
     dict
         A dictionary specifying the names of the various pieces of the
-        limit string. 
+        limit string.
     """
     words = limit.split(".")
     if len(words) < 3:
         raise RuntimeError(f"{limit} is not a valid limit string")
-    limit_spec = {
-        "system": words[0],
-        "type": words[1],
-        "direction": words[2]
-    }
+    limit_spec = {"system": words[0], "type": words[1], "direction": words[2]}
     if len(words) == 4:
         limit_spec["qualifier"] = words[3]
     else:
@@ -39,7 +35,7 @@ def get_limit_spec(limit):
 
 
 LIMIT_COLORS = {
-    '*.acisi': 'blue', 
+    '*.acisi': 'blue',
     '*.aciss': 'purple',
     '*.aciss_hot': 'red',
     '*.cold_ecs': 'dodgerblue',
@@ -50,31 +46,31 @@ LIMIT_COLORS = {
     'planning.caution.*': 'dodgerblue',
     'planning.warning.*': 'green',
     'planning.penalty.*': 'gray',
-    '*': 'black'
+    '*': 'black',
 }
 
 
 def get_limit_color(limit):
     """
     Based on an input *limit* string of the form:
-    
-    <system>.<type>.<direction>.<qualifier>    
-    
+
+    <system>.<type>.<direction>.<qualifier>
+
     (where the "qualifier" element is optional) return the color to
     be used for plotting.
-    
+
     Parameters
     ----------
     limit : str
-        The input limit string. 
-        
+        The input limit string.
+
     Returns
     -------
     str
-        A string giving the color of the line. 
+        A string giving the color of the line.
     """
     for k, v in LIMIT_COLORS.items():
         if fnmatch(limit, k):
-            color = v    
+            color = v
             break
     return color

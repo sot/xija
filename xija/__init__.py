@@ -7,19 +7,21 @@ from .files import files
 
 __version__ = ska_helpers.get_version(__package__)
 
+
 def test(*args, **kwargs):
     """Run py.test unit tests.
 
     Parameters
     ----------
     *args :
-        
+
     **kwargs :
-        
+
 
     Returns
     -------
 
     """
     import testr
+
     return testr.test(*args, **kwargs)

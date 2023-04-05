@@ -2,6 +2,7 @@
 import operator
 
 import numpy as np
+
 try:
     from Ska.Matplotlib import plot_cxctime
 except ImportError:
@@ -28,6 +29,7 @@ class Mask(ModelComponent):
     -------
 
     """
+
     def __init__(self, model, node, op, val, min_=-1e38, max_=1e38):
         ModelComponent.__init__(self, model)
         # Usually do self.node = model.get_comp(node) right away.  But here
@@ -84,6 +86,7 @@ class MaskBox(Mask):
     -------
 
     """
+
     def __init__(self, model, node, val0, val1, min_=-1000, max_=1000):
         ModelComponent.__init__(self, model)
         # Usually do self.node = model.get_comp(node) right away.  But here
@@ -106,5 +109,3 @@ class MaskBox(Mask):
 
     def __str__(self):
         return "maskbox__{}".format(self.node)
-
-

@@ -18,10 +18,16 @@ import requests
 from Ska.File import get_globfiles
 from ska_helpers.paths import xija_models_path, chandra_models_repo_path
 
-__all__ = ['get_xija_model_spec', 'get_xija_model_names', 'get_repo_version',
-           'get_github_version']
+__all__ = [
+    'get_xija_model_spec',
+    'get_xija_model_names',
+    'get_repo_version',
+    'get_github_version',
+]
 
-CHANDRA_MODELS_LATEST_URL = 'https://api.github.com/repos/sot/chandra_models/releases/latest'
+CHANDRA_MODELS_LATEST_URL = (
+    'https://api.github.com/repos/sot/chandra_models/releases/latest'
+)
 
 
 @contextlib.contextmanager
@@ -37,8 +43,9 @@ def temp_directory():
     shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def get_xija_model_spec(model_name, version=None, repo_path=None,
-                        check_version=False, timeout=5) -> tuple:
+def get_xija_model_spec(
+    model_name, version=None, repo_path=None, check_version=False, timeout=5
+) -> tuple:
     """
     Get Xija model specification for the specified ``model_name``.
 
@@ -97,14 +104,15 @@ def get_xija_model_spec(model_name, version=None, repo_path=None,
         repo = git.Repo.clone_from(repo_path, repo_path_local)
         if version is not None:
             repo.git.checkout(version)
-        model_spec, version = _get_xija_model_spec(model_name, version, repo_path_local,
-                                                   check_version, timeout)
+        model_spec, version = _get_xija_model_spec(
+            model_name, version, repo_path_local, check_version, timeout
+        )
     return model_spec, version
 
 
-def _get_xija_model_spec(model_name, version=None, repo_path=None,
-                         check_version=False, timeout=5) -> tuple:
-
+def _get_xija_model_spec(
+    model_name, version=None, repo_path=None, check_version=False, timeout=5
+) -> tuple:
     models_path = xija_models_path(repo_path)
 
     if not models_path.exists():
@@ -116,8 +124,10 @@ def _get_xija_model_spec(model_name, version=None, repo_path=None,
         file_name = get_globfiles(file_glob)[0]
     except ValueError:
         names = get_xija_model_names(repo_path)
-        raise ValueError(f'no models matched {model_name}. Available models are: '
-                         f'{", ".join(names)}')
+        raise ValueError(
+            f'no models matched {model_name}. Available models are: '
+            f'{", ".join(names)}'
+        )
 
     model_spec = json.load(open(file_name, 'r'))
 
@@ -128,11 +138,14 @@ def _get_xija_model_spec(model_name, version=None, repo_path=None,
     if check_version:
         gh_version = get_github_version(timeout=timeout)
         if gh_version is None:
-            warnings.warn('Could not verify GitHub chandra_models release tag '
-                          f'due to timeout ({timeout} sec)')
+            warnings.warn(
+                'Could not verify GitHub chandra_models release tag '
+                f'due to timeout ({timeout} sec)'
+            )
         elif version != gh_version:
-            raise ValueError(f'version mismatch: local repo {version} vs '
-                             f'github {gh_version}')
+            raise ValueError(
+                f'version mismatch: local repo {version} vs ' f'github {gh_version}'
+            )
 
     return model_spec, version
 
@@ -172,7 +185,9 @@ def get_xija_model_names(repo_path=None) -> List[str]:
     """
     models_path = xija_models_path(repo_path)
 
-    fns = get_globfiles(str(models_path / '*' / '*_spec.json'), minfiles=0, maxfiles=None)
+    fns = get_globfiles(
+        str(models_path / '*' / '*_spec.json'), minfiles=0, maxfiles=None
+    )
     names = [re.sub(r'_spec\.json', '', Path(fn).name) for fn in sorted(fns)]
 
     return names
@@ -206,8 +221,9 @@ def get_repo_version(repo_path: Optional[Path] = None) -> str:
     return tag_repo.name
 
 
-def get_github_version(url: str = CHANDRA_MODELS_LATEST_URL,
-                       timeout: Union[int, float] = 5) -> Optional[bool]:
+def get_github_version(
+    url: str = CHANDRA_MODELS_LATEST_URL, timeout: Union[int, float] = 5
+) -> Optional[bool]:
     """Get latest chandra_models GitHub repo release tag (version).
 
     This queries GitHub for the latest release of chandra_models.
@@ -235,4 +251,3 @@ def get_github_version(url: str = CHANDRA_MODELS_LATEST_URL,
 
     page_json = req.json()
     return page_json['tag_name']
-

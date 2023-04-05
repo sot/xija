@@ -50,15 +50,40 @@ class SolarHeatAcisCameraBody(SolarHeat):
     dP_pitches :
         list of pitch values for dP (default=``P_pitches``)
     """
-    def __init__(self, model, node, pitch_comp='pitch', eclipse_comp=None,
-                 P_pitches=None, Ps=None, dPs=None, var_func='exp',
-                 tau=1732.0, ampl=0.05, bias=0.0, epoch='2010:001:12:00:00',
-                 dh_heater_comp='dh_heater', dh_heater_bias=0.0, dP_pitches=None):
 
+    def __init__(
+        self,
+        model,
+        node,
+        pitch_comp='pitch',
+        eclipse_comp=None,
+        P_pitches=None,
+        Ps=None,
+        dPs=None,
+        var_func='exp',
+        tau=1732.0,
+        ampl=0.05,
+        bias=0.0,
+        epoch='2010:001:12:00:00',
+        dh_heater_comp='dh_heater',
+        dh_heater_bias=0.0,
+        dP_pitches=None,
+    ):
         super().__init__(
-            model, node, pitch_comp=pitch_comp, eclipse_comp=eclipse_comp,
-            P_pitches=P_pitches, Ps=Ps, dPs=dPs, var_func=var_func,
-            tau=tau, ampl=ampl, bias=bias, epoch=epoch, dP_pitches=dP_pitches)
+            model,
+            node,
+            pitch_comp=pitch_comp,
+            eclipse_comp=eclipse_comp,
+            P_pitches=P_pitches,
+            Ps=Ps,
+            dPs=dPs,
+            var_func=var_func,
+            tau=tau,
+            ampl=ampl,
+            bias=bias,
+            epoch=epoch,
+            dP_pitches=dP_pitches,
+        )
 
         self.dh_heater_comp = model.get_comp(dh_heater_comp)
         self.add_par('dh_heater_bias', dh_heater_bias, min=-1.0, max=1.0)
@@ -70,6 +95,7 @@ class SolarHeatAcisCameraBody(SolarHeat):
 
 class AcisPsmcPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
+
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
@@ -94,15 +120,17 @@ class AcisPsmcPower(PrecomputedHeatPower):
 
     def update(self):
         self.mvals = self.k * self.dvals
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,  # mvals with precomputed heat input
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,  # mvals with precomputed heat input
+        )
         self.tmal_floats = ()
 
 
 class AcisDpaPower(PrecomputedHeatPower):
     """Heating from ACIS electronics (ACIS config dependent CCDs, FEPs etc)"""
+
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
@@ -132,10 +160,11 @@ class AcisDpaPower(PrecomputedHeatPower):
 
     def update(self):
         self.mvals = self.k * (self.dvals - self.bias) / 10.0
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,  # mvals with precomputed heat input
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,  # mvals with precomputed heat input
+        )
         self.tmal_floats = ()
 
     def plot_data__time(self, fig, ax):
@@ -151,6 +180,7 @@ class AcisDpaPower(PrecomputedHeatPower):
 
 class AcisDeaPower(PrecomputedHeatPower):
     """Heating from ACIS DEA"""
+
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
@@ -170,10 +200,11 @@ class AcisDeaPower(PrecomputedHeatPower):
 
     def update(self):
         self.mvals = self.k * self.dvals / 10.0
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                           self.node.mvals_i,  # dy1/dt index
-                           self.mvals_i,
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES['precomputed_heat'],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,
+        )
         self.tmal_floats = ()
 
     def plot_data__time(self, fig, ax):
@@ -185,6 +216,3 @@ class AcisDeaPower(PrecomputedHeatPower):
             ax.grid()
             ax.set_title('{}: data (blue)'.format(self.name))
             ax.set_ylabel('Power (W)')
-
-
-
