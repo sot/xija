@@ -3,7 +3,7 @@ import numpy as np
 import six
 
 try:
-    from Ska.Matplotlib import plot_cxctime, cxctime2plotdate
+    from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
 except ImportError:
     pass
 
@@ -21,8 +21,10 @@ class Param(dict):
     -------
 
     """
-    def __init__(self, comp_name, name, val, min=-1e38, max=1e38,
-                 fmt="{:.4g}", frozen=False):
+
+    def __init__(
+        self, comp_name, name, val, min=-1e38, max=1e38, fmt="{:.4g}", frozen=False
+    ):
         dict.__init__(self)
         self.comp_name = comp_name
         self.name = name
@@ -31,7 +33,7 @@ class Param(dict):
         self.max = max
         self.fmt = fmt
         self.frozen = frozen
-        self.full_name = comp_name + '__' + name
+        self.full_name = comp_name + "__" + name
 
     def __setattr__(self, attr, val):
         dict.__setitem__(self, attr, val)
@@ -42,12 +44,13 @@ class Param(dict):
 
 class ModelComponent(object):
     """Model component base class"""
+
     def __init__(self, model):
         # This class overrides __setattr__ with a method that requires
         # the `pars` and `pars_dict` attrs to be visible.  So do this
         # with the super (object) method right away.
-        super(ModelComponent, self).__setattr__('pars', [])
-        super(ModelComponent, self).__setattr__('pars_dict', {})
+        super(ModelComponent, self).__setattr__("pars", [])
+        super(ModelComponent, self).__setattr__("pars_dict", {})
 
         self.model = model
         self.n_mvals = 0
@@ -60,12 +63,11 @@ class ModelComponent(object):
 
     @property
     def model_plotdate(self):
-        if not hasattr(self, '_model_plotdate'):
+        if not hasattr(self, "_model_plotdate"):
             self._model_plotdate = cxctime2plotdate(self.model.times)
         return self._model_plotdate
 
-    def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{:.4g}",
-                frozen=False):
+    def add_par(self, name, val=None, min=-1e38, max=1e38, fmt="{:.4g}", frozen=False):
         param = Param(self.name, name, val, min=min, max=max, fmt=fmt, frozen=frozen)
         self.pars_dict[name] = param
         self.pars.append(param)
@@ -76,7 +78,7 @@ class ModelComponent(object):
 
     def __getattr__(self, attr):
         # The following is needed for the IPython completer
-        if attr == 'trait_names':
+        if attr == "trait_names":
             return []
 
         if attr in self.pars_dict:
@@ -104,8 +106,7 @@ class ModelComponent(object):
             if par.name == name:
                 return par
         else:
-            raise ValueError('No par named "{}" in {}',
-                             self.__class__.__name__)
+            raise ValueError('No par named "{}" in {}', self.__class__.__name__)
 
     @property
     def name(self):
@@ -132,23 +133,28 @@ class ModelComponent(object):
 
     @property
     def dvals(self):
-        if not hasattr(self, '_dvals'):
+        if not hasattr(self, "_dvals"):
             if self.data is None:
                 dvals = self.get_dvals_tlm()
             elif isinstance(self.data, np.ndarray):
-                dvals = self.model.interpolate_data(self.data, self.data_times,
-                                                    str(self))
-            elif isinstance(self.data, (six.integer_types, float, np.integer, np.floating,
-                                        bool, str)):
+                dvals = self.model.interpolate_data(
+                    self.data, self.data_times, str(self)
+                )
+            elif isinstance(
+                self.data,
+                (six.integer_types, float, np.integer, np.floating, bool, str),
+            ):
                 if isinstance(self.data, six.string_types):
-                    dtype = 'S{}'.format(len(self.data))
+                    dtype = "S{}".format(len(self.data))
                 else:
                     dtype = type(self.data)
                 dvals = np.empty(self.model.n_times, dtype=dtype)
                 dvals[:] = self.data
             else:
-                raise ValueError("Data value '{}' and type '{}' for '{}' component "
-                                 "not allowed ".format(self.data, type(self.data).__name__, self))
+                raise ValueError(
+                    "Data value '{}' and type '{}' for '{}' component "
+                    "not allowed ".format(self.data, type(self.data).__name__, self)
+                )
             self._dvals = dvals
         return self._dvals
 
@@ -156,8 +162,9 @@ class ModelComponent(object):
 class TelemData(ModelComponent):
     times = property(lambda self: self.model.times)
 
-    def __init__(self, model, msid, mval=True, data=None,
-                 fetch_attr='vals', units=None):
+    def __init__(
+        self, model, msid, mval=True, data=None, fetch_attr="vals", units=None
+    ):
         super(TelemData, self).__init__(model)
         self.msid = msid
         self.n_mvals = 1 if mval else 0
@@ -173,13 +180,14 @@ class TelemData(ModelComponent):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, ls='-', color='#386cb0',
-                         fig=fig, ax=ax)
+            plot_cxctime(
+                self.model.times, self.dvals, ls="-", color="#386cb0", fig=fig, ax=ax
+            )
             ax.grid()
-            ax.set_title('{}: data'.format(self.name))
-            ylabel = '%s' % self.name
+            ax.set_title("{}: data".format(self.name))
+            ylabel = "%s" % self.name
             if self.units is not None:
-                ylabel += ' (%s)' % self.units
+                ylabel += " (%s)" % self.units
             ax.set_ylabel(ylabel)
             ax.margins(0.05)
         else:
@@ -226,11 +234,23 @@ class Node(TelemData):
     -------
 
     """
-    def __init__(self, model, msid, sigma=-10, quant=None,
-                 predict=True, mask=None, name=None, data=None,
-                 fetch_attr='vals', units='degC'):
-        TelemData.__init__(self, model, msid, data=data,
-                           fetch_attr=fetch_attr, units=units)
+
+    def __init__(
+        self,
+        model,
+        msid,
+        sigma=-10,
+        quant=None,
+        predict=True,
+        mask=None,
+        name=None,
+        data=None,
+        fetch_attr="vals",
+        units="degC",
+    ):
+        TelemData.__init__(
+            self, model, msid, data=data, fetch_attr=fetch_attr, units=units
+        )
         self._sigma = sigma
         self.quant = quant
         self.predict = predict
@@ -252,10 +272,11 @@ class Node(TelemData):
         -------
 
         """
-        if not hasattr(self, '_randx'):
+        if not hasattr(self, "_randx"):
             dx = self.quant or 1.0
-            self._randx = np.random.uniform(low=-dx / 2.0, high=dx / 2.0,
-                                            size=self.model.n_times)
+            self._randx = np.random.uniform(
+                low=-dx / 2.0, high=dx / 2.0, size=self.model.n_times
+            )
         return self._randx
 
     @property
@@ -278,20 +299,31 @@ class Node(TelemData):
         resids = self.resids
         if self.mask is not None:
             resids = resids[self.mask.mask]
-        return np.sum(resids ** 2 / self.sigma ** 2)
+        return np.sum(resids**2 / self.sigma**2)
 
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.mvals, ls='-', color='#d92121', fig=fig, ax=ax)
-            plot_cxctime(self.model.times, self.dvals, ls='-', color='#386cb0', fig=fig, ax=ax)
+            plot_cxctime(
+                self.model.times, self.mvals, ls="-", color="#d92121", fig=fig, ax=ax
+            )
+            plot_cxctime(
+                self.model.times, self.dvals, ls="-", color="#386cb0", fig=fig, ax=ax
+            )
             # Overplot bad time regions in cyan
             for i0, i1 in self.model.bad_times_indices:
-                plot_cxctime(self.model.times[i0:i1], self.dvals[i0:i1], '-c',
-                             fig=fig, ax=ax, linewidth=5, alpha=0.5)
+                plot_cxctime(
+                    self.model.times[i0:i1],
+                    self.dvals[i0:i1],
+                    "-c",
+                    fig=fig,
+                    ax=ax,
+                    linewidth=5,
+                    alpha=0.5,
+                )
             ax.grid()
-            ax.set_title('{}: model (red) and data (blue)'.format(self.name))
-            ax.set_ylabel('Temperature (%s)' % self.units)
+            ax.set_title("{}: model (red) and data (blue)".format(self.name))
+            ax.set_ylabel("Temperature (%s)" % self.units)
         else:
             lines[0].set_ydata(self.mvals)
 
@@ -304,14 +336,23 @@ class Node(TelemData):
             resids[i0:i1] = np.nan
 
         if not lines:
-            plot_cxctime(self.model.times, resids, ls='-', color='#386cb0', fig=fig, ax=ax)
+            plot_cxctime(
+                self.model.times, resids, ls="-", color="#386cb0", fig=fig, ax=ax
+            )
             # Overplot bad time regions in cyan
             for i0, i1 in self.model.bad_times_indices:
-                plot_cxctime(self.model.times[i0:i1], resids[i0:i1], '-c',
-                             fig=fig, ax=ax, linewidth=5, alpha=0.5)
+                plot_cxctime(
+                    self.model.times[i0:i1],
+                    resids[i0:i1],
+                    "-c",
+                    fig=fig,
+                    ax=ax,
+                    linewidth=5,
+                    alpha=0.5,
+                )
             ax.grid()
-            ax.set_title('{}: residuals (data - model)'.format(self.name))
-            ax.set_ylabel('Temperature (%s)' % self.units)
+            ax.set_title("{}: residuals (data - model)".format(self.name))
+            ax.set_ylabel("Temperature (%s)" % self.units)
         else:
             lines[0].set_ydata(resids)
             ax.relim()
@@ -326,12 +367,18 @@ class Node(TelemData):
             resids[i0:i1] = np.nan
 
         if not lines:
-            ax.plot(self.dvals + self.randx, resids, 'o',
-                    markersize=0.25, color='#386cb0', markeredgecolor='#386cb0')
+            ax.plot(
+                self.dvals + self.randx,
+                resids,
+                "o",
+                markersize=0.25,
+                color="#386cb0",
+                markeredgecolor="#386cb0",
+            )
             ax.grid()
-            ax.set_title('{}: residuals (data - model) vs data'.format(self.name))
-            ax.set_ylabel('Residuals (%s)' % self.units)
-            ax.set_ylabel('Temperature (%s)' % self.units)
+            ax.set_title("{}: residuals (data - model) vs data".format(self.name))
+            ax.set_ylabel("Residuals (%s)" % self.units)
+            ax.set_ylabel("Temperature (%s)" % self.units)
         else:
             lines[0].set_ydata(resids)
             ax.relim()
@@ -352,21 +399,23 @@ class Coupling(ModelComponent):
     -------
 
     """
+
     def __init__(self, model, node1, node2, tau):
         ModelComponent.__init__(self, model)
         self.node1 = self.model.get_comp(node1)
         self.node2 = self.model.get_comp(node2)
-        self.add_par('tau', tau, min=2.0, max=200.0)
+        self.add_par("tau", tau, min=2.0, max=200.0)
 
     def update(self):
-        self.tmal_ints = (tmal.OPCODES['coupling'],
-                          self.node1.mvals_i,  # y1 index
-                          self.node2.mvals_i   # y2 index
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES["coupling"],
+            self.node1.mvals_i,  # y1 index
+            self.node2.mvals_i,  # y2 index
+        )
         self.tmal_floats = (self.tau,)
 
     def __str__(self):
-        return 'coupling__{0}__{1}'.format(self.node1, self.node2)
+        return "coupling__{0}__{1}".format(self.node1, self.node2)
 
 
 class Delay(ModelComponent):
@@ -377,31 +426,31 @@ class Delay(ModelComponent):
     ``delay`` ksec. Conversely for a negative delay the values at the end will
     be constant for ``delay`` ksec.
     """
+
     def __init__(self, model, node, delay=0):
         super().__init__(model)
         self.node = self.model.get_comp(node)
-        self.add_par('delay', delay, min=-40, max=40)
+        self.add_par("delay", delay, min=-40, max=40)
 
     def __str__(self):
-        return f'delay__{self.node}'
+        return f"delay__{self.node}"
 
 
 class HeatSink(ModelComponent):
     """Fixed temperature external heat bath"""
+
     def __init__(self, model, node, T=0.0, tau=20.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('T', T, min=-100.0, max=100.0)
-        self.add_par('tau', tau, min=2.0, max=200.0)
+        self.add_par("T", T, min=-100.0, max=100.0)
+        self.add_par("tau", tau, min=2.0, max=200.0)
 
     def update(self):
-        self.tmal_ints = (tmal.OPCODES['heatsink'],
-                          self.node.mvals_i)  # dy1/dt index
-        self.tmal_floats = (self.T,
-                            self.tau)
+        self.tmal_ints = (tmal.OPCODES["heatsink"], self.node.mvals_i)  # dy1/dt index
+        self.tmal_floats = (self.T, self.tau)
 
     def __str__(self):
-        return 'heatsink__{0}'.format(self.node)
+        return "heatsink__{0}".format(self.node)
 
 
 class HeatSinkRef(ModelComponent):
@@ -425,26 +474,25 @@ class HeatSinkRef(ModelComponent):
     -------
 
     """
+
     def __init__(self, model, node, T=0.0, tau=20.0, T_ref=20.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('P', (T - T_ref) / tau, min=-10.0, max=10.0)
-        self.add_par('tau', tau, min=2.0, max=200.0)
-        self.add_par('T_ref', T_ref, min=-100, max=100)
+        self.add_par("P", (T - T_ref) / tau, min=-10.0, max=10.0)
+        self.add_par("tau", tau, min=2.0, max=200.0)
+        self.add_par("T_ref", T_ref, min=-100, max=100)
 
     def update(self):
-        self.tmal_ints = (tmal.OPCODES['heatsink'],
-                          self.node.mvals_i)  # dy1/dt index
-        self.tmal_floats = (self.P * self.tau + self.T_ref,
-                            self.tau)
+        self.tmal_ints = (tmal.OPCODES["heatsink"], self.node.mvals_i)  # dy1/dt index
+        self.tmal_floats = (self.P * self.tau + self.T_ref, self.tau)
 
     def __str__(self):
-        return 'heatsink__{0}'.format(self.node)
+        return "heatsink__{0}".format(self.node)
 
 
 class Pitch(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, 'pitch', units='deg')
+        TelemData.__init__(self, model, "pitch", units="deg")
 
     def get_dvals_tlm(self):
         vals = self.model.fetch(self.msid, attr=self.fetch_attr)
@@ -459,7 +507,7 @@ class Pitch(TelemData):
         return vals
 
     def __str__(self):
-        return 'pitch'
+        return "pitch"
 
 
 class AcisFPtemp(Node):
@@ -473,38 +521,39 @@ class AcisFPtemp(Node):
     -------
 
     """
+
     def __init__(self, model, mask=None):
-        Node.__init__(self, model, 'fptemp_11', mask=mask)
+        Node.__init__(self, model, "fptemp_11", mask=mask)
 
     def get_dvals_tlm(self):
-        fptemp = self.model.fetch(self.msid, 'vals', 'nearest')
+        fptemp = self.model.fetch(self.msid, "vals", "nearest")
         return fptemp - 273.15
 
     def __str__(self):
-        return 'fptemp'
+        return "fptemp"
 
 
 class Eclipse(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, 'aoeclips')
+        TelemData.__init__(self, model, "aoeclips")
         self.n_mvals = 1
-        self.fetch_attr = 'midvals'
-        self.fetch_method = 'nearest'
+        self.fetch_attr = "midvals"
+        self.fetch_method = "nearest"
 
     def get_dvals_tlm(self):
-        aoeclips = self.model.fetch(self.msid, 'vals', 'nearest')
-        return aoeclips == 'ECL '
+        aoeclips = self.model.fetch(self.msid, "vals", "nearest")
+        return aoeclips == "ECL "
 
     def update(self):
         self.mvals = np.where(self.dvals, 1, 0)
 
     def __str__(self):
-        return 'eclipse'
+        return "eclipse"
 
 
 class SimZ(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, 'sim_z')
+        TelemData.__init__(self, model, "sim_z")
 
     def get_dvals_tlm(self):
         sim_z_mm = self.model.fetch(self.msid)
@@ -513,4 +562,4 @@ class SimZ(TelemData):
 
 class Roll(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, 'roll', units='deg')
+        TelemData.__init__(self, model, "roll", units="deg")

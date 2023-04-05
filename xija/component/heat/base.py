@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from xija.component.base import ModelComponent
-from xija import tmal
 import numpy as np
+
+from xija import tmal
+from xija.component.base import ModelComponent
 
 
 class PrecomputedHeatPower(ModelComponent):
@@ -10,10 +11,11 @@ class PrecomputedHeatPower(ModelComponent):
 
     def update(self):
         self.mvals = self.dvals
-        self.tmal_ints = (tmal.OPCODES['precomputed_heat'],
-                          self.node.mvals_i,  # dy1/dt index
-                          self.mvals_i,
-                          )
+        self.tmal_ints = (
+            tmal.OPCODES["precomputed_heat"],
+            self.node.mvals_i,  # dy1/dt index
+            self.mvals_i,
+        )
         self.tmal_floats = ()
 
     @staticmethod
@@ -36,6 +38,5 @@ class ActiveHeatPower(ModelComponent):
     -------
 
     """
+
     pass
-
-

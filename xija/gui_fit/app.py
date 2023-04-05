@@ -1,37 +1,29 @@
-import sys
-import os
-import ast
-import time
-
-from PyQt5 import QtCore, QtWidgets, QtGui
-
-from itertools import count
 import argparse
+import ast
 import fnmatch
-
-import re
 import json
 import logging
-import numpy as np
+import os
+import re
+import sys
+import time
+from collections import OrderedDict
+from itertools import count
 from pathlib import Path
 
-from cxotime import CxoTime
-
-import pyyaks.context as pyc
-
 import acis_taco as taco
-import xija
+import numpy as np
+import pyyaks.context as pyc
+from cheta.units import F_to_C
+from cxotime import CxoTime
+from PyQt5 import QtCore, QtGui, QtWidgets
 
+import xija
 from xija.component.base import Node, TelemData
-from xija.get_model_spec import get_xija_model_names, \
-    get_xija_model_spec
+from xija.get_model_spec import get_xija_model_names, get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
-from .plots import PlotsBox, HistogramWindow
-
-from collections import OrderedDict
-
-from cheta.units import F_to_C
+from .plots import HistogramWindow, PlotsBox
 
 gui_config = {}
 
@@ -56,10 +48,10 @@ class FormattedTelemData:
                 fmt = "{0:.4f}"
             else:
                 fmt = "{0}"
-            if hasattr(data, 'resids'):
-                self.data_names += [name, name+"_model", name+"_resid"]
-                self.data_basenames += [name]*3
-                self.formats += [fmt]*3
+            if hasattr(data, "resids"):
+                self.data_names += [name, name + "_model", name + "_resid"]
+                self.data_basenames += [name] * 3
+                self.formats += [fmt] * 3
             else:
                 self.data_names.append(name)
                 self.data_basenames.append(name)
@@ -106,10 +98,10 @@ class FiltersWindow(QtWidgets.QWidget):
         self.stop_label = QtWidgets.QLabel("Stop time:")
         self.stop_text = QtWidgets.QLineEdit()
 
-        add_ignore_button = QtWidgets.QPushButton('Add Ignore')
+        add_ignore_button = QtWidgets.QPushButton("Add Ignore")
         add_ignore_button.clicked.connect(self.add_ignore)
 
-        notice_button = QtWidgets.QPushButton('Notice All')
+        notice_button = QtWidgets.QPushButton("Notice All")
         notice_button.clicked.connect(self.notice_pushed)
 
         pair = QtWidgets.QHBoxLayout()
@@ -123,10 +115,10 @@ class FiltersWindow(QtWidgets.QWidget):
         self.bt_stop_label = QtWidgets.QLabel("Stop time:")
         self.bt_stop_text = QtWidgets.QLineEdit()
 
-        add_bt_button = QtWidgets.QPushButton('Add Bad Time')
+        add_bt_button = QtWidgets.QPushButton("Add Bad Time")
         add_bt_button.clicked.connect(self.add_bad_time)
 
-        close_button = QtWidgets.QPushButton('Close')
+        close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close_window)
 
         close = QtWidgets.QHBoxLayout()
@@ -160,7 +152,7 @@ class FiltersWindow(QtWidgets.QWidget):
         self.add_filter("bad_time")
 
     def add_filter(self, filter_type):
-        err_msg = ''
+        err_msg = ""
         if filter_type == "ignore":
             vals = [self.start_text.text(), self.stop_text.text()]
         elif filter_type == "bad_time":
@@ -178,8 +170,9 @@ class FiltersWindow(QtWidgets.QWidget):
             if len(vals) == 2:
                 err_msg = f"Invalid input for filter: {vals[0]} {vals[1]}"
             else:
-                err_msg = "Filter requires two arguments, " \
-                          "the start time and the stop time."
+                err_msg = (
+                    "Filter requires two arguments, the start time and the stop time."
+                )
         if len(err_msg) > 0:
             raise_error_box("Filters Error", err_msg)
         else:
@@ -191,10 +184,10 @@ class FiltersWindow(QtWidgets.QWidget):
                 self.model.append_bad_time([lim[0], lim[1]])
                 bad = True
             self.mw.plots_box.add_fill(t0, t1, bad=bad)
-        self.start_text.setText('')
-        self.stop_text.setText('')
-        self.bt_start_text.setText('')
-        self.bt_stop_text.setText('')
+        self.start_text.setText("")
+        self.stop_text.setText("")
+        self.bt_start_text.setText("")
+        self.bt_stop_text.setText("")
 
     def notice_pushed(self):
         self.mw.plots_box.remove_ignores()
@@ -275,10 +268,10 @@ class WriteTableWindow(QtWidgets.QWidget):
         main_box.addWidget(self.scroll)
         buttons = QtWidgets.QHBoxLayout()
 
-        write_button = QtWidgets.QPushButton('Write Table')
+        write_button = QtWidgets.QPushButton("Write Table")
         write_button.clicked.connect(self.save_ascii_table)
 
-        close_button = QtWidgets.QPushButton('Close')
+        close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close_window)
 
         buttons.addWidget(write_button)
@@ -299,8 +292,7 @@ class WriteTableWindow(QtWidgets.QWidget):
             self.start_label.setText("Start time: {}".format(start_date))
             self.start_date = start_date
         except ValueError:
-            raise_error_box("Write Table Error", 
-                            f"Start time not valid: {start_date}")
+            raise_error_box("Write Table Error", f"Start time not valid: {start_date}")
         self.start_text.setText("")
 
     def change_stop(self):
@@ -310,22 +302,22 @@ class WriteTableWindow(QtWidgets.QWidget):
             self.start_label.setText("Stop time: {}".format(stop_date))
             self.stop_date = stop_date
         except ValueError:
-            raise_error_box("Write Table Error",
-                            f"Stop time not valid: {stop_date}")
+            raise_error_box("Write Table Error", f"Stop time not valid: {stop_date}")
         self.stop_text.setText("")
 
     def close_window(self, *args):
         self.close()
 
     def save_ascii_table(self):
-        from astropy.table import Table, Column
+        from astropy.table import Column, Table
+
         dlg = QtWidgets.QFileDialog()
         dlg.setNameFilters(["DAT files (*.dat)", "TXT files (*.txt)", "All files (*)"])
         dlg.selectNameFilter("DAT files (*.dat)")
         dlg.setAcceptMode(dlg.AcceptSave)
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
-        if filename != '':
+        if filename != "":
             try:
                 checked = []
                 for i, box in enumerate(self.check_boxes):
@@ -333,21 +325,27 @@ class WriteTableWindow(QtWidgets.QWidget):
                         checked.append(i)
                 t = Table()
                 ts = CxoTime([self.start_date, self.stop_date]).secs
-                ts[-1] += 1.0 # a buffer to make sure we grab the last point
+                ts[-1] += 1.0  # a buffer to make sure we grab the last point
                 istart, istop = np.searchsorted(self.ftd.times, ts)
                 c = Column(self.ftd.dates[istart:istop], name="date", format="{0}")
                 t.add_column(c)
                 for i, key in enumerate(self.ftd):
                     if i in checked:
-                        c = Column(self.ftd[i][istart:istop], name=key, format=self.ftd.formats[i])
+                        c = Column(
+                            self.ftd[i][istart:istop],
+                            name=key,
+                            format=self.ftd.formats[i],
+                        )
                         t.add_column(c)
-                t.write(filename, overwrite=True, format='ascii.ecsv')
+                t.write(filename, overwrite=True, format="ascii.ecsv")
                 self.last_filename = filename
             except IOError as ioerr:
                 msg = QtWidgets.QMessageBox()
                 msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
                 msg.setText("There was a problem writing the file:")
-                msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
+                msg.setDetailedText(
+                    "Cannot write {}. {}".format(filename, ioerr.strerror)
+                )
                 msg.exec_()
 
 
@@ -378,8 +376,12 @@ class ModelInfoWindow(QtWidgets.QWidget):
         main_box.addWidget(QtWidgets.QLabel("Start time: {}".format(model.datestart)))
         main_box.addWidget(QtWidgets.QLabel("Stop time: {}".format(model.datestop)))
         main_box.addWidget(QtWidgets.QLabel("Timestep: {:.1f} s".format(model.dt)))
-        main_box.addWidget(QtWidgets.QLabel("Evolve Method: Core {}".format(model.evolve_method)))
-        main_box.addWidget(QtWidgets.QLabel("Runge-Kutta Order: {}".format(4 if model.rk4 else 2)))
+        main_box.addWidget(
+            QtWidgets.QLabel("Evolve Method: Core {}".format(model.evolve_method))
+        )
+        main_box.addWidget(
+            QtWidgets.QLabel("Runge-Kutta Order: {}".format(4 if model.rk4 else 2))
+        )
         for msid in self.model.limits:
             limits = self.model.limits[msid]
             units = limits["unit"]
@@ -393,7 +395,7 @@ class ModelInfoWindow(QtWidgets.QWidget):
                 main_box.addWidget(QtWidgets.QLabel(limit_str))
         main_box.addStretch(1)
 
-        close_button = QtWidgets.QPushButton('Close')
+        close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close_window)
 
         close_box = QtWidgets.QHBoxLayout()
@@ -406,12 +408,12 @@ class ModelInfoWindow(QtWidgets.QWidget):
     def update_checksum(self):
         self.main_window.set_checksum()
         if self.main_window.checksum_match:
-            color = 'black'
+            color = "black"
         else:
-            color = 'red'
+            color = "red"
         checksum_str = self.main_window.md5sum
         self.checksum_label.setText(checksum_str)
-        self.checksum_label.setStyleSheet('color: {}'.format(color))
+        self.checksum_label.setStyleSheet("color: {}".format(color))
 
     def update_filename(self):
         self.filename_label.setText("Filename: {}".format(gui_config["filename"]))
@@ -433,18 +435,20 @@ class LineDataWindow(QtWidgets.QWidget):
         self.plots_box = plots_box
         self.main_window = main_window
         self.ftd = self.main_window.fmt_telem_data
-        self.nrows = len(self.ftd.data_names)+1
+        self.nrows = len(self.ftd.data_names) + 1
 
-        self.table = WidgetTable(n_rows=self.nrows,
-                                 colnames=['name', 'value'],
-                                 colwidths={1: 200},
-                                 show_header=True)
+        self.table = WidgetTable(
+            n_rows=self.nrows,
+            colnames=["name", "value"],
+            colwidths={1: 200},
+            show_header=True,
+        )
 
         self.table[0, 0] = QtWidgets.QLabel("date")
         self.table[0, 1] = QtWidgets.QLabel("")
 
         for row in range(1, self.nrows):
-            name = self.ftd.data_names[row-1]
+            name = self.ftd.data_names[row - 1]
             self.table[row, 0] = QtWidgets.QLabel(name)
             self.table[row, 1] = QtWidgets.QLabel("")
 
@@ -453,26 +457,27 @@ class LineDataWindow(QtWidgets.QWidget):
         self.box.addWidget(self.table.table)
 
     def update_data(self):
-        pos = np.searchsorted(self.plots_box.pd_times, 
-                              self.plots_box.xline)
+        pos = np.searchsorted(self.plots_box.pd_times, self.plots_box.xline)
         date = self.main_window.dates[pos]
         self.table[0, 1].setText(date)
         for row in range(1, self.nrows):
-            val = self.ftd[row-1]
-            fmt = self.ftd.formats[row-1]
+            val = self.ftd[row - 1]
+            fmt = self.ftd.formats[row - 1]
             self.table[row, 1].setText(fmt.format(val[pos]))
 
 
 class WidgetTable(dict):
-    def __init__(self, n_rows, n_cols=None, colnames=None, show_header=False, colwidths=None):
+    def __init__(
+        self, n_rows, n_cols=None, colnames=None, show_header=False, colwidths=None
+    ):
         if n_cols is None and colnames is None:
-            raise ValueError('WidgetTable needs either n_cols or colnames')
+            raise ValueError("WidgetTable needs either n_cols or colnames")
         if colnames:
             self.colnames = colnames
             self.n_cols = len(colnames)
         else:
             self.n_cols = n_cols
-            self.colnames = ['col{}'.format(i + 1) for i in range(n_cols)]
+            self.colnames = ["col{}".format(i + 1) for i in range(n_cols)]
         self.n_rows = n_rows
         self.show_header = show_header
 
@@ -507,8 +512,8 @@ class WidgetTable(dict):
 
 
 class Panel:
-    def __init__(self, orient='h'):
-        Box = QtWidgets.QHBoxLayout if orient == 'h' else QtWidgets.QVBoxLayout
+    def __init__(self, orient="h"):
+        Box = QtWidgets.QHBoxLayout if orient == "h" else QtWidgets.QVBoxLayout
         self.box = Box()
         self.orient = orient
 
@@ -530,7 +535,7 @@ class Panel:
 
 class PanelCheckBox(QtWidgets.QCheckBox):
     def __init__(self, par, main_window):
-        super(PanelCheckBox, self).__init__() 
+        super(PanelCheckBox, self).__init__()
         self.par = par
         self.main_window = main_window
 
@@ -554,14 +559,22 @@ class PanelText(QtWidgets.QLineEdit):
     def _bounds_check(self):
         msg = None
         if self.par.val < self.par.min:
-            msg = "Attempted to set parameter value below minimum. Setting to min value."
+            msg = (
+                "Attempted to set parameter value below minimum. Setting to min value."
+            )
             self.par.val = self.par.min
-            self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(self.par.val))
+            self.params_panel.params_table[self.row, 2].setText(
+                self.par.fmt.format(self.par.val)
+            )
         if self.par.val > self.par.max:
-            msg = "Attempted to set parameter value below maximum. Setting to max value."
+            msg = (
+                "Attempted to set parameter value below maximum. Setting to max value."
+            )
             self.par.val = self.par.max
             self.setText(self.par.fmt.format(self.par.val))
-            self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(self.par.val))
+            self.params_panel.params_table[self.row, 2].setText(
+                self.par.fmt.format(self.par.val)
+            )
         return msg
 
     def par_attr_changed(self):
@@ -637,15 +650,15 @@ class PanelSlider(QtWidgets.QSlider):
         self.update_plots = True
 
     def set_dx(self):
-        self.dx = 100.0/(self.parmax-self.parmin)
-        self.idx = 1.0/self.dx
+        self.dx = 100.0 / (self.parmax - self.parmin)
+        self.idx = 1.0 / self.dx
 
     def set_step_from_value(self, val):
-        step = int((val-self.parmin)*self.dx)
+        step = int((val - self.parmin) * self.dx)
         self.setValue(step)
 
     def get_value_from_step(self):
-        val = self.value()*self.idx + self.parmin
+        val = self.value() * self.idx + self.parmin
         return val
 
     def update_slider_val(self, val, attr):
@@ -667,21 +680,24 @@ class PanelSlider(QtWidgets.QSlider):
 
 class ParamsPanel(Panel):
     def __init__(self, model, plots_panel):
-        Panel.__init__(self, orient='v')
+        Panel.__init__(self, orient="v")
         self.plots_panel = plots_panel
         self.model = model
 
-        params_table = WidgetTable(n_rows=len(self.model.pars),
-                                   colnames=['fit', 'name', 'val', 'min', '', 'max'],
-                                   colwidths={0: 30, 1: 250},
-                                   show_header=True)
+        params_table = WidgetTable(
+            n_rows=len(self.model.pars),
+            colnames=["fit", "name", "val", "min", "", "max"],
+            colwidths={0: 30, 1: 250},
+            show_header=True,
+        )
 
         self.params_dict = OrderedDict()
 
         for row, par in zip(count(), self.model.pars):
-
             # Thawed (i.e. fit the parameter)
-            frozen = params_table[row, 0] = PanelCheckBox(par, self.plots_panel.main_window)
+            frozen = params_table[row, 0] = PanelCheckBox(
+                par, self.plots_panel.main_window
+            )
             frozen.setChecked(not par.frozen)
             frozen.stateChanged.connect(frozen.frozen_toggled)
 
@@ -694,23 +710,23 @@ class ParamsPanel(Panel):
             slider.sliderMoved.connect(slider.slider_moved)
 
             # Value
-            entry = params_table[row, 2] = PanelText(self, row, par, 'val', slider)
+            entry = params_table[row, 2] = PanelText(self, row, par, "val", slider)
             entry.setText(par.fmt.format(par.val))
             entry.returnPressed.connect(entry.par_attr_changed)
 
             # Min of slider
-            entry = params_table[row, 3] = PanelText(self, row, par, 'min', slider)
+            entry = params_table[row, 3] = PanelText(self, row, par, "min", slider)
             entry.setText(par.fmt.format(par.min))
             entry.returnPressed.connect(entry.par_attr_changed)
 
             # Max of slider
-            entry = params_table[row, 5] = PanelText(self, row, par, 'max', slider)
+            entry = params_table[row, 5] = PanelText(self, row, par, "max", slider)
             entry.setText(par.fmt.format(par.max))
             entry.returnPressed.connect(entry.par_attr_changed)
 
-            self.params_dict[par.full_name] = PanelParam(params_table[row, 2],
-                                                         params_table[row, 3],
-                                                         params_table[row, 5])
+            self.params_dict[par.full_name] = PanelParam(
+                params_table[row, 2], params_table[row, 3], params_table[row, 5]
+            )
 
         self.pack_start(params_table.table)
         self.params_table = params_table
@@ -730,7 +746,7 @@ class ParamsPanel(Panel):
 
 class ControlButtonsPanel(Panel):
     def __init__(self, model):
-        Panel.__init__(self, orient='v')
+        Panel.__init__(self, orient="v")
 
         self.model = model
 
@@ -744,11 +760,11 @@ class ControlButtonsPanel(Panel):
         self.write_table_button = QtWidgets.QPushButton("Write Table")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
-        self.quit_button = QtWidgets.QPushButton('Quit')
+        self.quit_button = QtWidgets.QPushButton("Quit")
 
         self.ignore_entry = QtWidgets.QLineEdit()
         self.ignore_panel = Panel()
-        self.ignore_panel.pack_start(QtWidgets.QLabel('Ignore:'))
+        self.ignore_panel.pack_start(QtWidgets.QLabel("Ignore:"))
         self.ignore_panel.pack_start(self.ignore_entry)
         self.ignore_panel.pack_start(self.notice_button)
 
@@ -772,15 +788,15 @@ class ControlButtonsPanel(Panel):
         self.top_panel.pack_start(self.quit_button)
 
         self.radzone_panel = Panel()
-        self.radzone_panel.pack_start(QtWidgets.QLabel('Show radzones'))
+        self.radzone_panel.pack_start(QtWidgets.QLabel("Show radzones"))
         self.radzone_panel.pack_start(self.radzone_chkbox)
 
         self.limits_panel = Panel()
-        self.limits_panel.pack_start(QtWidgets.QLabel('Show limits'))
+        self.limits_panel.pack_start(QtWidgets.QLabel("Show limits"))
         self.limits_panel.pack_start(self.limits_chkbox)
 
         self.line_panel = Panel()
-        self.line_panel.pack_start(QtWidgets.QLabel('Annotate line'))
+        self.line_panel.pack_start(QtWidgets.QLabel("Annotate line"))
         self.line_panel.pack_start(self.line_chkbox)
 
         self.bottom_panel.pack_start(self.add_plot_button)
@@ -795,12 +811,14 @@ class ControlButtonsPanel(Panel):
 
     def make_add_plot_button(self):
         apb = QtWidgets.QComboBox()
-        apb.addItem('Add plot...')
+        apb.addItem("Add plot...")
 
-        plot_names = ['{} {}'.format(comp.name, attr[5:])
-                      for comp in self.model.comps
-                      for attr in dir(comp)
-                      if attr.startswith('plot_')]
+        plot_names = [
+            "{} {}".format(comp.name, attr[5:])
+            for comp in self.model.comps
+            for attr in dir(comp)
+            if attr.startswith("plot_")
+        ]
 
         self.plot_names = plot_names
         for plot_name in plot_names:
@@ -811,20 +829,20 @@ class ControlButtonsPanel(Panel):
 
 class FreezeThawPanel(Panel):
     def __init__(self, model, plots_panel):
-        Panel.__init__(self, orient='h')
+        Panel.__init__(self, orient="h")
         self.model = model
         self.freeze_entry = QtWidgets.QLineEdit()
         self.thaw_entry = QtWidgets.QLineEdit()
 
-        self.pack_start(QtWidgets.QLabel('Freeze:'))
+        self.pack_start(QtWidgets.QLabel("Freeze:"))
         self.pack_start(self.freeze_entry)
-        self.pack_start(QtWidgets.QLabel('Thaw:'))
+        self.pack_start(QtWidgets.QLabel("Thaw:"))
         self.pack_start(self.thaw_entry)
 
 
 class MainLeftPanel(Panel):
     def __init__(self, model, main_window):
-        Panel.__init__(self, orient='v')
+        Panel.__init__(self, orient="v")
         self.control_buttons_panel = ControlButtonsPanel(model)
         self.plots_box = PlotsBox(model, main_window)
         self.pack_start(self.control_buttons_panel)
@@ -835,7 +853,7 @@ class MainLeftPanel(Panel):
 
 class MainRightPanel(Panel):
     def __init__(self, model, plots_panel):
-        Panel.__init__(self, orient='v')
+        Panel.__init__(self, orient="v")
         self.freeze_thaw_panel = FreezeThawPanel(model, plots_panel)
         self.params_panel = ParamsPanel(model, plots_panel)
         self.pack_start(self.freeze_thaw_panel)
@@ -847,14 +865,17 @@ class MainWindow:
     # in this example. More on callbacks below.
     def __init__(self, model, fit_worker, model_file):
         import Ska.tdb
+
         self.model = model
 
         self.hist_msids = []
         for k, v in self.model.comp.items():
             if isinstance(v, Node):
-                if k.startswith("fptemp") or \
-                   k.startswith("tmp_fep") or \
-                   k.startswith("tmp_bep"):
+                if (
+                    k.startswith("fptemp")
+                    or k.startswith("tmp_fep")
+                    or k.startswith("tmp_bep")
+                ):
                     self.hist_msids.append(k)
                 try:
                     Ska.tdb.msids[v.msid]
@@ -871,9 +892,9 @@ class MainWindow:
         self.fit_worker = fit_worker
         # create a new window
         self.window = QtWidgets.QWidget()
-        self.window.setGeometry(0, 0, *gui_config.get('size', (1400, 800)))
+        self.window.setGeometry(0, 0, *gui_config.get("size", (1400, 800)))
         self.set_title()
-        self.main_box = Panel(orient='h')
+        self.main_box = Panel(orient="h")
 
         # This is the Layout Box that holds the top-level stuff in the main window
         main_window_hbox = QtWidgets.QHBoxLayout()
@@ -911,21 +932,22 @@ class MainWindow:
 
         self.dates = CxoTime(self.model.times).date
 
-        self.telem_data = {k: v for k, v in self.model.comp.items()
-                           if isinstance(v, TelemData)}
+        self.telem_data = {
+            k: v for k, v in self.model.comp.items() if isinstance(v, TelemData)
+        }
         self.fmt_telem_data = FormattedTelemData(self.telem_data)
 
         self.set_checksum(newfile=True)
 
         # Add plots from previous Save
-        for plot_name in gui_config.get('plot_names', []):
+        for plot_name in gui_config.get("plot_names", []):
             try:
                 self.add_plot(plot_name)
                 time.sleep(0.05)  # is it needed?
             except ValueError:
                 print("ERROR: Unexpected plot_name {}".format(plot_name))
 
-        # Show everything finally 
+        # Show everything finally
         splitter = QtWidgets.QSplitter()
         left_widget = QtWidgets.QWidget()
         right_widget = QtWidgets.QWidget()
@@ -947,11 +969,13 @@ class MainWindow:
 
     def set_checksum(self, newfile=False):
         import hashlib
+
         if newfile and gui_config["filename"] is not None:
-            model_json = open(gui_config['filename'], 'rb').read()
+            model_json = open(gui_config["filename"], "rb").read()
         else:
-            model_json = json.dumps(self.model_spec, 
-                                    sort_keys=True, indent=4).encode("utf-8")
+            model_json = json.dumps(self.model_spec, sort_keys=True, indent=4).encode(
+                "utf-8"
+            )
         self.md5sum = hashlib.md5(model_json).hexdigest()
         if newfile:
             self.file_md5sum = self.md5sum
@@ -987,8 +1011,9 @@ class MainWindow:
         self.show_line = state == QtCore.Qt.Checked
         self.main_left_panel.plots_box.update_plots()
         if self.show_line:
-            self.line_data_window = LineDataWindow(self.model, self,
-                                                   self.main_left_panel.plots_box)
+            self.line_data_window = LineDataWindow(
+                self.model, self, self.main_left_panel.plots_box
+            )
             self.plots_box.add_annotations("line")
             self.line_data_window.show()
         else:
@@ -1013,18 +1038,18 @@ class MainWindow:
             # Keep reading messages until there are no more or until getting
             # a message indicating fit is stopped.
             msg = self.fit_worker.parent_pipe.recv()
-            fit_stopped = msg['status'] in ('terminated', 'finished')
+            fit_stopped = msg["status"] in ("terminated", "finished")
             if fit_stopped:
                 self.fit_worker.fit_process.join()
                 print("\n*********************************")
-                print("  FIT", msg['status'].upper())
+                print("  FIT", msg["status"].upper())
                 print("*********************************\n")
                 break
 
         if msg:
             # Update the fit_worker model parameters and then the corresponding
             # params table widget.
-            self.fit_worker.model.parvals = msg['parvals']
+            self.fit_worker.model.parvals = msg["parvals"]
             self.main_right_panel.params_panel.update()
             self.main_left_panel.plots_box.update_plots()
             if self.show_line:
@@ -1050,32 +1075,31 @@ class MainWindow:
         """
         widget = getattr(self.ftp, f"{cmd_type}_entry")
         command = widget.text().strip()
-        if command == '':
+        if command == "":
             return
         vals = command.split()
-        if cmd_type in ('freeze', 'thaw'):
+        if cmd_type in ("freeze", "thaw"):
             par_regexes = [fnmatch.translate(x) for x in vals]
             params_table = self.main_right_panel.params_panel.params_table
             for row, par in enumerate(self.model.pars):
                 for par_regex in par_regexes:
                     if re.match(par_regex, par.full_name):
-                         checkbutton = params_table[row, 0]
-                         checkbutton.setChecked(cmd_type == 'thaw')
-                         par.frozen = cmd_type != 'thaw'
-                         self.set_checksum()
-                         self.set_title()
-                         if self.model_info_window is not None:
+                        checkbutton = params_table[row, 0]
+                        checkbutton.setChecked(cmd_type == "thaw")
+                        par.frozen = cmd_type != "thaw"
+                        self.set_checksum()
+                        self.set_title()
+                        if self.model_info_window is not None:
                             self.model_info_window.update_checksum()
-        widget.setText('')
+        widget.setText("")
 
     def set_title(self):
-        title_str = gui_config['filename']
+        title_str = gui_config["filename"]
         if title_str is None:
             title_str = "no filename"
         if not self.checksum_match:
             title_str += "*"
-        self.window.setWindowTitle(
-            f"xija_gui_fit v{xija.__version__} ({title_str})")
+        self.window.setWindowTitle(f"xija_gui_fit v{xija.__version__} ({title_str})")
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
@@ -1086,15 +1110,17 @@ class MainWindow:
         dlg.setAcceptMode(dlg.AcceptSave)
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
-        if filename != '':
+        if filename != "":
             plot_boxes = self.main_left_panel.plots_box.plot_boxes
             model_spec = self.model.model_spec
-            gui_config['plot_names'] = [x.plot_name for x in plot_boxes]
-            gui_config['size'] = (self.window.size().width(), 
-                                  self.window.size().height())
-            model_spec['gui_config'] = gui_config
+            gui_config["plot_names"] = [x.plot_name for x in plot_boxes]
+            gui_config["size"] = (
+                self.window.size().width(),
+                self.window.size().height(),
+            )
+            model_spec["gui_config"] = gui_config
             try:
-                gui_config['filename'] = filename
+                gui_config["filename"] = filename
                 self.model.write(filename, model_spec)
                 self.set_checksum(newfile=True)
                 if self.model_info_window is not None:
@@ -1105,14 +1131,18 @@ class MainWindow:
                 msg = QtWidgets.QMessageBox()
                 msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
                 msg.setText("There was a problem writing the file:")
-                msg.setDetailedText("Cannot write {}. {}".format(filename, ioerr.strerror))
+                msg.setDetailedText(
+                    "Cannot write {}. {}".format(filename, ioerr.strerror)
+                )
                 msg.exec_()
 
     def quit_pushed(self):
         if not self.checksum_match:
             answer = QtWidgets.QMessageBox.question(
-                self.window, "Save Model?", 
-                "Current model not saved. Would you like to save it?")
+                self.window,
+                "Save Model?",
+                "Current model not saved. Would you like to save it?",
+            )
             if answer == QtWidgets.QMessageBox.Yes:
                 self.save_model_file()
         QtCore.QCoreApplication.instance().quit()
@@ -1120,34 +1150,42 @@ class MainWindow:
 
 def get_options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("filename",
-                        default='test_gui.json',
-                        help="Model file")
-    parser.add_argument("--days",
-                        type=float,
-                        default=15,  # Fix this
-                        help="Number of days in fit interval (default=90")
-    parser.add_argument("--stop",
-                        default=CxoTime() - 10,  # remove this
-                        help="Stop time of fit interval (default=model values)")
-    parser.add_argument("--maxiter",
-                        default=1000,
-                        type=int,
-                        help="Maximum number of fit iterations (default=1000)")
-    parser.add_argument("--fit-method",
-                        default="simplex",
-                        help="Sherpa fit method (simplex|moncar|levmar)")
-    parser.add_argument("--inherit-from",
-                        help="Inherit par values from model spec file")
-    parser.add_argument("--set-data",
-                        action='append',
-                        dest='set_data_exprs',
-                        default=[],
-                        help="Set data value as '<comp_name>=<value>'")
-    parser.add_argument("--quiet",
-                        default=False,
-                        action='store_true',
-                        help="Suppress screen output")
+    parser.add_argument("filename", default="test_gui.json", help="Model file")
+    parser.add_argument(
+        "--days",
+        type=float,
+        default=15,  # Fix this
+        help="Number of days in fit interval (default=90",
+    )
+    parser.add_argument(
+        "--stop",
+        default=CxoTime() - 10,  # remove this
+        help="Stop time of fit interval (default=model values)",
+    )
+    parser.add_argument(
+        "--maxiter",
+        default=1000,
+        type=int,
+        help="Maximum number of fit iterations (default=1000)",
+    )
+    parser.add_argument(
+        "--fit-method",
+        default="simplex",
+        help="Sherpa fit method (simplex|moncar|levmar)",
+    )
+    parser.add_argument(
+        "--inherit-from", help="Inherit par values from model spec file"
+    )
+    parser.add_argument(
+        "--set-data",
+        action="append",
+        dest="set_data_exprs",
+        default=[],
+        help="Set data value as '<comp_name>=<value>'",
+    )
+    parser.add_argument(
+        "--quiet", default=False, action="store_true", help="Suppress screen output"
+    )
 
     return parser.parse_args()
 
@@ -1159,9 +1197,12 @@ def main():
 
     opt = get_options()
 
-    src = pyc.CONTEXT['src'] if 'src' in pyc.CONTEXT else pyc.ContextDict('src')
-    files = (pyc.CONTEXT['file'] if 'file' in pyc.CONTEXT else
-             pyc.ContextDict('files', basedir=str(Path.cwd())))
+    src = pyc.CONTEXT["src"] if "src" in pyc.CONTEXT else pyc.ContextDict("src")
+    files = (
+        pyc.CONTEXT["file"]
+        if "file" in pyc.CONTEXT
+        else pyc.ContextDict("files", basedir=str(Path.cwd()))
+    )
     files.update(xija.files)
 
     sherpa_logger = logging.getLogger("sherpa")
@@ -1172,31 +1213,32 @@ def main():
                 logger.removeHandler(h)
 
     if opt.filename.endswith(".json"):
-        model_spec = json.load(open(opt.filename, 'r'))
+        model_spec = json.load(open(opt.filename, "r"))
     elif opt.filename in get_xija_model_names():
         model_spec, model_version = get_xija_model_spec(opt.filename)
     else:
-        raise RuntimeError("'filename' not a valid path to a JSON file "
-                           "or a valid model name!")
+        raise RuntimeError(
+            "'filename' not a valid path to a JSON file or a valid model name!"
+        )
 
-    gui_config.update(model_spec.get('gui_config', {}))
-    src['model'] = model_spec['name']
+    gui_config.update(model_spec.get("gui_config", {}))
+    src["model"] = model_spec["name"]
 
     # Use supplied stop time and days OR use model_spec values if stop not supplied
     if opt.stop:
         start = CxoTime(CxoTime(opt.stop).secs - opt.days * 86400).date[:8]
         stop = opt.stop
     else:
-        start = model_spec['datestart']
-        stop = model_spec['datestop']
+        start = model_spec["datestart"]
+        stop = model_spec["datestop"]
 
-    model = xija.ThermalModel(model_spec['name'], start, stop, model_spec=model_spec)
+    model = xija.ThermalModel(model_spec["name"], start, stop, model_spec=model_spec)
 
-    set_data_vals = gui_config.get('set_data_vals', {})
+    set_data_vals = gui_config.get("set_data_vals", {})
     for set_data_expr in opt.set_data_exprs:
-        set_data_expr = re.sub('\s', '', set_data_expr)
+        set_data_expr = re.sub("\s", "", set_data_expr)
         try:
-            comp_name, val = set_data_expr.split('=')
+            comp_name, val = set_data_expr.split("=")
         except ValueError:
             raise ValueError("--set_data must be in form '<comp_name>=<value>'")
         # Set data to value.  ast.literal_eval is a safe way to convert any
@@ -1209,23 +1251,23 @@ def main():
     model.make()
 
     if opt.inherit_from:
-        inherit_spec = json.load(open(opt.inherit_from, 'r'))
-        inherit_pars = {par['full_name']: par for par in inherit_spec['pars']}
+        inherit_spec = json.load(open(opt.inherit_from, "r"))
+        inherit_pars = {par["full_name"]: par for par in inherit_spec["pars"]}
         for par in model.pars:
             if par.full_name in inherit_pars:
                 print("Inheriting par {}".format(par.full_name))
-                par.val = inherit_pars[par.full_name]['val']
-                par.min = inherit_pars[par.full_name]['min']
-                par.max = inherit_pars[par.full_name]['max']
-                par.frozen = inherit_pars[par.full_name]['frozen']
-                par.fmt = inherit_pars[par.full_name]['fmt']
+                par.val = inherit_pars[par.full_name]["val"]
+                par.min = inherit_pars[par.full_name]["min"]
+                par.max = inherit_pars[par.full_name]["max"]
+                par.frozen = inherit_pars[par.full_name]["frozen"]
+                par.fmt = inherit_pars[par.full_name]["fmt"]
 
     filename = Path(opt.filename)
     if filename.exists():
-        gui_config['filename'] = str(filename.resolve())
+        gui_config["filename"] = str(filename.resolve())
     else:
-        gui_config['filename'] = None
-    gui_config['set_data_vals'] = set_data_vals
+        gui_config["filename"] = None
+    gui_config["set_data_vals"] = set_data_vals
 
     fit_worker = FitWorker(model, opt.maxiter, method=opt.fit_method)
 
@@ -1239,5 +1281,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

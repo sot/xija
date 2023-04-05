@@ -1,17 +1,16 @@
-from PyQt5 import QtWidgets, QtCore
-
 import functools
-import numpy as np
 
-from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+from cheta.units import F_to_C
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from matplotlib.figure import Figure
+from PyQt5 import QtCore, QtWidgets
+from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
 
 from xija.limits import get_limit_color
-from cheta.units import F_to_C
 
 
 def digitize_data(Ttelem, nbins=50):
@@ -58,7 +57,7 @@ def calcquantiles(errors):
 
     """
     qs = np.quantile(errors, [0.01, 0.5, 0.99])
-    stats = {'error': errors, 'q01': qs[0], 'q50': qs[1], 'q99': qs[2]}
+    stats = {"error": errors, "q01": qs[0], "q50": qs[1], "q99": qs[2]}
     return stats
 
 
@@ -82,12 +81,12 @@ def calcquantstats(Ttelem, error):
     """
 
     Tset = np.sort(list(set(Ttelem)))
-    Tquant = {'key': []}
+    Tquant = {"key": []}
     k = -1
     for T in Tset:
         if len(Ttelem[Ttelem == T]) >= 200:
             k = k + 1
-            Tquant['key'].append([k, T])
+            Tquant["key"].append([k, T])
             ind = Ttelem == T
             errvals = error[ind]
             Tquant[k] = calcquantiles(errvals)
@@ -115,21 +114,21 @@ def getQuantPlotPoints(quantstats, quantile):
 
     """
 
-    Tset = [T for (n, T) in quantstats['key']]
+    Tset = [T for (n, T) in quantstats["key"]]
     diffTset = np.diff(Tset)
     Tpoints = Tset[:-1] + diffTset / 2
     Tpoints = list(np.array([Tpoints, Tpoints]).T.flatten())
     Tpoints.insert(0, Tset[0] - diffTset[0] / 2)
     Tpoints.append(Tset[-1] + diffTset[0] / 2)
-    Epoints = [quantstats[num][quantile] for (num, T) in quantstats['key']]
+    Epoints = [quantstats[num][quantile] for (num, T) in quantstats["key"]]
     Epoints = np.array([Epoints, Epoints]).T.flatten()
     return Epoints, Tpoints
 
 
 def get_radzones(model):
     from kadi import events
-    rad_zones = events.rad_zones.filter(start=model.datestart,
-                                        stop=model.datestop)
+
+    rad_zones = events.rad_zones.filter(start=model.datestart, stop=model.datestop)
     return rad_zones
 
 
@@ -155,7 +154,7 @@ def clearLayout(layout):
                 clearLayout(item.layout())
 
 
-def annotate_limits(limits, ax, dir='h'):
+def annotate_limits(limits, ax, dir="h"):
     """
     Annotate limit lines on a plot.
 
@@ -179,8 +178,8 @@ def annotate_limits(limits, ax, dir='h'):
     if len(limits) == 0:
         return []
     lines = []
-    draw_line = getattr(ax, f'ax{dir}line')
-    if limits['unit'] == "degF":
+    draw_line = getattr(ax, f"ax{dir}line")
+    if limits["unit"] == "degF":
         # convert degF to degC
         convert = lambda x: F_to_C(x)
     else:
@@ -189,9 +188,7 @@ def annotate_limits(limits, ax, dir='h'):
     for limit in limits:
         if limit == "unit":
             continue
-        lines.append(
-            draw_line(convert(limits[limit]), color=get_limit_color(limit))
-        )
+        lines.append(draw_line(convert(limits[limit]), color=get_limit_color(limit)))
     return lines
 
 
@@ -223,10 +220,10 @@ class HistogramWindow(QtWidgets.QWidget):
 
         msid_select.activated[str].connect(self.change_msid)
 
-        redraw_button = QtWidgets.QPushButton('Redraw')
+        redraw_button = QtWidgets.QPushButton("Redraw")
         redraw_button.clicked.connect(self.update_plots)
 
-        close_button = QtWidgets.QPushButton('Close')
+        close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close_window)
 
         toolbar_box = QtWidgets.QHBoxLayout()
@@ -253,11 +250,11 @@ class HistogramWindow(QtWidgets.QWidget):
         toolbar_box.addWidget(close_button)
 
         check_boxes = QtWidgets.QHBoxLayout()
-        check_boxes.addWidget(QtWidgets.QLabel('Mask radzones'))
+        check_boxes.addWidget(QtWidgets.QLabel("Mask radzones"))
         check_boxes.addWidget(mask_rz_check)
-        check_boxes.addWidget(QtWidgets.QLabel('Mask FMT1'))
+        check_boxes.addWidget(QtWidgets.QLabel("Mask FMT1"))
         check_boxes.addWidget(mask_fmt1_check)
-        check_boxes.addWidget(QtWidgets.QLabel('Show limits'))
+        check_boxes.addWidget(QtWidgets.QLabel("Show limits"))
         check_boxes.addWidget(limits_check)
         check_boxes.addStretch(1)
 
@@ -271,9 +268,9 @@ class HistogramWindow(QtWidgets.QWidget):
         self.emax_entry.setText(f"{self.errorlimits[1]}")
         self.emax_entry.returnPressed.connect(self.emax_edited)
 
-        check_boxes.addWidget(QtWidgets.QLabel('Error min:'))
+        check_boxes.addWidget(QtWidgets.QLabel("Error min:"))
         check_boxes.addWidget(self.emin_entry)
-        check_boxes.addWidget(QtWidgets.QLabel('Error max:'))
+        check_boxes.addWidget(QtWidgets.QLabel("Error max:"))
         check_boxes.addWidget(self.emax_entry)
 
         self.box.addWidget(canvas)
@@ -313,22 +310,25 @@ class HistogramWindow(QtWidgets.QWidget):
         self.close()
 
     _rz_mask = None
+
     @property
     def rz_mask(self):
         if self._rz_mask is None:
-            self._rz_mask = np.ones_like(self.comp.dvals, dtype='bool')
+            self._rz_mask = np.ones_like(self.comp.dvals, dtype="bool")
             rad_zones = get_radzones(self.model)
             for rz in rad_zones:
-                idxs = np.logical_and(self.model.times >= rz.tstart,
-                                      self.model.times <= rz.tstop)
+                idxs = np.logical_and(
+                    self.model.times >= rz.tstart, self.model.times <= rz.tstop
+                )
                 self._rz_mask[idxs] = False
         return self._rz_mask
 
     _fmt1_mask = None
+
     @property
     def fmt1_mask(self):
         if self._fmt1_mask is None:
-            fmt = self.model.fetch("ccsdstmf", 'vals', 'nearest')
+            fmt = self.model.fetch("ccsdstmf", "vals", "nearest")
             self._fmt1_mask = fmt != "FMT1"
         return self._fmt1_mask
 
@@ -364,25 +364,25 @@ class HistogramWindow(QtWidgets.QWidget):
         self.which_msid = self.hist_msids.index(msid)
         self.comp = self.model.comp[self.hist_msids[self.which_msid]]
         msid_name = self.hist_msids[self.which_msid]
-        self.ax1.set_title(f'{msid_name}: data vs. residuals (data - model)')
+        self.ax1.set_title(f"{msid_name}: data vs. residuals (data - model)")
         QtCore.QTimer.singleShot(200, self.update_plots)
         self.plot_limits(self.limits_check.checkState())
 
     def make_plots(self):
         msid_name = self.hist_msids[self.which_msid]
         self.ax1.grid(True)
-        self.ax1.set_xlabel('Error')
-        self.ax1.set_ylabel('Temperature')
-        self.ax1.set_title(f'{msid_name}: data vs. residuals (data - model)')
+        self.ax1.set_xlabel("Error")
+        self.ax1.set_ylabel("Temperature")
+        self.ax1.set_title(f"{msid_name}: data vs. residuals (data - model)")
 
-        self.ax2.set_title(f'{msid_name}: residual histogram', y=1.0)
-        self.ax2.set_xlabel('Error')
-        self.ax2.set_ylabel('% of data')
+        self.ax2.set_title(f"{msid_name}: residual histogram", y=1.0)
+        self.ax2.set_xlabel("Error")
+        self.ax2.set_ylabel("% of data")
 
         self.update_plots()
 
     def update_plots(self):
-        mask = np.ones_like(self.comp.resids, dtype='bool')
+        mask = np.ones_like(self.comp.resids, dtype="bool")
         if self.comp.mask:
             mask &= self.comp.mask.mask
         if self.rz_masked:
@@ -405,14 +405,14 @@ class HistogramWindow(QtWidgets.QWidget):
         else:
             quantstats = calcquantstats(dvals, resids)
 
-        Epoints01, tmid = getQuantPlotPoints(quantstats, 'q01')
-        Epoints99, _ = getQuantPlotPoints(quantstats, 'q99')
-        Epoints50, _ = getQuantPlotPoints(quantstats, 'q50')
+        Epoints01, tmid = getQuantPlotPoints(quantstats, "q01")
+        Epoints99, _ = getQuantPlotPoints(quantstats, "q99")
+        Epoints50, _ = getQuantPlotPoints(quantstats, "q50")
 
         hist, bins = np.histogram(resids, 40, range=self._errorlimits)
-        hist = hist*100.0/self.comp.mvals.size
+        hist = hist * 100.0 / self.comp.mvals.size
         hist[hist == 0.0] = np.nan
-        bin_mid = 0.5*(bins[1:]+bins[:-1])
+        bin_mid = 0.5 * (bins[1:] + bins[:-1])
 
         min_resid = np.nanmin(resids)
         max_resid = np.nanmax(resids)
@@ -427,64 +427,76 @@ class HistogramWindow(QtWidgets.QWidget):
             ymax = max(ymax, self.max_limit)
 
         if len(self.plot_dict) == 0:
-            self.plot_dict['resids'] = self.ax1.plot(
-                resids, dvalsr, 'o', color='#386cb0',
-                alpha=1, markersize=1, markeredgecolor='#386cb0')[0]
+            self.plot_dict["resids"] = self.ax1.plot(
+                resids,
+                dvalsr,
+                "o",
+                color="#386cb0",
+                alpha=1,
+                markersize=1,
+                markeredgecolor="#386cb0",
+            )[0]
             self.plot_dict["01"] = self.ax1.plot(
-                Epoints01, tmid, color='k', linewidth=4)[0]
+                Epoints01, tmid, color="k", linewidth=4
+            )[0]
             self.plot_dict["99"] = self.ax1.plot(
-                Epoints99, tmid, color='k', linewidth=4)[0]
+                Epoints99, tmid, color="k", linewidth=4
+            )[0]
             self.plot_dict["50"] = self.ax1.plot(
-                Epoints50, tmid, color=[1, 1, 1], linewidth=4)[0]
-            self.plot_dict["50_2"] = self.ax1.plot(
-                Epoints50, tmid, 'k', linewidth=1.5)[0]
+                Epoints50, tmid, color=[1, 1, 1], linewidth=4
+            )[0]
+            self.plot_dict["50_2"] = self.ax1.plot(Epoints50, tmid, "k", linewidth=1.5)[
+                0
+            ]
 
             self.plot_dict["step"] = self.ax2.step(
-                bin_mid, hist, '#386cb0', where='mid')[0]
+                bin_mid, hist, "#386cb0", where="mid"
+            )[0]
             self.plot_dict["q01"] = self.ax2.axvline(
-                stats['q01'], color='k', linestyle='--',
-                linewidth=1.5, alpha=1)
+                stats["q01"], color="k", linestyle="--", linewidth=1.5, alpha=1
+            )
             self.plot_dict["q99"] = self.ax2.axvline(
-                stats['q99'], color='k', linestyle='--',
-                linewidth=1.5, alpha=1)
+                stats["q99"], color="k", linestyle="--", linewidth=1.5, alpha=1
+            )
             self.plot_dict["min_hist"] = self.ax2.axvline(
-                min_resid, color='k', linestyle='--',
-                linewidth=1.5, alpha=1)
+                min_resid, color="k", linestyle="--", linewidth=1.5, alpha=1
+            )
             self.plot_dict["max_hist"] = self.ax2.axvline(
-                max_resid, color='k', linestyle='--',
-                linewidth=1.5, alpha=1)
+                max_resid, color="k", linestyle="--", linewidth=1.5, alpha=1
+            )
         else:
-            self.plot_dict['resids'].set_data(resids, dvalsr)
-            self.plot_dict['01'].set_data(Epoints01, tmid)
-            self.plot_dict['99'].set_data(Epoints99, tmid)
-            self.plot_dict['50'].set_data(Epoints50, tmid)
-            self.plot_dict['50_2'].set_data(Epoints50, tmid)
+            self.plot_dict["resids"].set_data(resids, dvalsr)
+            self.plot_dict["01"].set_data(Epoints01, tmid)
+            self.plot_dict["99"].set_data(Epoints99, tmid)
+            self.plot_dict["50"].set_data(Epoints50, tmid)
+            self.plot_dict["50_2"].set_data(Epoints50, tmid)
 
-            self.plot_dict['step'].set_data(bin_mid, hist)
-            self.plot_dict['q01'].set_xdata(stats['q01'])
-            self.plot_dict['q99'].set_xdata(stats['q99'])
-            self.plot_dict['min_hist'].set_xdata(min_resid)
-            self.plot_dict['max_hist'].set_xdata(max_resid)
-            self.plot_dict['fill'].remove()
+            self.plot_dict["step"].set_data(bin_mid, hist)
+            self.plot_dict["q01"].set_xdata(stats["q01"])
+            self.plot_dict["q99"].set_xdata(stats["q99"])
+            self.plot_dict["min_hist"].set_xdata(min_resid)
+            self.plot_dict["max_hist"].set_xdata(max_resid)
+            self.plot_dict["fill"].remove()
 
         self.ax1.set_xlim(*self._errorlimits)
-        self.ax1.set_ylim(ymin-0.5, ymax+0.5)
+        self.ax1.set_ylim(ymin - 0.5, ymax + 0.5)
 
         self.plot_dict["fill"] = self.ax2.fill_between(
-            bin_mid, hist, step="mid", color='#386cb0')
+            bin_mid, hist, step="mid", color="#386cb0"
+        )
 
-        self.ax2.set_ylim(0.0, np.nanmax(hist)+1)
+        self.ax2.set_ylim(0.0, np.nanmax(hist) + 1)
 
         # Print labels for statistical boundaries.
         ylim2 = self.ax2.get_ylim()
         ystart = (ylim2[1] + ylim2[0]) * 0.5
-        xoffset = -(.2 / 25) * (max_resid - min_resid)
+        xoffset = -(0.2 / 25) * (max_resid - min_resid)
         self.ax2.set_xlim(*self._errorlimits)
 
-        xpos_q01 = stats['q01'] + xoffset*1.1
-        xpos_q99 = stats['q99'] - xoffset*0.9
-        xpos_min = min_resid + xoffset*1.1
-        xpos_max = max_resid - xoffset*0.9
+        xpos_q01 = stats["q01"] + xoffset * 1.1
+        xpos_q99 = stats["q99"] - xoffset * 0.9
+        xpos_min = min_resid + xoffset * 1.1
+        xpos_max = max_resid - xoffset * 0.9
         if "q01_text" in self.plot_dict:
             self.plot_dict["q01_text"].set_position((xpos_q01, ystart))
             self.plot_dict["q99_text"].set_position((xpos_q99, ystart))
@@ -492,17 +504,41 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict["max_text"].set_position((xpos_max, ystart))
         else:
             self.plot_dict["q01_text"] = self.ax2.text(
-                xpos_q01, ystart, '1% Quantile',
-                ha="right", va="center", rotation=90, clip_on=True)
+                xpos_q01,
+                ystart,
+                "1% Quantile",
+                ha="right",
+                va="center",
+                rotation=90,
+                clip_on=True,
+            )
             self.plot_dict["q99_text"] = self.ax2.text(
-                xpos_q99, ystart, '99% Quantile',
-                ha="left", va="center", rotation=90, clip_on=True)
+                xpos_q99,
+                ystart,
+                "99% Quantile",
+                ha="left",
+                va="center",
+                rotation=90,
+                clip_on=True,
+            )
             self.plot_dict["min_text"] = self.ax2.text(
-                xpos_min, ystart, 'Minimum Error',
-                ha="right", va="center", rotation=90, clip_on=True)
+                xpos_min,
+                ystart,
+                "Minimum Error",
+                ha="right",
+                va="center",
+                rotation=90,
+                clip_on=True,
+            )
             self.plot_dict["max_text"] = self.ax2.text(
-                xpos_max, ystart, 'Maximum Error',
-                ha="left", va="center", rotation=90, clip_on=True)
+                xpos_max,
+                ystart,
+                "Maximum Error",
+                ha="left",
+                va="center",
+                rotation=90,
+                clip_on=True,
+            )
 
         self.fig.canvas.draw_idle()
         self.fig.canvas.flush_events()
@@ -521,9 +557,10 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.fig = Figure()
         canvas = FigureCanvas(self.fig)
         toolbar = NavigationToolbar(canvas, parent=None)
-        delete_plot_button = QtWidgets.QPushButton('Delete')
+        delete_plot_button = QtWidgets.QPushButton("Delete")
         delete_plot_button.clicked.connect(
-            functools.partial(plots_box.delete_plot_box, plot_name))
+            functools.partial(plots_box.delete_plot_box, plot_name)
+        )
 
         toolbar_box = QtWidgets.QHBoxLayout()
         toolbar_box.addWidget(toolbar)
@@ -534,17 +571,19 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.addLayout(toolbar_box)
 
         # Add shared x-axes for plots with time on the x-axis
-        xaxis = plot_method.split('__')
+        xaxis = plot_method.split("__")
         if len(xaxis) == 1 or not plot_method.endswith("time"):
             self.ax = self.fig.add_subplot(111)
         else:
             self.ax = self.fig.add_subplot(111, sharex=plots_box.default_ax)
-            self.ax.autoscale(enable=False, axis='x')
+            self.ax.autoscale(enable=False, axis="x")
 
         self.plots_box = plots_box
         self.main_window = self.plots_box.main_window
         self.selecter = self.fig.canvas.mpl_connect("button_press_event", self.select)
-        self.releaser = self.fig.canvas.mpl_connect("button_release_event", self.release)
+        self.releaser = self.fig.canvas.mpl_connect(
+            "button_release_event", self.release
+        )
 
         self.ly = None
         self.limits = None
@@ -552,10 +591,15 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.ignores = []
 
     def select(self, event):
-        grab = event.inaxes and self.main_window.show_line and \
-               not self.ax.get_navigate_mode()
+        grab = (
+            event.inaxes
+            and self.main_window.show_line
+            and not self.ax.get_navigate_mode()
+        )
         if grab:
-            self.mover = self.fig.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+            self.mover = self.fig.canvas.mpl_connect(
+                "motion_notify_event", self.on_mouse_move
+            )
             self.plots_box.xline = event.xdata
             self.plots_box.update_xline()
         else:
@@ -593,18 +637,18 @@ class PlotBox(QtWidgets.QVBoxLayout):
         if atype == "limits" and self.comp_name in self.plots_box.model.limits:
             limits = self.plots_box.model.limits[self.comp_name]
             if "resid__data" in self.plot_name:
-                self.limits = annotate_limits(limits, self.ax, dir='v')
+                self.limits = annotate_limits(limits, self.ax, dir="v")
             elif "data__time" in self.plot_name:
-                self.limits = annotate_limits(limits, self.ax, dir='h')
+                self.limits = annotate_limits(limits, self.ax, dir="h")
         elif atype == "radzones" and self.plot_method.endswith("time"):
             self.rzlines = []
             for t0, t1 in self.rz_times:
                 self.rzlines += [
-                    self.ax.axvline(t0, color='g', ls='--'),
-                    self.ax.axvline(t1, color='g', ls='--')
+                    self.ax.axvline(t0, color="g", ls="--"),
+                    self.ax.axvline(t1, color="g", ls="--"),
                 ]
         elif atype == "line" and self.plot_method.endswith("time"):
-            self.ly = self.ax.axvline(self.plots_box.xline, color='maroon')
+            self.ly = self.ax.axvline(self.plots_box.xline, color="maroon")
 
     def remove_annotation(self, atype):
         if atype == "limits" and self.comp_name in self.plots_box.model.limits:
@@ -625,8 +669,9 @@ class PlotBox(QtWidgets.QVBoxLayout):
         pd_times = self.plots_box.pd_times
         ybot, ytop = self.ax.get_ylim()
         where = (times >= t0) & (times <= t1)
-        fill = self.ax.fill_between(pd_times,
-            ybot, ytop, where=where, color=color, alpha=0.5)
+        fill = self.ax.fill_between(
+            pd_times, ybot, ytop, where=where, color=color, alpha=0.5
+        )
         if not bad:
             self.ignores.append(fill)
         ybot, ytop = self.ax.set_ylim(ybot, ytop)
@@ -643,11 +688,11 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def update(self, first=False):
         mw = self.main_window
-        plot_func = getattr(self.comp, 'plot_' + self.plot_method)
+        plot_func = getattr(self.comp, "plot_" + self.plot_method)
         plot_func(fig=self.fig, ax=self.ax)
         if self.plot_method.endswith("time"):
             self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
-            self.ax.autoscale(enable=False, axis='x')
+            self.ax.autoscale(enable=False, axis="x")
         if first:
             if self.plot_method.endswith("time"):
                 self.show_fills()
@@ -666,22 +711,27 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         super(QtWidgets.QVBoxLayout, self).__init__()
         self.main_window = main_window
         self.model = model
-        self.xline = 0.5*np.sum(cxctime2plotdate([self.model.tstart,
-                                                  self.model.tstop]))
+        self.xline = 0.5 * np.sum(
+            cxctime2plotdate([self.model.tstart, self.model.tstop])
+        )
         self.pd_times = cxctime2plotdate(self.model.times)
         self.plot_boxes = []
         self.plot_names = []
 
         # Set up a default axis that will act as the scaling reference
         self.default_fig, self.default_ax = plt.subplots()
-        plot_cxctime(self.model.times, np.ones_like(self.model.times),
-                     fig=self.default_fig, ax=self.default_ax)
+        plot_cxctime(
+            self.model.times,
+            np.ones_like(self.model.times),
+            fig=self.default_fig,
+            ax=self.default_ax,
+        )
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
         if plot_name == "Add plot..." or plot_name in self.plot_names:
             return
-        print('Adding plot ', plot_name)
+        print("Adding plot ", plot_name)
         plot_box = PlotBox(plot_name, self)
         self.addLayout(plot_box)
         plot_box.update(first=True)
@@ -704,11 +754,11 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
     def update_plots(self):
         mw = self.main_window
-        mw.cbp.update_status.setText(' BUSY... ')
+        mw.cbp.update_status.setText(" BUSY... ")
         self.model.calc()
         for plot_box in self.plot_boxes:
             plot_box.update()
-        mw.cbp.update_status.setText('')
+        mw.cbp.update_status.setText("")
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
         mw.set_title()
