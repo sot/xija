@@ -15,20 +15,20 @@ except ImportError:
 
 class DetectorHousingHeater(TelemData):
     def __init__(self, model):
-        TelemData.__init__(self, model, '1dahtbon')
+        TelemData.__init__(self, model, "1dahtbon")
         self.n_mvals = 1
-        self.fetch_attr = 'midvals'
-        self.fetch_method = 'nearest'
+        self.fetch_attr = "midvals"
+        self.fetch_method = "nearest"
 
     def get_dvals_tlm(self):
-        dahtbon = self.model.fetch(self.msid, 'vals', 'nearest')
-        return dahtbon == 'ON '
+        dahtbon = self.model.fetch(self.msid, "vals", "nearest")
+        return dahtbon == "ON "
 
     def update(self):
         self.mvals = np.where(self.dvals, 1, 0)
 
     def __str__(self):
-        return 'dh_heater'
+        return "dh_heater"
 
 
 class AcisDpaStatePower(PrecomputedHeatPower):
@@ -75,24 +75,24 @@ class AcisDpaStatePower(PrecomputedHeatPower):
                 "6xxx",
             ]
         for ps in pow_states:
-            self.add_par('pow_%s' % ps, 20, min=10, max=100)
-        self.add_par('mult', mult, min=0.0, max=2.0)
-        self.add_par('bias', 70, min=10, max=100)
+            self.add_par("pow_%s" % ps, 20, min=10, max=100)
+        self.add_par("mult", mult, min=0.0, max=2.0)
+        self.add_par("bias", 70, min=10, max=100)
 
-        self.power_pars = [par for par in self.pars if par.name.startswith('pow_')]
+        self.power_pars = [par for par in self.pars if par.name.startswith("pow_")]
         self.n_mvals = 1
         self.data = None
         self.data_times = None
 
     def __str__(self):
-        return 'dpa_power'
+        return "dpa_power"
 
     @property
     def par_idxs(self):
-        if not hasattr(self, '_par_idxs'):
+        if not hasattr(self, "_par_idxs"):
             # Make a regex corresponding to the last bit of each power
             # parameter name.  E.g. "pow_1xxx" => "1...".
-            power_par_res = [par.name[4:].replace('x', '.') for par in self.power_pars]
+            power_par_res = [par.name[4:].replace("x", ".") for par in self.power_pars]
 
             par_idxs = np.zeros(6612, dtype=np.int_) - 1
             for fep_count in range(0, 7):
@@ -109,7 +109,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
                                     break
                             else:
                                 raise ValueError(
-                                    'No match for power state {}'.format(state)
+                                    "No match for power state {}".format(state)
                                 )
 
             idxs = (
@@ -121,7 +121,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             self._par_idxs = par_idxs[idxs]
 
             if self._par_idxs.min() < 0:
-                raise ValueError('Fatal problem with par_idxs routine')
+                raise ValueError("Fatal problem with par_idxs routine")
 
         return self._par_idxs
 
@@ -137,7 +137,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
 
         """
         try:
-            dvals = self.model.fetch('dp_dpa_power')
+            dvals = self.model.fetch("dp_dpa_power")
         except ValueError:
             dvals = np.zeros_like(self.model.times)
         return dvals
@@ -159,7 +159,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
         powers = power_parvals[self.par_idxs]
         self.mvals = self.mult / 100.0 * (powers - self.bias)
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,
         )
@@ -173,11 +173,11 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             lines[1].set_data(self.model_plotdate, powers)
         else:
             plot_cxctime(
-                self.model.times, powers, ls='-', color='#d92121', fig=fig, ax=ax
+                self.model.times, powers, ls="-", color="#d92121", fig=fig, ax=ax
             )
             plot_cxctime(
-                self.model.times, self.dvals, color='#386cb0', ls='-', fig=fig, ax=ax
+                self.model.times, self.dvals, color="#386cb0", ls="-", fig=fig, ax=ax
             )
             ax.grid()
-            ax.set_title('{}: model (red) and data (blue)'.format(self.name))
-            ax.set_ylabel('Power (W)')
+            ax.set_title("{}: model (red) and data (blue)".format(self.name))
+            ax.set_ylabel("Power (W)")

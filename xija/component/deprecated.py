@@ -55,17 +55,17 @@ class SolarHeatAcisCameraBody(SolarHeat):
         self,
         model,
         node,
-        pitch_comp='pitch',
+        pitch_comp="pitch",
         eclipse_comp=None,
         P_pitches=None,
         Ps=None,
         dPs=None,
-        var_func='exp',
+        var_func="exp",
         tau=1732.0,
         ampl=0.05,
         bias=0.0,
-        epoch='2010:001:12:00:00',
-        dh_heater_comp='dh_heater',
+        epoch="2010:001:12:00:00",
+        dh_heater_comp="dh_heater",
         dh_heater_bias=0.0,
         dP_pitches=None,
     ):
@@ -86,7 +86,7 @@ class SolarHeatAcisCameraBody(SolarHeat):
         )
 
         self.dh_heater_comp = model.get_comp(dh_heater_comp)
-        self.add_par('dh_heater_bias', dh_heater_bias, min=-1.0, max=1.0)
+        self.add_par("dh_heater_bias", dh_heater_bias, min=-1.0, max=1.0)
 
     def dvals_post_hook(self):
         """Apply a bias power offset when detector housing heater is on"""
@@ -100,20 +100,20 @@ class AcisPsmcPower(PrecomputedHeatPower):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
         self.n_mvals = 1
-        self.add_par('k', k, min=0.0, max=2.0)
+        self.add_par("k", k, min=0.0, max=2.0)
 
     def __str__(self):
-        return 'psmc__{0}'.format(self.node)
+        return "psmc__{0}".format(self.node)
 
     @property
     def dvals(self):
-        if not hasattr(self, '_dvals'):
-            deav = self.model.fetch('1de28avo')
-            deai = self.model.fetch('1deicacu')
-            dpaav = self.model.fetch('1dp28avo')
-            dpaai = self.model.fetch('1dpicacu')
-            dpabv = self.model.fetch('1dp28bvo')
-            dpabi = self.model.fetch('1dpicbcu')
+        if not hasattr(self, "_dvals"):
+            deav = self.model.fetch("1de28avo")
+            deai = self.model.fetch("1deicacu")
+            dpaav = self.model.fetch("1dp28avo")
+            dpaai = self.model.fetch("1dpicacu")
+            dpabv = self.model.fetch("1dp28bvo")
+            dpabi = self.model.fetch("1dpicbcu")
             # maybe smooth? (already 5min telemetry, no need)
             self._dvals = deav * deai + dpaav * dpaai + dpabv * dpabi
         return self._dvals
@@ -121,7 +121,7 @@ class AcisPsmcPower(PrecomputedHeatPower):
     def update(self):
         self.mvals = self.k * self.dvals
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,  # mvals with precomputed heat input
         )
@@ -134,12 +134,12 @@ class AcisDpaPower(PrecomputedHeatPower):
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('k', k, min=0.0, max=2.0)
-        self.add_par('bias', 70.0, min=0.0, max=100.0)
+        self.add_par("k", k, min=0.0, max=2.0)
+        self.add_par("bias", 70.0, min=0.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
-        return 'dpa__{0}'.format(self.node)
+        return "dpa__{0}".format(self.node)
 
     def get_dvals_tlm(self):
         """Model dvals is set to the telemetered power.  This is not actually
@@ -153,7 +153,7 @@ class AcisDpaPower(PrecomputedHeatPower):
 
         """
         try:
-            dvals = self.model.fetch('dp_dpa_power')
+            dvals = self.model.fetch("dp_dpa_power")
         except ValueError:
             dvals = np.zeros_like(self.model.times)
         return dvals
@@ -161,7 +161,7 @@ class AcisDpaPower(PrecomputedHeatPower):
     def update(self):
         self.mvals = self.k * (self.dvals - self.bias) / 10.0
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,  # mvals with precomputed heat input
         )
@@ -172,10 +172,10 @@ class AcisDpaPower(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)
         else:
-            plot_cxctime(self.model.times, self.dvals, '#386cb0', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, "#386cb0", fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Power (W)')
+            ax.set_title("{}: data (blue)".format(self.name))
+            ax.set_ylabel("Power (W)")
 
 
 class AcisDeaPower(PrecomputedHeatPower):
@@ -184,24 +184,24 @@ class AcisDeaPower(PrecomputedHeatPower):
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('k', k, min=0.0, max=2.0)
+        self.add_par("k", k, min=0.0, max=2.0)
         self.n_mvals = 1
 
     def __str__(self):
-        return 'dea__{0}'.format(self.node)
+        return "dea__{0}".format(self.node)
 
     @property
     def dvals(self):
-        if not hasattr(self, '_dvals'):
-            deav = self.model.fetch('1de28avo')
-            deai = self.model.fetch('1deicacu')
+        if not hasattr(self, "_dvals"):
+            deav = self.model.fetch("1de28avo")
+            deai = self.model.fetch("1deicacu")
             self._dvals = deav * deai
         return self._dvals
 
     def update(self):
         self.mvals = self.k * self.dvals / 10.0
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,
         )
@@ -212,7 +212,7 @@ class AcisDeaPower(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)
         else:
-            plot_cxctime(self.model.times, self.dvals, '#386cb0', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, "#386cb0", fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Power (W)')
+            ax.set_title("{}: data (blue)".format(self.name))
+            ax.set_ylabel("Power (W)")

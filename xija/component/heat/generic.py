@@ -22,12 +22,12 @@ class PropHeater(PrecomputedHeatPower):
         self.node_control = (
             self.node if node_control is None else self.model.get_comp(node_control)
         )
-        self.add_par('k', k, min=0.0, max=1.0)
-        self.add_par('T_set', T_set, min=-50.0, max=100.0)
+        self.add_par("k", k, min=0.0, max=1.0)
+        self.add_par("T_set", T_set, min=-50.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
-        return 'prop_heat__{0}'.format(self.node)
+        return "prop_heat__{0}".format(self.node)
 
     def get_dvals_tlm(self):
         """ """
@@ -35,7 +35,7 @@ class PropHeater(PrecomputedHeatPower):
 
     def update(self):
         self.tmal_ints = (
-            tmal.OPCODES['proportional_heater'],
+            tmal.OPCODES["proportional_heater"],
             self.node.mvals_i,  # dy1/dt index
             self.node_control.mvals_i,
             self.mvals_i,
@@ -47,10 +47,10 @@ class PropHeater(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.mvals)
         else:
-            plot_cxctime(self.model.times, self.mvals, '#386cb0', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, "#386cb0", fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Power')
+            ax.set_title("{}: data (blue)".format(self.name))
+            ax.set_ylabel("Power")
 
 
 class ThermostatHeater(ActiveHeatPower):
@@ -62,12 +62,12 @@ class ThermostatHeater(ActiveHeatPower):
         self.node_control = (
             self.node if node_control is None else self.model.get_comp(node_control)
         )
-        self.add_par('P', P, min=0.0, max=1.0)
-        self.add_par('T_set', T_set, min=-50.0, max=100.0)
+        self.add_par("P", P, min=0.0, max=1.0)
+        self.add_par("T_set", T_set, min=-50.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
-        return 'thermostat_heat__{0}'.format(self.node)
+        return "thermostat_heat__{0}".format(self.node)
 
     def get_dvals_tlm(self):
         """ """
@@ -75,7 +75,7 @@ class ThermostatHeater(ActiveHeatPower):
 
     def update(self):
         self.tmal_ints = (
-            tmal.OPCODES['thermostat_heater'],
+            tmal.OPCODES["thermostat_heater"],
             self.node.mvals_i,  # dy1/dt index
             self.node_control.mvals_i,
             self.mvals_i,
@@ -87,10 +87,10 @@ class ThermostatHeater(ActiveHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.mvals)
         else:
-            plot_cxctime(self.model.times, self.mvals, '#386cb0', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, "#386cb0", fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Power')
+            ax.set_title("{}: data (blue)".format(self.name))
+            ax.set_ylabel("Power")
 
 
 class StepFunctionPower(PrecomputedHeatPower):
@@ -116,16 +116,16 @@ class StepFunctionPower(PrecomputedHeatPower):
 
     """
 
-    def __init__(self, model, node, time, P=0.0, id=''):
+    def __init__(self, model, node, time, P=0.0, id=""):
         super(StepFunctionPower, self).__init__(model)
         self.time = DateTime(time).secs
         self.node = self.model.get_comp(node)
         self.n_mvals = 1
         self.id = id
-        self.add_par('P', P, min=-10.0, max=10.0)
+        self.add_par("P", P, min=-10.0, max=10.0)
 
     def __str__(self):
-        return f'step_power{self.id}__{self.node}'
+        return f"step_power{self.id}__{self.node}"
 
     def get_dvals_tlm(self):
         """ """
@@ -137,7 +137,7 @@ class StepFunctionPower(PrecomputedHeatPower):
         idx0 = np.searchsorted(self.model.times, self.time)
         self.mvals[:idx0] = 0.0
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,
         )
@@ -148,10 +148,10 @@ class StepFunctionPower(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.mvals)
         else:
-            plot_cxctime(self.model.times, self.mvals, '#386cb0', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.mvals, "#386cb0", fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Power')
+            ax.set_title("{}: data (blue)".format(self.name))
+            ax.set_ylabel("Power")
 
 
 class MsidStatePower(PrecomputedHeatPower):
@@ -185,24 +185,24 @@ class MsidStatePower(PrecomputedHeatPower):
         self.state_val = state_val
         self.state_val_str = str(state_val).lower().strip()
         self.n_mvals = 1
-        self.add_par('P', P, min=-10.0, max=10.0)
+        self.add_par("P", P, min=-10.0, max=10.0)
 
     def __str__(self):
-        return f'{self.state_msid}_{self.state_val_str}'
+        return f"{self.state_msid}_{self.state_val_str}"
 
     def get_dvals_tlm(self):
         """
         Return an array of power values where the power is ``P`` when the
         ``state_val`` for ``state_msid`` is matched, otherwise it is 0.0.
         """
-        dvals = self.model.fetch(self.state_msid, 'vals', 'nearest') == self.state_val
+        dvals = self.model.fetch(self.state_msid, "vals", "nearest") == self.state_val
         return dvals
 
     def update(self):
         self.mvals = np.zeros_like(self.model.times)
         self.mvals[self.dvals] = self.P
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,
         )
@@ -211,7 +211,7 @@ class MsidStatePower(PrecomputedHeatPower):
     def plot_data__time(self, fig, ax):
         lines = ax.get_lines()
         if not lines:
-            plot_cxctime(self.model.times, self.dvals, '#386cb0', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, "#386cb0", fig=fig, ax=ax)
             ax.grid()
-            ax.set_title(f'{self.name}: state match dvals (blue)')
-            ax.set_ylabel(f'{self.state_msid.upper()} == {repr(self.state_val)}')
+            ax.set_title(f"{self.name}: state match dvals (blue)")
+            ax.set_ylabel(f"{self.state_msid.upper()} == {repr(self.state_val)}")

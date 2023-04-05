@@ -27,7 +27,7 @@ class EarthHeat(PrecomputedHeatPower):
     """Earth heating of ACIS cold radiator (attitude, ephem dependent)"""
 
     use_earth_vis_grid = True
-    earth_vis_grid_path = Path(__file__).parent / 'earth_vis_grid_nside32.fits.gz'
+    earth_vis_grid_path = Path(__file__).parent / "earth_vis_grid_nside32.fits.gz"
 
     def __init__(
         self,
@@ -71,27 +71,27 @@ class EarthHeat(PrecomputedHeatPower):
             [getattr(self, f"solarephem0_{ax}") is not None for ax in "xyz"]
         )
         self.n_mvals = 1
-        self.add_par('k', k, min=0.0, max=2.0)
+        self.add_par("k", k, min=0.0, max=2.0)
         if k2 is not None:
-            self.add_par('k2', k2, min=0.0, max=2.0)
+            self.add_par("k2", k2, min=0.0, max=2.0)
         self.earth_phase = 1.0
 
     def calc_earth_vis_from_grid(self, ephems, q_atts):
         import astropy_healpix
 
-        healpix = astropy_healpix.HEALPix(nside=32, order='nested')
+        healpix = astropy_healpix.HEALPix(nside=32, order="nested")
 
-        if not hasattr(self, 'earth_vis_grid'):
+        if not hasattr(self, "earth_vis_grid"):
             with fits.open(self.earth_vis_grid_path) as hdus:
                 hdu = hdus[0]
                 hdr = hdu.header
-                vis_grid = hdu.data / hdr['scale']  # 12288 x 100
+                vis_grid = hdu.data / hdr["scale"]  # 12288 x 100
                 self.__class__.earth_vis_grid = vis_grid
 
                 alts = np.logspace(
-                    np.log10(hdr['alt_min']), np.log10(hdr['alt_max']), hdr['n_alt']
+                    np.log10(hdr["alt_min"]), np.log10(hdr["alt_max"]), hdr["n_alt"]
                 )
-                self.__class__.log_earth_vis_dists = np.log(hdr['earthrad'] + alts)
+                self.__class__.log_earth_vis_dists = np.log(hdr["earthrad"] + alts)
 
         ephems = ephems.astype(np.float64)
         dists, lons, lats = get_dists_lons_lats(ephems, q_atts)
@@ -127,12 +127,12 @@ class EarthHeat(PrecomputedHeatPower):
 
     @property
     def dvals(self):
-        if not hasattr(self, '_dvals') and not self.get_cached():
+        if not hasattr(self, "_dvals") and not self.get_cached():
             # Collect individual MSIDs for use in calc_earth_vis()
             ephem_xyzs = [
-                getattr(self, 'orbitephem0_{}'.format(x)) for x in ('x', 'y', 'z')
+                getattr(self, "orbitephem0_{}".format(x)) for x in ("x", "y", "z")
             ]
-            aoattqt_1234s = [getattr(self, 'aoattqt{}'.format(x)) for x in range(1, 5)]
+            aoattqt_1234s = [getattr(self, "aoattqt{}".format(x)) for x in range(1, 5)]
             # Note: the copy() here is so that the array becomes contiguous in
             # memory and allows numba to run faster (and avoids NumbaPerformanceWarning:
             # np.dot() is faster on contiguous arrays).
@@ -165,7 +165,7 @@ class EarthHeat(PrecomputedHeatPower):
             # Earth's surface that is illuminated by the Sun. Originally
             # discussed at:
             # https://occweb.cfa.harvard.edu/twiki/bin/view/ThermalWG/MeetingNotes2022x03x03
-            solar_xyzs = [getattr(self, f'solarephem0_{x}') for x in 'xyz']
+            solar_xyzs = [getattr(self, f"solarephem0_{x}") for x in "xyz"]
 
             if self.use_earth_phase:
                 solars = np.array([x.dvals for x in solar_xyzs]).transpose().copy()
@@ -180,8 +180,8 @@ class EarthHeat(PrecomputedHeatPower):
         return self._dvals
 
     def put_cache(self):
-        if os.path.exists('esa_cache'):
-            cachefile = 'esa_cache/{}-{}.npz'.format(
+        if os.path.exists("esa_cache"):
+            cachefile = "esa_cache/{}-{}.npz".format(
                 self.model.datestart, self.model.datestop
             )
             np.savez(cachefile, times=self.model.times, dvals=self.dvals)
@@ -198,10 +198,10 @@ class EarthHeat(PrecomputedHeatPower):
 
         """
         dts = {}  # delta times for each matching file
-        filenames = glob.glob('esa_cache/*.npz')
+        filenames = glob.glob("esa_cache/*.npz")
         for name in filenames:
-            re_date = r'\d\d\d\d:\d\d\d:\d\d:\d\d:\d\d\.\d\d\d'
-            re_cache_file = r'({})-({})'.format(re_date, re_date)
+            re_date = r"\d\d\d\d:\d\d\d:\d\d:\d\d:\d\d\.\d\d\d"
+            re_cache_file = r"({})-({})".format(re_date, re_date)
             m = re.search(re_cache_file, name)
             if m:
                 f_datestart, f_datestop = m.groups()
@@ -214,7 +214,7 @@ class EarthHeat(PrecomputedHeatPower):
             cachefile = sorted(dts.items(), key=lambda x: x[1])[0][0]
             arrays = np.load(cachefile)
             self._dvals = self.model.interpolate_data(
-                arrays['dvals'], arrays['times'], comp=self
+                arrays["dvals"], arrays["times"], comp=self
             )
             return True
         else:
@@ -225,7 +225,7 @@ class EarthHeat(PrecomputedHeatPower):
         if self.use_earth_phase:
             self.mvals += self.k2 * self.earth_phase * self.dvals
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,  # mvals with precomputed heat input
         )
@@ -237,14 +237,14 @@ class EarthHeat(PrecomputedHeatPower):
             plot_cxctime(
                 self.model.times,
                 self.earth_phase,
-                ls='-',
-                color='#386cb0',
+                ls="-",
+                color="#386cb0",
                 fig=fig,
                 ax=ax,
             )
             ax.grid()
-            ax.set_title('Earth Phase')
-            ax.set_ylabel('Earth Phase')
+            ax.set_title("Earth Phase")
+            ax.set_ylabel("Earth Phase")
         else:
             lines[0].set_data(self.model_plotdate, self.dvals)
 
@@ -252,16 +252,16 @@ class EarthHeat(PrecomputedHeatPower):
         lines = ax.get_lines()
         if not lines:
             plot_cxctime(
-                self.model.times, self.dvals, ls='-', color='#386cb0', fig=fig, ax=ax
+                self.model.times, self.dvals, ls="-", color="#386cb0", fig=fig, ax=ax
             )
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Illumination (sr)')
+            ax.set_title("{}: data (blue)".format(self.name))
+            ax.set_ylabel("Illumination (sr)")
         else:
             lines[0].set_data(self.model_plotdate, self.dvals)
 
     def __str__(self):
-        return 'earthheat__{0}'.format(self.node)
+        return "earthheat__{0}".format(self.node)
 
 
 @jit(nopython=True)

@@ -17,25 +17,25 @@ class AcisDpaPower6(PrecomputedHeatPower):
     def __init__(self, model, node, k=1.0, dp611=0.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('k', k, min=0.0, max=2.0)
-        self.add_par('dp611', dp611, min=-100.0, max=100.0)
+        self.add_par("k", k, min=0.0, max=2.0)
+        self.add_par("dp611", dp611, min=-100.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
-        return 'dpa6__{0}'.format(self.node)
+        return "dpa6__{0}".format(self.node)
 
     @property
     def dvals(self):
-        if not hasattr(self, '_dvals'):
-            dpaav = self.model.fetch('1dp28avo')
-            dpaai = self.model.fetch('1dpicacu')
-            dpabv = self.model.fetch('1dp28bvo')
-            dpabi = self.model.fetch('1dpicbcu')
+        if not hasattr(self, "_dvals"):
+            dpaav = self.model.fetch("1dp28avo")
+            dpaai = self.model.fetch("1dpicacu")
+            dpabv = self.model.fetch("1dp28bvo")
+            dpabi = self.model.fetch("1dpicbcu")
             states = self.model.cmd_states
             self.mask611 = (
-                (states['fep_count'] == 6)
-                & (states['clocking'] == 1)
-                & (states['vid_board'] == 1)
+                (states["fep_count"] == 6)
+                & (states["clocking"] == 1)
+                & (states["vid_board"] == 1)
             )
 
             self._dvals = dpaav * dpaai + dpabv * dpabi
@@ -45,7 +45,7 @@ class AcisDpaPower6(PrecomputedHeatPower):
         self.mvals = self.k * self.dvals / 10.0
         self.mvals[self.mask611] += self.dp611
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,
         )
@@ -58,20 +58,20 @@ class AcisDpaPowerClipped(PrecomputedHeatPower):
     def __init__(self, model, node, k=1.0):
         ModelComponent.__init__(self, model)
         self.node = self.model.get_comp(node)
-        self.add_par('k', k, min=0.0, max=2.0)
-        self.add_par('minpwr', k, min=0.0, max=100.0)
+        self.add_par("k", k, min=0.0, max=2.0)
+        self.add_par("minpwr", k, min=0.0, max=100.0)
         self.n_mvals = 1
 
     def __str__(self):
-        return 'dpa__{0}'.format(self.node)
+        return "dpa__{0}".format(self.node)
 
     @property
     def dvals(self):
-        if not hasattr(self, '_dvals'):
-            dpaav = self.model.fetch('1dp28avo')
-            dpaai = self.model.fetch('1dpicacu')
-            dpabv = self.model.fetch('1dp28bvo')
-            dpabi = self.model.fetch('1dpicbcu')
+        if not hasattr(self, "_dvals"):
+            dpaav = self.model.fetch("1dp28avo")
+            dpaai = self.model.fetch("1dpicacu")
+            dpabv = self.model.fetch("1dp28bvo")
+            dpabi = self.model.fetch("1dpicbcu")
             # maybe smooth? (already 5min telemetry, no need)
             self._dvals = dpaav * dpaai + dpabv * dpabi
         return self._dvals
@@ -80,7 +80,7 @@ class AcisDpaPowerClipped(PrecomputedHeatPower):
         clipped_power = np.clip(self.dvals, self.minpwr, 1e38)
         self.mvals = self.k * clipped_power / 10.0
         self.tmal_ints = (
-            tmal.OPCODES['precomputed_heat'],
+            tmal.OPCODES["precomputed_heat"],
             self.node.mvals_i,  # dy1/dt index
             self.mvals_i,  # mvals with precomputed heat input
         )
@@ -91,10 +91,10 @@ class AcisDpaPowerClipped(PrecomputedHeatPower):
         if lines:
             lines[0].set_data(self.model_plotdate, self.dvals)
         else:
-            plot_cxctime(self.model.times, self.dvals, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, self.dvals, "-b", fig=fig, ax=ax)
             ax.grid()
-            ax.set_title('{}: data (blue)'.format(self.name))
-            ax.set_ylabel('Power (W)')
+            ax.set_title("{}: data (blue)".format(self.name))
+            ax.set_ylabel("Power (W)")
 
 
 class SolarHeatSimZ(SolarHeat):
@@ -110,11 +110,11 @@ class SolarHeatSimZ(SolarHeat):
         P_pitches=None,
         Ps=None,
         dPs=None,
-        var_func='exp',
+        var_func="exp",
         tau=1732.0,
         ampl=0.05,
         bias=0.0,
-        epoch='2010:001:12:00:00',
+        epoch="2010:001:12:00:00",
         hrci_bias=0.0,
         hrcs_bias=0.0,
         acisi_bias=0.0,
@@ -135,35 +135,35 @@ class SolarHeatSimZ(SolarHeat):
             epoch,
         )
         self.simz_comp = model.get_comp(simz_comp)
-        self.add_par('hrcs_bias', hrcs_bias, min=-1.0, max=1.0)
-        self.add_par('hrci_bias', hrci_bias, min=-1.0, max=1.0)
-        self.add_par('acisi_bias', acisi_bias, min=-1.0, max=1.0)
+        self.add_par("hrcs_bias", hrcs_bias, min=-1.0, max=1.0)
+        self.add_par("hrci_bias", hrci_bias, min=-1.0, max=1.0)
+        self.add_par("acisi_bias", acisi_bias, min=-1.0, max=1.0)
 
     @property
     def dvals(self):
-        if not hasattr(self, 'pitches'):
+        if not hasattr(self, "pitches"):
             self.pitches = self.pitch_comp.dvals
-        if not hasattr(self, 't_days'):
+        if not hasattr(self, "t_days"):
             self.t_days = (self.pitch_comp.times - DateTime(self.epoch).secs) / 86400.0
-        if not hasattr(self, 't_phase'):
-            time2000 = DateTime('2000:001:00:00:00').secs
-            time2010 = DateTime('2010:001:00:00:00').secs
+        if not hasattr(self, "t_phase"):
+            time2000 = DateTime("2000:001:00:00:00").secs
+            time2010 = DateTime("2010:001:00:00:00").secs
             secs_per_year = (time2010 - time2000) / 10.0
             t_year = (self.pitch_comp.times - time2000) / secs_per_year
             self.t_phase = t_year * 2 * np.pi
 
         simz = self.simz_comp.dvals
-        if not hasattr(self, 'hrcs_mask'):
+        if not hasattr(self, "hrcs_mask"):
             self.hrcs_mask = simz < -75000
-        if not hasattr(self, 'hrci_mask'):
+        if not hasattr(self, "hrci_mask"):
             self.hrci_mask = (simz >= -75000) & (simz < 0)
-        if not hasattr(self, 'acisi_mask'):
+        if not hasattr(self, "acisi_mask"):
             self.acisi_mask = simz > 80000
 
         Ps = self.parvals[0 : self.n_pitches] + self.bias
         dPs = self.parvals[self.n_pitches : 2 * self.n_pitches]
-        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind='linear')
-        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind='linear')
+        Ps_interp = scipy.interpolate.interp1d(self.P_pitches, Ps, kind="linear")
+        dPs_interp = scipy.interpolate.interp1d(self.P_pitches, dPs, kind="linear")
         P_vals = Ps_interp(self.pitches)
         dP_vals = dPs_interp(self.pitches)
         self.P_vals = P_vals
@@ -185,4 +185,4 @@ class SolarHeatSimZ(SolarHeat):
         return self._dvals
 
     def __str__(self):
-        return 'solarheat__{0}'.format(self.node)
+        return "solarheat__{0}".format(self.node)

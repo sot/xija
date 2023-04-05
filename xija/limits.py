@@ -35,18 +35,18 @@ def get_limit_spec(limit):
 
 
 LIMIT_COLORS = {
-    '*.acisi': 'blue',
-    '*.aciss': 'purple',
-    '*.aciss_hot': 'red',
-    '*.cold_ecs': 'dodgerblue',
-    'odb.caution.*': 'gold',
-    'safety.caution.*': 'gold',
-    'odb.warning.*': 'red',
-    'safety.warning.*': 'red',
-    'planning.caution.*': 'dodgerblue',
-    'planning.warning.*': 'green',
-    'planning.penalty.*': 'gray',
-    '*': 'black',
+    "*.acisi": "blue",
+    "*.aciss": "purple",
+    "*.aciss_hot": "red",
+    "*.cold_ecs": "dodgerblue",
+    "odb.caution.*": "gold",
+    "safety.caution.*": "gold",
+    "odb.warning.*": "red",
+    "safety.warning.*": "red",
+    "planning.caution.*": "dodgerblue",
+    "planning.warning.*": "green",
+    "planning.penalty.*": "gray",
+    "*": "black",
 }
 
 

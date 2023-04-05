@@ -11,12 +11,12 @@ class NullHandler(logging.Handler):
 
 def config_logger(
     name,
-    format='%(message)s',
+    format="%(message)s",
     datefmt=None,
     stream=sys.stdout,
     level=logging.INFO,
     filename=None,
-    filemode='w',
+    filemode="w",
     filelevel=None,
     propagate=False,
 ):

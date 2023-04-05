@@ -39,7 +39,7 @@ class Mask(ModelComponent):
         self.node = node
         self.op = op
         self.model = model
-        self.add_par('val', val, min=min_, max=max_, frozen=True)
+        self.add_par("val", val, min=min_, max=max_, frozen=True)
         self.cache_key = None
 
     def compute_cache_key(self):
@@ -69,10 +69,10 @@ class Mask(ModelComponent):
         if lines:
             lines[0].set_data(self.model_plotdate, y)
         else:
-            plot_cxctime(self.model.times, y, '-b', fig=fig, ax=ax)
+            plot_cxctime(self.model.times, y, "-b", fig=fig, ax=ax)
             ax.grid()
             ax.set_ylim(-0.1, 1.1)
-            ax.set_title('{}: data'.format(self.name))
+            ax.set_title("{}: data".format(self.name))
 
 
 class MaskBox(Mask):
@@ -95,8 +95,8 @@ class MaskBox(Mask):
         # node based on data for that same node.
         self.node = node
         self.model = model
-        self.add_par('val0', val0, min=min_, max=max_, frozen=True)
-        self.add_par('val1', val1, min=min_, max=max_, frozen=True)
+        self.add_par("val0", val0, min=min_, max=max_, frozen=True)
+        self.add_par("val1", val1, min=min_, max=max_, frozen=True)
         self.cache_key = None
 
     def compute_cache_key(self):

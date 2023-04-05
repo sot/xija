@@ -19,14 +19,14 @@ from Ska.File import get_globfiles
 from ska_helpers.paths import xija_models_path, chandra_models_repo_path
 
 __all__ = [
-    'get_xija_model_spec',
-    'get_xija_model_names',
-    'get_repo_version',
-    'get_github_version',
+    "get_xija_model_spec",
+    "get_xija_model_names",
+    "get_repo_version",
+    "get_github_version",
 ]
 
 CHANDRA_MODELS_LATEST_URL = (
-    'https://api.github.com/repos/sot/chandra_models/releases/latest'
+    "https://api.github.com/repos/sot/chandra_models/releases/latest"
 )
 
 
@@ -116,9 +116,9 @@ def _get_xija_model_spec(
     models_path = xija_models_path(repo_path)
 
     if not models_path.exists():
-        raise FileNotFoundError(f'xija models directory {models_path} does not exist')
+        raise FileNotFoundError(f"xija models directory {models_path} does not exist")
 
-    file_glob = str(models_path / '*' / f'{model_name.lower()}_spec.json')
+    file_glob = str(models_path / "*" / f"{model_name.lower()}_spec.json")
     try:
         # get_globfiles() default requires exactly one file match and returns a list
         file_name = get_globfiles(file_glob)[0]
@@ -128,7 +128,7 @@ def _get_xija_model_spec(
             f'no models matched {model_name}. Available models are: {", ".join(names)}'
         )
 
-    model_spec = json.load(open(file_name, 'r'))
+    model_spec = json.load(open(file_name, "r"))
 
     # Get version and ensure that repo is clean and tip is at latest tag
     if version is None:
@@ -138,12 +138,12 @@ def _get_xija_model_spec(
         gh_version = get_github_version(timeout=timeout)
         if gh_version is None:
             warnings.warn(
-                'Could not verify GitHub chandra_models release tag '
-                f'due to timeout ({timeout} sec)'
+                "Could not verify GitHub chandra_models release tag "
+                f"due to timeout ({timeout} sec)"
             )
         elif version != gh_version:
             raise ValueError(
-                f'version mismatch: local repo {version} vs github {gh_version}'
+                f"version mismatch: local repo {version} vs github {gh_version}"
             )
 
     return model_spec, version
@@ -185,9 +185,9 @@ def get_xija_model_names(repo_path=None) -> List[str]:
     models_path = xija_models_path(repo_path)
 
     fns = get_globfiles(
-        str(models_path / '*' / '*_spec.json'), minfiles=0, maxfiles=None
+        str(models_path / "*" / "*_spec.json"), minfiles=0, maxfiles=None
     )
-    names = [re.sub(r'_spec\.json', '', Path(fn).name) for fn in sorted(fns)]
+    names = [re.sub(r"_spec\.json", "", Path(fn).name) for fn in sorted(fns)]
 
     return names
 
@@ -204,18 +204,18 @@ def get_repo_version(repo_path: Optional[Path] = None) -> str:
         repo_path = chandra_models_repo_path()
 
     with temp_directory() as repo_path_local:
-        if platform.system() == 'Windows':
+        if platform.system() == "Windows":
             repo = git.Repo.clone_from(repo_path, repo_path_local)
         else:
             repo = git.Repo(repo_path)
 
         if repo.is_dirty():
-            raise ValueError('repo is dirty')
+            raise ValueError("repo is dirty")
 
         tags = sorted(repo.tags, key=lambda tag: tag.commit.committed_datetime)
         tag_repo = tags[-1]
         if tag_repo.commit != repo.head.commit:
-            raise ValueError(f'repo tip is not at tag {tag_repo}')
+            raise ValueError(f"repo tip is not at tag {tag_repo}")
 
     return tag_repo.name
 
@@ -249,4 +249,4 @@ def get_github_version(
         req.raise_for_status()
 
     page_json = req.json()
-    return page_json['tag_name']
+    return page_json["tag_name"]
