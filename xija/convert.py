@@ -10,7 +10,7 @@ import xija
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Convert Xija JSON model spec' ' to Python'
+        description='Convert Xija JSON model spec to Python'
     )
     parser.add_argument('model_spec', type=str, help='Input Xija model spec file name')
     parser.add_argument(

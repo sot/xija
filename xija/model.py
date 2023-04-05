@@ -222,8 +222,8 @@ class XijaModel(object):
         """
         if dt > DEFAULT_DT:
             logger.warning(
-                "dt = %g s greater than upper "
-                "limit of %g s! " % (dt, DEFAULT_DT) + "Setting dt = %g s." % DEFAULT_DT
+                "dt = %g s greater than upper limit of %g s! " % (dt, DEFAULT_DT)
+                + "Setting dt = %g s." % DEFAULT_DT
             )
             return DEFAULT_DT
         dt_factor = dt / DEFAULT_DT
@@ -242,8 +242,9 @@ class XijaModel(object):
         pars = model_spec['pars']
         if len(pars) != len(self.pars):
             raise ValueError(
-                'Number of spec pars does not match model: \n'
-                '{0}\n{1}'.format(len(pars), len(self.pars))
+                'Number of spec pars does not match model: \n{0}\n{1}'.format(
+                    len(pars), len(self.pars)
+                )
             )
         for par, specpar in zip(self.pars, pars):
             for attr in specpar:
@@ -333,8 +334,7 @@ class XijaModel(object):
                 or states[-1]['tstop'] <= self.times[-1]
             ):
                 raise ValueError(
-                    'cmd_states time range too small:\n'
-                    '{} : {} versus {} : {}'.format(
+                    'cmd_states time range too small:\n{} : {} versus {} : {}'.format(
                         states[0]['tstart'],
                         states[-1]['tstop'],
                         self.times[0],
@@ -411,14 +411,13 @@ class XijaModel(object):
         if times is None:
             if len(data) != self.n_times:
                 raise ValueError(
-                    'Data length not equal to model times'
-                    ' for {} component'.format(comp)
+                    'Data length not equal to model times for {} component'.format(comp)
                 )
             return data
 
         if len(data) != times.shape[-1]:
             raise ValueError(
-                'Data length not equal to data times' ' for {} component'.format(comp)
+                'Data length not equal to data times for {} component'.format(comp)
             )
 
         if times.ndim == 1:  # Data value specification
@@ -435,8 +434,9 @@ class XijaModel(object):
             vals = data[indexes]
         else:
             raise ValueError(
-                'data_times for {} has {} dimensions, '
-                ' must be either 1 or 2'.format(comp, times.ndim)
+                'data_times for {} has {} dimensions,  must be either 1 or 2'.format(
+                    comp, times.ndim
+                )
             )
         return vals
 

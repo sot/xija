@@ -147,7 +147,7 @@ class EarthHeat(PrecomputedHeatPower):
             bad = np.abs(q_norm - 1.0) > 0.1
             if np.any(bad):
                 print(
-                    f"Replacing bad midval quaternions with [1,0,0,0] at times "
+                    "Replacing bad midval quaternions with [1,0,0,0] at times "
                     f"{self.model.times[bad]}"
                 )
                 q_atts[bad, :] = [0.0, 0.0, 0.0, 1.0]

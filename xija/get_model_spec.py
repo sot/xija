@@ -125,8 +125,7 @@ def _get_xija_model_spec(
     except ValueError:
         names = get_xija_model_names(repo_path)
         raise ValueError(
-            f'no models matched {model_name}. Available models are: '
-            f'{", ".join(names)}'
+            f'no models matched {model_name}. Available models are: {", ".join(names)}'
         )
 
     model_spec = json.load(open(file_name, 'r'))
@@ -144,7 +143,7 @@ def _get_xija_model_spec(
             )
         elif version != gh_version:
             raise ValueError(
-                f'version mismatch: local repo {version} vs ' f'github {gh_version}'
+                f'version mismatch: local repo {version} vs github {gh_version}'
             )
 
     return model_spec, version

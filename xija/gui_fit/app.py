@@ -178,8 +178,7 @@ class FiltersWindow(QtWidgets.QWidget):
                 err_msg = f"Invalid input for filter: {vals[0]} {vals[1]}"
             else:
                 err_msg = (
-                    "Filter requires two arguments, "
-                    "the start time and the stop time."
+                    "Filter requires two arguments, the start time and the stop time."
                 )
         if len(err_msg) > 0:
             raise_error_box("Filters Error", err_msg)
@@ -1226,7 +1225,7 @@ def main():
         model_spec, model_version = get_xija_model_spec(opt.filename)
     else:
         raise RuntimeError(
-            "'filename' not a valid path to a JSON file " "or a valid model name!"
+            "'filename' not a valid path to a JSON file or a valid model name!"
         )
 
     gui_config.update(model_spec.get('gui_config', {}))

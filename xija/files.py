@@ -12,5 +12,7 @@ files = dict(
     fit_hist='{{src.model}}/{{src.outdir}}/hist_{{src.select}}_{{src.msid}}_{{src.date_range}}',
     fit_data='{{src.model}}/{{src.outdir}}/data_{{src.date_range}}',
     fit_fit='{{src.model}}/{{src.outdir}}/fit_{{src.date_range}}',
-    fit_quants='{{src.model}}/{{src.outdir}}/quantiles_{{src.select}}_{{src.date_range}}',
+    fit_quants=(
+        '{{src.model}}/{{src.outdir}}/quantiles_{{src.select}}_{{src.date_range}}'
+    ),
 )
