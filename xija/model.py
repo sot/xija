@@ -6,29 +6,26 @@ interactions.
 """
 from __future__ import print_function
 
-import os
-import json
 import ctypes
+import json
+import os
 from collections import OrderedDict
 from io import StringIO
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
-
-from . import component
-from . import tmal
+import pyyaks.context as pyc
+import Ska.DBI
+import Ska.Numpy
+from astropy.io import ascii
 
 # Optional packages for model fitting or use on HEAD LAN
 from Chandra.Time import DateTime
 from cxotime import date2secs
-from astropy.io import ascii
-import Ska.Numpy
-import Ska.DBI
 
-import pyyaks.context as pyc
+from . import clogging, component, tmal
 from .files import files as xija_files
-from . import clogging
 
 # HDF5 version of commanded states table
 H5FILE = "/proj/sot/ska/data/cmd_states/cmd_states.h5"

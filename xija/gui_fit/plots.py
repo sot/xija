@@ -1,17 +1,16 @@
-from PyQt5 import QtWidgets, QtCore
-
 import functools
-import numpy as np
 
-from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+from cheta.units import F_to_C
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from matplotlib.figure import Figure
+from PyQt5 import QtCore, QtWidgets
+from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
 
 from xija.limits import get_limit_color
-from cheta.units import F_to_C
 
 
 def digitize_data(Ttelem, nbins=50):

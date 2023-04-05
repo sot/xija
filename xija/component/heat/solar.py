@@ -3,16 +3,15 @@
 import numpy as np
 import scipy.interpolate
 
-
 try:
     import Ska.Numpy
-    from Ska.Matplotlib import plot_cxctime
     from Chandra.Time import DateTime
+    from Ska.Matplotlib import plot_cxctime
 except ImportError:
     pass
 
-from xija.component.heat.base import PrecomputedHeatPower
 from xija.component.base import ModelComponent
+from xija.component.heat.base import PrecomputedHeatPower
 
 
 class SolarHeatOffNomRoll(PrecomputedHeatPower):

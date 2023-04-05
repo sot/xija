@@ -1,14 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import tempfile
-import numpy as np
-import pytest
 from pathlib import Path
 
-from xija import ThermalModel, Node, HeatSink, SolarHeat, Pitch, Eclipse, __version__
-from xija.get_model_spec import get_xija_model_spec, get_xija_model_names
+import numpy as np
+import pytest
+from numpy import abs, cos, sin
+
 import xija
-from numpy import sin, cos, abs
+from xija import Eclipse, HeatSink, Node, Pitch, SolarHeat, ThermalModel, __version__
+from xija.get_model_spec import get_xija_model_names, get_xija_model_spec
 
 try:
     import Ska.Matplotlib  # noqa

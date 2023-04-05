@@ -1,9 +1,9 @@
-import sherpa.ui as ui
-
 import logging
 import multiprocessing as mp
 import time
+
 import numpy as np
+import sherpa.ui as ui
 
 logging.basicConfig(level=logging.INFO)
 

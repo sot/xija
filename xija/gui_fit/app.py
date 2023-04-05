@@ -1,36 +1,29 @@
-import sys
-import os
-import ast
-import time
-
-from PyQt5 import QtCore, QtWidgets, QtGui
-
-from itertools import count
 import argparse
+import ast
 import fnmatch
-
-import re
 import json
 import logging
-import numpy as np
+import os
+import re
+import sys
+import time
+from collections import OrderedDict
+from itertools import count
 from pathlib import Path
 
-from cxotime import CxoTime
-
-import pyyaks.context as pyc
-
 import acis_taco as taco
-import xija
+import numpy as np
+import pyyaks.context as pyc
+from cheta.units import F_to_C
+from cxotime import CxoTime
+from PyQt5 import QtCore, QtGui, QtWidgets
 
+import xija
 from xija.component.base import Node, TelemData
 from xija.get_model_spec import get_xija_model_names, get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
-from .plots import PlotsBox, HistogramWindow
-
-from collections import OrderedDict
-
-from cheta.units import F_to_C
+from .plots import HistogramWindow, PlotsBox
 
 gui_config = {}
 
@@ -316,7 +309,7 @@ class WriteTableWindow(QtWidgets.QWidget):
         self.close()
 
     def save_ascii_table(self):
-        from astropy.table import Table, Column
+        from astropy.table import Column, Table
 
         dlg = QtWidgets.QFileDialog()
         dlg.setNameFilters(["DAT files (*.dat)", "TXT files (*.txt)", "All files (*)"])

@@ -1,22 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import glob
+import os
+import re
+from itertools import count
+from pathlib import Path
+
+import astropy.units as u
+import numpy as np
+from astropy.io import fits
+from numba import jit
+
 from xija import tmal
 from xija.component.base import ModelComponent
 from xija.component.heat.base import PrecomputedHeatPower
 
-from astropy.io import fits
-import numpy as np
-from itertools import count
-from pathlib import Path
-import os
-import astropy.units as u
-import glob
-from numba import jit
-import re
-
 try:
-    from Ska.Matplotlib import plot_cxctime
     from Chandra.Time import DateTime
+    from Ska.Matplotlib import plot_cxctime
 except ImportError:
     pass
 

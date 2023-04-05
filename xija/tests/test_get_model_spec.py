@@ -2,15 +2,15 @@
 
 import re
 
+import git
 import pytest
 import requests
-import git
 
 from ..get_model_spec import (
-    get_xija_model_spec,
-    get_xija_model_names,
-    get_repo_version,
     get_github_version,
+    get_repo_version,
+    get_xija_model_names,
+    get_xija_model_spec,
 )
 
 try:

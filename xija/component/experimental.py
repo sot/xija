@@ -6,9 +6,9 @@ try:
 except ImportError:
     pass
 
+from . import tmal
 from .base import ModelComponent
 from .heat import PrecomputedHeatPower
-from . import tmal
 
 
 class AcisDpaPower6(PrecomputedHeatPower):

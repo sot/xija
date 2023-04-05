@@ -2,13 +2,13 @@
 """
 Get Chandra model specifications
 """
-import json
-import tempfile
 import contextlib
-import shutil
-import platform
+import json
 import os
+import platform
 import re
+import shutil
+import tempfile
 import warnings
 from pathlib import Path
 from typing import List, Optional, Union
@@ -16,7 +16,7 @@ from typing import List, Optional, Union
 import git
 import requests
 from Ska.File import get_globfiles
-from ska_helpers.paths import xija_models_path, chandra_models_repo_path
+from ska_helpers.paths import chandra_models_repo_path, xija_models_path
 
 __all__ = [
     "get_xija_model_spec",

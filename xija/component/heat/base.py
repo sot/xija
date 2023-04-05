@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from xija.component.base import ModelComponent
-from xija import tmal
 import numpy as np
+
+from xija import tmal
+from xija.component.base import ModelComponent
 
 
 class PrecomputedHeatPower(ModelComponent):

@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
 import re
+
+import numpy as np
 
 from xija import tmal
 from xija.component.base import TelemData

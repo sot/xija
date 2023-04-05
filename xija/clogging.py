@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import logging
-from logging import DEBUG, INFO, WARNING, CRITICAL, ERROR
 import sys
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
 
 
 class NullHandler(logging.Handler):

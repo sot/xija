@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import numpy as np
+
 from xija import tmal
 from xija.component.base import ModelComponent
-from xija.component.heat import SolarHeat, PrecomputedHeatPower
-
-import numpy as np
+from xija.component.heat import PrecomputedHeatPower, SolarHeat
 
 try:
     from Ska.Matplotlib import plot_cxctime
