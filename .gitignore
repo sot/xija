@@ -28,3 +28,4 @@ doc/_templates
 examples/
 .nfs*
 xija.egg-info
+.idea
