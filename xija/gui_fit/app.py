@@ -1197,7 +1197,6 @@ def main():  # noqa: PLR0912, PLR0915
 
     opt = get_options()
 
-    src = pyc.CONTEXT["src"] if "src" in pyc.CONTEXT else pyc.ContextDict("src")
     files = (
         pyc.CONTEXT["file"]
         if "file" in pyc.CONTEXT
@@ -1221,7 +1220,6 @@ def main():  # noqa: PLR0912, PLR0915
         print(f"Using model version {model_version} from chandra_models")
 
     gui_config.update(model_spec.get("gui_config", {}))
-    src["model"] = model_spec["name"]
 
     # Use supplied stop time and days OR use model_spec values if stop not supplied
     if opt.stop:
