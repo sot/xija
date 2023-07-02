@@ -44,7 +44,7 @@ class Param(dict):
         return dict.__getitem__(self, attr)
 
 
-class ModelComponent(object):
+class ModelComponent:
     """Model component base class"""
 
     def __init__(self, model):
