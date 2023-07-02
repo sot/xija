@@ -23,7 +23,7 @@ class FitTerminated(Exception):
     pass
 
 
-class CalcModel(object):
+class CalcModel:
     def __init__(self, model):
         self.model = model
 
@@ -43,7 +43,7 @@ class CalcModel(object):
         return np.ones_like(x)
 
 
-class CalcStat(object):
+class CalcStat:
     def __init__(self, model, pipe, maxiter):
         self.pipe = pipe
         self.model = model
@@ -92,7 +92,7 @@ class CalcStat(object):
         return fit_stat, np.ones(1)
 
 
-class FitWorker(object):
+class FitWorker:
     def __init__(self, model, maxiter, method="simplex"):
         self.model = model
         self.method = method
