@@ -691,6 +691,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
     def update(self, first=False):
         mw = self.main_window
         plot_func = getattr(self.comp, "plot_" + self.plot_method)
+        if first:
+            [line.remove() for line in self.ax.get_lines()]
         plot_func(fig=self.fig, ax=self.ax)
         if self.plot_method.endswith("time"):
             self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
@@ -713,13 +715,16 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         super(QtWidgets.QVBoxLayout, self).__init__()
         self.main_window = main_window
         self.model = model
+        self.plot_boxes = []
+        self.plot_names = []
+
+        self.set_times()
+
+    def set_times(self):
         self.xline = 0.5 * np.sum(
             cxctime2plotdate([self.model.tstart, self.model.tstop])
         )
         self.pd_times = cxctime2plotdate(self.model.times)
-        self.plot_boxes = []
-        self.plot_names = []
-
         # Set up a default axis that will act as the scaling reference
         self.default_fig, self.default_ax = plt.subplots()
         plot_cxctime(
@@ -728,6 +733,21 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             fig=self.default_fig,
             ax=self.default_ax,
         )
+
+    def reset_model(self, model):
+        self.model = model
+        self.set_times()
+        names = [pb.plot_name for pb in self.plot_boxes]
+        for name in names:
+            self.delete_plot_box(name)
+        for name in names:
+            self.add_plot_box(name)
+
+    def reset_plots(self):
+        for i, pb in enumerate(self.plot_boxes):
+            if "time" in self.plot_names[i]:
+                pb.ax.set_xlim(self.pd_times[0], self.pd_times[-1])
+                pb.fig.canvas.draw_idle()
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
@@ -754,12 +774,12 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         for pb in self.plot_boxes:
             pb.ax.set_xlim()
 
-    def update_plots(self):
+    def update_plots(self, first=False):
         mw = self.main_window
         mw.cbp.update_status.setText(" BUSY... ")
         self.model.calc()
         for plot_box in self.plot_boxes:
-            plot_box.update()
+            plot_box.update(first=first)
         mw.cbp.update_status.setText("")
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()

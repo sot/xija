@@ -197,6 +197,69 @@ class FiltersWindow(QtWidgets.QWidget):
         self.close()
 
 
+class ChangeTimesWindow(QtWidgets.QWidget):
+    def __init__(self, model, main_window):
+        super(ChangeTimesWindow, self).__init__()
+        self.mw = main_window
+        self.setWindowTitle("Change Times")
+
+        self.start_label = QtWidgets.QLabel("Start time:")
+        self.start_text = QtWidgets.QLineEdit()
+        self.stop_label = QtWidgets.QLabel("Stop time:")
+        self.stop_text = QtWidgets.QLineEdit()
+
+        cancel_button = QtWidgets.QPushButton("Cancel")
+        cancel_button.clicked.connect(self.close_window)
+
+        change_button = QtWidgets.QPushButton("Change")
+        change_button.clicked.connect(self.change_pushed)
+
+        pair = QtWidgets.QHBoxLayout()
+        pair.addWidget(cancel_button)
+        pair.addWidget(change_button)
+
+        self.box = QtWidgets.QVBoxLayout()
+
+        self.box.addWidget(self.start_label)
+        self.box.addWidget(self.start_text)
+        self.box.addWidget(self.stop_label)
+        self.box.addWidget(self.stop_text)
+        self.box.addLayout(pair)
+
+        self.setLayout(self.box)
+        self.setGeometry(0, 0, 400, 200)
+
+    def change_pushed(self):
+        err_msg = ""
+        vals = [self.start_text.text(), self.stop_text.text()]
+        try:
+            if vals[0] == "*":
+                vals[0] = self.mw.model.datestart
+            if vals[1] == "*":
+                vals[1] = self.mw.model.datestop
+            lim = CxoTime(vals).date
+            t0, t1 = CxoTime(lim).secs
+            if t0 > t1:
+                err_msg = "Time stop is earlier than time start!"
+        except (IndexError, ValueError) as e:
+            if len(vals) == 2:
+                err_msg = f"Invalid input for time change: {vals[0]} {vals[1]}"
+            else:
+                err_msg = (
+                    "Changing model times requires two arguments, the start time and the stop time."
+                )
+        if len(err_msg) > 0:
+            raise_error_box("Change Time Error", err_msg)
+        else:
+            self.mw.reset_model(*vals)
+        self.start_text.setText("")
+        self.stop_text.setText("")
+        self.close()
+
+    def close_window(self, *args):
+        self.close()
+
+
 class WriteTableWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):  # noqa: PLR0915
         super(WriteTableWindow, self).__init__()
@@ -744,23 +807,13 @@ class ControlButtonsPanel(Panel):
     def __init__(self, model):  # noqa: PLR0915
         Panel.__init__(self, orient="v")
 
+        self.comps = model.comps
+
         self.fit_button = QtWidgets.QPushButton("Fit")
         self.stop_button = QtWidgets.QPushButton("Stop")
-        self.save_button = QtWidgets.QPushButton("Save")
-        self.hist_button = QtWidgets.QPushButton("Histogram")
-        self.notice_button = QtWidgets.QPushButton("Notice")
-        self.filters_button = QtWidgets.QPushButton("Filters")
-        self.model_info_button = QtWidgets.QPushButton("Model Info")
-        self.write_table_button = QtWidgets.QPushButton("Write Table")
+        self.reset_plots_button = QtWidgets.QPushButton("Reset Plots")
         self.add_plot_button = self.make_add_plot_button()
         self.update_status = QtWidgets.QLabel()
-        self.quit_button = QtWidgets.QPushButton("Quit")
-
-        self.ignore_entry = QtWidgets.QLineEdit()
-        self.ignore_panel = Panel()
-        self.ignore_panel.pack_start(QtWidgets.QLabel("Ignore:"))
-        self.ignore_panel.pack_start(self.ignore_entry)
-        self.ignore_panel.pack_start(self.notice_button)
 
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
@@ -768,20 +821,12 @@ class ControlButtonsPanel(Panel):
         if len(model.limits) == 0:
             self.limits_chkbox.setEnabled(False)
 
-        self.comps = self.model.comps
-
         self.top_panel = Panel()
         self.bottom_panel = Panel()
 
         self.top_panel.pack_start(self.fit_button)
         self.top_panel.pack_start(self.stop_button)
-        self.top_panel.pack_start(self.save_button)
-        self.top_panel.pack_start(self.hist_button)
-        self.top_panel.pack_start(self.filters_button)
-        self.top_panel.pack_start(self.model_info_button)
-        self.top_panel.pack_start(self.write_table_button)
         self.top_panel.add_stretch(1)
-        self.top_panel.pack_start(self.quit_button)
 
         self.radzone_panel = Panel()
         self.radzone_panel.pack_start(QtWidgets.QLabel("Show radzones"))
@@ -795,6 +840,7 @@ class ControlButtonsPanel(Panel):
         self.line_panel.pack_start(QtWidgets.QLabel("Annotate line"))
         self.line_panel.pack_start(self.line_chkbox)
 
+        self.bottom_panel.pack_start(self.reset_plots_button)
         self.bottom_panel.pack_start(self.add_plot_button)
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
@@ -810,7 +856,7 @@ class ControlButtonsPanel(Panel):
         apb.addItem("Add plot...")
 
         plot_names = [
-            "{} {}".format(comp.name, attr[5:])
+            f"{comp.name} {attr[5:]}"
             for comp in self.comps
             for attr in dir(comp)
             if attr.startswith("plot_")
@@ -874,6 +920,8 @@ class MainWindow:
                 else:
                     self.hist_msids.append(k)
 
+        self._init_model(model)
+
         if gui_config["filename"] is None:
             self.checksum_match = False
         else:
@@ -881,9 +929,11 @@ class MainWindow:
 
         self.fit_worker = fit_worker
         # create a new window
+        self.mwindow = QtWidgets.QMainWindow()
         self.window = QtWidgets.QWidget()
-        self.window.setGeometry(0, 0, *gui_config.get("size", (1400, 800)))
+        self.mwindow.setGeometry(0, 0, *gui_config.get("size", (1400, 800)))
         self.set_title()
+        self.mwindow.setCentralWidget(self.window)
         self.main_box = Panel(orient="h")
 
         # This is the Layout Box that holds the top-level stuff in the main window
@@ -901,31 +951,46 @@ class MainWindow:
         self.show_limits = False
         self.show_line = False
 
+        menu_bar = self.mwindow.menuBar()
+        menu_bar.setNativeMenuBar(False)
+        file_menu = menu_bar.addMenu("&File")
+        self.save_action = QtWidgets.QAction("&Save...", self.mwindow)
+        self.info_action = QtWidgets.QAction("&Info...", self.mwindow)
+        self.quit_action = QtWidgets.QAction("&Quit", self.mwindow)
+        self.save_action.triggered.connect(self.save_model_file)
+        self.info_action.triggered.connect(self.model_info)
+        self.quit_action.triggered.connect(self.quit_pushed)
+        file_menu.addAction(self.save_action)
+        file_menu.addAction(self.info_action)
+        file_menu.addAction(self.quit_action)
+        model_menu = menu_bar.addMenu("&Model")
+        self.time_action = QtWidgets.QAction("&Change Times...", self.mwindow)
+        self.time_action.triggered.connect(self.change_times)
+        model_menu.addAction(self.time_action)
+        util_menu = menu_bar.addMenu("&Utilities")
+        self.hist_action = QtWidgets.QAction("&Histogram...", self.mwindow)
+        self.filt_action = QtWidgets.QAction("&Filters...", self.mwindow)
+        self.table_action = QtWidgets.QAction("&Write Table...", self.mwindow)
+        self.hist_action.triggered.connect(self.make_histogram)
+        self.filt_action.triggered.connect(self.filters)
+        self.table_action.triggered.connect(self.write_table)
+        util_menu.addAction(self.hist_action)
+        util_menu.addAction(self.filt_action)
+        util_menu.addAction(self.table_action)
+
         self.cbp = mlp.control_buttons_panel
         self.cbp.fit_button.clicked.connect(self.fit_worker.start)
         self.cbp.fit_button.clicked.connect(self.fit_monitor)
         self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
-        self.cbp.save_button.clicked.connect(self.save_model_file)
-        self.cbp.write_table_button.clicked.connect(self.write_table)
-        self.cbp.model_info_button.clicked.connect(self.model_info)
-        self.cbp.filters_button.clicked.connect(self.filters)
-        self.cbp.quit_button.clicked.connect(self.quit_pushed)
-        self.cbp.hist_button.clicked.connect(self.make_histogram)
         self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
         self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
         self.cbp.line_chkbox.stateChanged.connect(self.plot_line)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
+        self.cbp.reset_plots_button.clicked.connect(self.plots_box.reset_plots)
 
         self.ftp = mrp.freeze_thaw_panel
         self.ftp.freeze_entry.returnPressed.connect(self.freeze_activated)
         self.ftp.thaw_entry.returnPressed.connect(self.thaw_activated)
-
-        self.dates = CxoTime(self.model.times).date
-
-        self.telem_data = {
-            k: v for k, v in self.model.comp.items() if isinstance(v, TelemData)
-        }
-        self.fmt_telem_data = FormattedTelemData(self.telem_data)
 
         self.set_checksum(newfile=True)
 
@@ -935,7 +1000,7 @@ class MainWindow:
                 self.add_plot(plot_name)
                 time.sleep(0.05)  # is it needed?
             except ValueError:
-                print("ERROR: Unexpected plot_name {}".format(plot_name))
+                print(f"ERROR: Unexpected plot_name {plot_name}")
 
         # Show everything finally
         splitter = QtWidgets.QSplitter()
@@ -947,7 +1012,7 @@ class MainWindow:
         splitter.addWidget(right_widget)
         main_window_hbox.addWidget(splitter)
 
-        self.window.show()
+        self.mwindow.show()
         self.hist_window = None
         self.model_info_window = None
 
@@ -973,6 +1038,52 @@ class MainWindow:
             self.checksum_match = False
         else:
             self.checksum_match = self.file_md5sum == self.md5sum
+
+    def _init_model(self, model, reset=False):
+        import Ska.tdb
+        self.model = model
+        if not reset:
+            self.hist_msids = []
+            for k, v in self.model.comp.items():
+                if isinstance(v, Node):
+                    if (
+                        k.startswith("fptemp")
+                        or k.startswith("tmp_fep")
+                        or k.startswith("tmp_bep")
+                    ):
+                        self.hist_msids.append(k)
+                    try:
+                        Ska.tdb.msids[v.msid]
+                    except KeyError:
+                        pass
+                    else:
+                        self.hist_msids.append(k)
+
+        self.dates = CxoTime(self.model.times).date
+
+        self.telem_data = {
+            k: v for k, v in self.model.comp.items() if isinstance(v, TelemData)
+        }
+
+        self.fmt_telem_data = FormattedTelemData(self.telem_data)
+
+    def reset_model(self, new_start, new_stop):
+        model = xija.ThermalModel(self.model.model_spec["name"], new_start,
+                                  new_stop, model_spec=self.model.model_spec)
+
+        for comp_name, val in gui_config["set_data_vals"].items():
+            model.comp[comp_name].set_data(val)
+
+        model.make()
+        model.calc()
+
+        self._init_model(model, reset=True)
+        self.plots_box.reset_model(model)
+        self.fit_worker.model = model
+
+    def change_times(self):
+        self.change_times_window = ChangeTimesWindow(self.model, self)
+        self.change_times_window.show()
 
     def write_table(self):
         self.write_table_window = WriteTableWindow(self.model, self)
@@ -1089,7 +1200,7 @@ class MainWindow:
             title_str = "no filename"
         if not self.checksum_match:
             title_str += "*"
-        self.window.setWindowTitle(f"xija_gui_fit v{xija.__version__} ({title_str})")
+        self.mwindow.setWindowTitle(f"xija_gui_fit v{xija.__version__} ({title_str})")
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
@@ -1277,6 +1388,12 @@ def main():  # noqa: PLR0912, PLR0915
     icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
     MainWindow(model, fit_worker, opt.filename)
+    app.setStyleSheet("""
+        QMenu {font-size: 15px}
+        QMenu QWidget {font-size: 15px}
+        QMenuBar {font-size: 15px}
+    """)
+
     sys.exit(app.exec_())
 
 
