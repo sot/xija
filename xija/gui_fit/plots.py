@@ -132,7 +132,7 @@ def get_radzones(model):
     return rad_zones
 
 
-def clearLayout(layout):
+def clear_layout(layout):
     """From http://stackoverflow.com/questions/9374063/pyqt4-remove-widgets-and-layout-as-well
 
     Parameters
@@ -151,7 +151,7 @@ def clearLayout(layout):
             if widget is not None:
                 widget.deleteLater()
             else:
-                clearLayout(item.layout())
+                clear_layout(item.layout())
 
 
 def annotate_limits(limits, ax, dir="h"):
@@ -745,7 +745,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             if pb.plot_name == plot_name:
                 pb.fig.clear()
                 self.removeItem(pb)
-                clearLayout(pb)
+                clear_layout(pb)
         self.update()
         self.update_plot_boxes()
         # This is a hack to get the axes to appear correctly
