@@ -84,7 +84,6 @@ class FormattedTelemData:
 class FiltersWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
         super(FiltersWindow, self).__init__()
-        self.model = model
         self.mw = main_window
         self.setWindowTitle("Filters")
 
@@ -159,9 +158,9 @@ class FiltersWindow(QtWidgets.QWidget):
             vals = [self.bt_start_text.text(), self.bt_stop_text.text()]
         try:
             if vals[0] == "*":
-                vals[0] = self.model.datestart
+                vals[0] = self.mw.model.datestart
             if vals[1] == "*":
-                vals[1] = self.model.datestop
+                vals[1] = self.mw.model.datestop
             lim = CxoTime(vals).date
             t0, t1 = CxoTime(lim).secs
             if t0 > t1:
@@ -177,11 +176,11 @@ class FiltersWindow(QtWidgets.QWidget):
             raise_error_box("Filters Error", err_msg)
         else:
             if filter_type == "ignore":
-                self.model.append_mask_time([lim[0], lim[1]])
+                self.mw.model.append_mask_time([lim[0], lim[1]])
                 bad = False
                 self.mw.plots_box.add_fill(t0, t1)
             elif filter_type == "bad_time":
-                self.model.append_bad_time([lim[0], lim[1]])
+                self.mw.model.append_bad_time([lim[0], lim[1]])
                 bad = True
             self.mw.plots_box.add_fill(t0, t1, bad=bad)
         self.start_text.setText("")
@@ -191,7 +190,7 @@ class FiltersWindow(QtWidgets.QWidget):
 
     def notice_pushed(self):
         self.mw.plots_box.remove_ignores()
-        self.model.reset_mask_times()
+        self.mw.model.reset_mask_times()
         self.mw.plots_box.update_plots()
 
     def close_window(self, *args):
@@ -201,7 +200,6 @@ class FiltersWindow(QtWidgets.QWidget):
 class WriteTableWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):  # noqa: PLR0915
         super(WriteTableWindow, self).__init__()
-        self.model = model
         self.mw = main_window
         self.setWindowTitle("Write Table")
         self.box = QtWidgets.QVBoxLayout()
@@ -352,7 +350,6 @@ class WriteTableWindow(QtWidgets.QWidget):
 class ModelInfoWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
         super(ModelInfoWindow, self).__init__()
-        self.model = model
         self.setWindowTitle("Model Info")
         self.box = QtWidgets.QVBoxLayout()
         self.setLayout(self.box)
@@ -382,8 +379,8 @@ class ModelInfoWindow(QtWidgets.QWidget):
         main_box.addWidget(
             QtWidgets.QLabel("Runge-Kutta Order: {}".format(4 if model.rk4 else 2))
         )
-        for msid in self.model.limits:
-            limits = self.model.limits[msid]
+        for msid in self.main_window.model.limits:
+            limits = self.main_window.model.limits[msid]
             units = limits["unit"]
             main_box.addWidget(QtWidgets.QLabel(f"{msid.upper()} limits:"))
             for limit, val in limits.items():
@@ -426,7 +423,6 @@ class ModelInfoWindow(QtWidgets.QWidget):
 class LineDataWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window, plots_box):
         super(LineDataWindow, self).__init__()
-        self.model = model
         self.setWindowTitle("Line Data")
         self.box = QtWidgets.QVBoxLayout()
         self.setLayout(self.box)
@@ -682,10 +678,10 @@ class ParamsPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient="v")
         self.plots_panel = plots_panel
-        self.model = model
+        self.pars = model.pars
 
         params_table = WidgetTable(
-            n_rows=len(self.model.pars),
+            n_rows=len(self.pars),
             colnames=["fit", "name", "val", "min", "", "max"],
             colwidths={0: 30, 1: 250},
             show_header=True,
@@ -693,7 +689,7 @@ class ParamsPanel(Panel):
 
         self.params_dict = OrderedDict()
 
-        for row, par in zip(count(), self.model.pars):
+        for row, par in zip(count(), self.pars):
             # Thawed (i.e. fit the parameter)
             frozen = params_table[row, 0] = PanelCheckBox(
                 par, self.plots_panel.main_window
@@ -732,7 +728,7 @@ class ParamsPanel(Panel):
         self.params_table = params_table
 
     def update(self):
-        for row, par in enumerate(self.model.pars):
+        for row, par in enumerate(self.pars):
             val_label = self.params_table[row, 2]
             par_val_text = par.fmt.format(par.val)
             if str(val_label.text) != par_val_text:
@@ -747,8 +743,6 @@ class ParamsPanel(Panel):
 class ControlButtonsPanel(Panel):
     def __init__(self, model):  # noqa: PLR0915
         Panel.__init__(self, orient="v")
-
-        self.model = model
 
         self.fit_button = QtWidgets.QPushButton("Fit")
         self.stop_button = QtWidgets.QPushButton("Stop")
@@ -771,8 +765,10 @@ class ControlButtonsPanel(Panel):
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
         self.line_chkbox = QtWidgets.QCheckBox()
-        if len(self.model.limits) == 0:
+        if len(model.limits) == 0:
             self.limits_chkbox.setEnabled(False)
+
+        self.comps = self.model.comps
 
         self.top_panel = Panel()
         self.bottom_panel = Panel()
@@ -815,7 +811,7 @@ class ControlButtonsPanel(Panel):
 
         plot_names = [
             "{} {}".format(comp.name, attr[5:])
-            for comp in self.model.comps
+            for comp in self.comps
             for attr in dir(comp)
             if attr.startswith("plot_")
         ]
@@ -828,9 +824,8 @@ class ControlButtonsPanel(Panel):
 
 
 class FreezeThawPanel(Panel):
-    def __init__(self, model, plots_panel):
+    def __init__(self):
         Panel.__init__(self, orient="h")
-        self.model = model
         self.freeze_entry = QtWidgets.QLineEdit()
         self.thaw_entry = QtWidgets.QLineEdit()
 
@@ -848,13 +843,12 @@ class MainLeftPanel(Panel):
         self.pack_start(self.control_buttons_panel)
         self.pack_start(self.plots_box)
         self.add_stretch(1)
-        self.model = model
 
 
 class MainRightPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient="v")
-        self.freeze_thaw_panel = FreezeThawPanel(model, plots_panel)
+        self.freeze_thaw_panel = FreezeThawPanel()
         self.params_panel = ParamsPanel(model, plots_panel)
         self.pack_start(self.freeze_thaw_panel)
         self.pack_start(self.params_panel)
