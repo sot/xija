@@ -776,11 +776,9 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
     def update_plots(self, first=False):
         mw = self.main_window
-        mw.cbp.update_status.setText(" BUSY... ")
         self.model.calc()
         for plot_box in self.plot_boxes:
             plot_box.update(first=first)
-        mw.cbp.update_status.setText("")
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
         mw.set_title()

@@ -813,7 +813,6 @@ class ControlButtonsPanel(Panel):
         self.stop_button = QtWidgets.QPushButton("Stop")
         self.reset_plots_button = QtWidgets.QPushButton("Reset Plots")
         self.add_plot_button = self.make_add_plot_button()
-        self.update_status = QtWidgets.QLabel()
 
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
@@ -845,7 +844,6 @@ class ControlButtonsPanel(Panel):
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
         self.bottom_panel.pack_start(self.line_panel)
-        self.bottom_panel.pack_start(self.update_status)
         self.bottom_panel.add_stretch(1)
 
         self.pack_start(self.top_panel)
@@ -994,6 +992,9 @@ class MainWindow:
 
         self.set_checksum(newfile=True)
 
+        self.status_bar = QtWidgets.QStatusBar()
+        self.mwindow.setStatusBar(self.status_bar)
+
         # Add plots from previous Save
         for plot_name in gui_config.get("plot_names", []):
             try:
@@ -1132,7 +1133,8 @@ class MainWindow:
         pp = self.main_left_panel.plots_box
         pp.add_plot_box(plotname)
 
-    def fit_monitor(self, *args):
+    def fit_monitor(self):
+        self.status_bar.showMessage("BUSY... ")
         msg = None
         fit_stopped = False
         while self.fit_worker.parent_pipe.poll():
@@ -1145,6 +1147,7 @@ class MainWindow:
                 print("\n*********************************")
                 print("  FIT", msg["status"].upper())
                 print("*********************************\n")
+                self.status_bar.clearMessage()
                 break
 
         if msg:
