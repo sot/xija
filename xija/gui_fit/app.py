@@ -949,8 +949,8 @@ class MainWindow:
         self.show_limits = False
         self.show_line = False
 
-        menu_bar = self.mwindow.menuBar()
-        menu_bar.setNativeMenuBar(False)
+        menu_bar = QtWidgets.QMenuBar()
+        menu_bar.setNativeMenuBar(True)
         file_menu = menu_bar.addMenu("&File")
         self.save_action = QtWidgets.QAction("&Save...", self.mwindow)
         self.info_action = QtWidgets.QAction("&Info...", self.mwindow)
@@ -975,6 +975,7 @@ class MainWindow:
         util_menu.addAction(self.hist_action)
         util_menu.addAction(self.filt_action)
         util_menu.addAction(self.table_action)
+        self.mwindow.setMenuBar(menu_bar)
 
         self.cbp = mlp.control_buttons_panel
         self.cbp.fit_button.clicked.connect(self.fit_worker.start)
