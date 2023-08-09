@@ -1391,6 +1391,7 @@ def main():  # noqa: PLR0912, PLR0915
     icon_path = str(Path(__file__).parent / "app_icon.png")
     icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
+    app.setApplicationName("xija_gui_fit")
     MainWindow(model, fit_worker, opt.filename)
     app.setStyleSheet("""
         QMenu {font-size: 15px}
