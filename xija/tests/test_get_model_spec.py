@@ -55,7 +55,7 @@ def test_get_model_file_fail():
     with pytest.raises(ValueError, match="no models matched xxxyyyzzz"):
         get_xija_model_spec("xxxyyyzzz")
 
-    with pytest.raises(git.GitCommandError, match="does not exist"):
+    with pytest.raises(git.exc.NoSuchPathError):
         get_xija_model_spec("aca", repo_path="__NOT_A_DIRECTORY__")
 
 
