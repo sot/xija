@@ -366,12 +366,12 @@ class XijaModel(object):
         datestop = DateTime(self.tstop + tpad).date
         logger.info("Fetching msid: %s over %s to %s" % (msid, datestart, datestop))
         try:
-            import Ska.engarchive.fetch_sci as fetch
+            import cheta.fetch_sci as fetch
 
             tlm = fetch.MSID(msid, datestart, datestop, stat="5min")
             tlm.filter_bad_times()
         except ImportError:
-            raise ValueError("Ska.engarchive.fetch not available")
+            raise ValueError("cheta.fetch not available")
         if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
             raise ValueError(
                 "Fetched telemetry does not span model start and "
