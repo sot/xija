@@ -8,8 +8,8 @@ values.
 """
 
 import xija
-import Ska.engarchive.fetch_eng as fetch_eng
-from Ska.Matplotlib import plot_cxctime
+from cheta import fetch_eng
+from ska_matplotlib import plot_cxctime
 
 start = '2012:001'
 stop = '2012:005'
