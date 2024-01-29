@@ -307,6 +307,7 @@ class XijaModel(object):
                 % (self.datestart, self.datestop)
             )
             states = kadi_states.get_states(self.datestart, self.datestop)
+            self._orig_cmd_states = states.copy()
             self._cmd_states = kadi_states.interpolate_states(
                 states, self.times
             ).as_array()
@@ -338,7 +339,7 @@ class XijaModel(object):
                         self.times[-1],
                     )
                 )
-
+            self._orig_cmd_states = states.copy()
             indexes = np.searchsorted(states["tstop"], self.times)
             self._cmd_states = states[indexes]
 
