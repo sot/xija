@@ -35,7 +35,7 @@ def get_limit_spec(limit):
 
 
 LIMIT_COLORS = {
-    "*.acisi": "blue",
+    "*.acisi": "darkorange",
     "*.aciss": "purple",
     "*.aciss_hot": "red",
     "*.cold_ecs": "dodgerblue",
