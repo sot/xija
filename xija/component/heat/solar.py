@@ -612,7 +612,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         self.dPs = (
             np.zeros_like(self.dP_pitches)
             if dPs is None
-            else np.array(dPs, dtype=np.float)
+            else np.array(dPs, dtype=float)
         )
         for i, instr_name in enumerate(self.instr_names):
             for j, pitch in enumerate(self.P_pitches):
