@@ -1,18 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.model &#8212; xija 4.30.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css" />
+    <title>xija.model &#8212; xija 4.32.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/documentation_options.js?v=54d9916e"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -46,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.30.0 documentation</a>
+	<a href="../../index.html">xija 4.32.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -124,7 +122,7 @@
     <span class="n">datestop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">bad_times_in</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
-    <span class="sd">&quot;&quot;&quot;Return bad_times_indices into ``times`` for elements in the</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return bad_times_indices into ``times`` for elements in the</span>
 <span class="sd">    ``bad_times_in`` list that overlap with the ``datestart`` to ``datestop``.</span>
 
 <span class="sd">    NOTE: bad_times_in is a list of [datestart, datestop] lists. The &quot;time&quot;</span>
@@ -151,12 +149,17 @@
     <span class="k">return</span> <span class="n">bad_times_indices</span>
 
 
-<div class="viewcode-block" id="FetchError"><a class="viewcode-back" href="../../api.html#xija.model.FetchError">[docs]</a><span class="k">class</span> <span class="nc">FetchError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="FetchError">
+<a class="viewcode-back" href="../../api.html#xija.model.FetchError">[docs]</a>
+<span class="k">class</span> <span class="nc">FetchError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="XijaModel"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel">[docs]</a><span class="k">class</span> <span class="nc">XijaModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Xija model class to encapsulate all ModelComponents and provide the</span>
+
+<div class="viewcode-block" id="XijaModel">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel">[docs]</a>
+<span class="k">class</span> <span class="nc">XijaModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Xija model class to encapsulate all ModelComponents and provide the</span>
 <span class="sd">    infrastructure to define and evaluate models.</span>
 
 <span class="sd">    The parameters ``name``, ``start``, and ``stop`` are determined as follows:</span>
@@ -268,7 +271,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cmd_states</span> <span class="o">=</span> <span class="n">cmd_states</span>
 
     <span class="k">def</span> <span class="nf">_get_allowed_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This method ensures that only certain timesteps are chosen,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This method ensures that only certain timesteps are chosen,</span>
 <span class="sd">        which are integer multiples of 8.2 and where 328.0/dt is an</span>
 <span class="sd">        integer.</span>
 
@@ -311,8 +314,10 @@
             <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">specpar</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">specpar</span><span class="p">[</span><span class="n">attr</span><span class="p">])</span>
 
-<div class="viewcode-block" id="XijaModel.inherit_from_model_spec"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.inherit_from_model_spec">[docs]</a>    <span class="k">def</span> <span class="nf">inherit_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inherit_spec</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Inherit parameter values from any like-named parameters within the</span>
+<div class="viewcode-block" id="XijaModel.inherit_from_model_spec">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.inherit_from_model_spec">[docs]</a>
+    <span class="k">def</span> <span class="nf">inherit_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inherit_spec</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Inherit parameter values from any like-named parameters within the</span>
 <span class="sd">        inherit_spec model specification.  This is useful for making a new</span>
 <span class="sd">        variation of an existing model.</span>
 
@@ -340,8 +345,9 @@
                 <span class="n">par</span><span class="o">.</span><span class="n">frozen</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s2">&quot;frozen&quot;</span><span class="p">]</span>
                 <span class="n">par</span><span class="o">.</span><span class="n">fmt</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s2">&quot;fmt&quot;</span><span class="p">]</span></div>
 
+
     <span class="k">def</span> <span class="nf">_eng_match_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -378,7 +384,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_states</span>
 
     <span class="k">def</span> <span class="nf">_set_cmd_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the states that define component data inputs.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the states that define component data inputs.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -407,10 +413,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_states</span> <span class="o">=</span> <span class="n">states</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span>
 
     <span class="n">cmd_states</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_cmd_states</span><span class="p">,</span> <span class="n">_set_cmd_states</span><span class="p">)</span>
-    <span class="sd">&quot;&quot;&quot;test cmdstats&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;test cmdstats&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="XijaModel.fetch"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msid</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s2">&quot;vals&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get data from the Chandra engineering archive.</span>
+<div class="viewcode-block" id="XijaModel.fetch">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.fetch">[docs]</a>
+    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msid</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s2">&quot;vals&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get data from the Chandra engineering archive.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -430,12 +438,12 @@
         <span class="n">datestop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstop</span> <span class="o">+</span> <span class="n">tpad</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching msid: </span><span class="si">%s</span><span class="s2"> over </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">Ska.engarchive.fetch_sci</span> <span class="k">as</span> <span class="nn">fetch</span>
+            <span class="kn">import</span> <span class="nn">cheta.fetch_sci</span> <span class="k">as</span> <span class="nn">fetch</span>
 
             <span class="n">tlm</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">MSID</span><span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;5min&quot;</span><span class="p">)</span>
             <span class="n">tlm</span><span class="o">.</span><span class="n">filter_bad_times</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ska.engarchive.fetch not available&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cheta.fetch not available&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="ow">or</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstop</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Fetched telemetry does not span model start and &quot;</span>
@@ -446,8 +454,11 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">vals</span></div>
 
-<div class="viewcode-block" id="XijaModel.interpolate_data"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.interpolate_data">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Interpolate supplied ``data`` values at the model times using</span>
+
+<div class="viewcode-block" id="XijaModel.interpolate_data">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.interpolate_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">interpolate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Interpolate supplied ``data`` values at the model times using</span>
 <span class="sd">        nearest-neighbor or state value interpolation.</span>
 
 <span class="sd">        The ``times`` arg can be either a 1-d or 2-d ndarray.  If 1-d,</span>
@@ -501,8 +512,11 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">vals</span></div>
 
-<div class="viewcode-block" id="XijaModel.add"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ComponentClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a new component to the model</span>
+
+<div class="viewcode-block" id="XijaModel.add">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.add">[docs]</a>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ComponentClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new component to the model</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -528,11 +542,14 @@
 
         <span class="k">return</span> <span class="n">comp</span></div>
 
-    <span class="n">comps</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-    <span class="sd">&quot;&quot;&quot;List of model components&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="XijaModel.get_comp"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_comp">[docs]</a>    <span class="k">def</span> <span class="nf">get_comp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get a model component.  Works with either a string or a component</span>
+    <span class="n">comps</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List of model components&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="XijaModel.get_comp">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_comp">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_comp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a model component.  Works with either a string or a component</span>
 <span class="sd">        object</span>
 
 <span class="sd">        Parameters</span>
@@ -546,9 +563,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span></div>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate a full model specification data structure for this</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a full model specification data structure for this</span>
 <span class="sd">        model</span>
 
 <span class="sd">        Parameters</span>
@@ -590,8 +608,10 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">model_spec</span>
 
-<div class="viewcode-block" id="XijaModel.write_vals"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write_vals">[docs]</a>    <span class="k">def</span> <span class="nf">write_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Write dvals and mvals for each model component (as applicable) to an</span>
+<div class="viewcode-block" id="XijaModel.write_vals">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write_vals">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write dvals and mvals for each model component (as applicable) to an</span>
 <span class="sd">        ascii table file.  Some component have neither (couplings), some have</span>
 <span class="sd">        just dvals (TelemData), others have both (Node, AcisDpaPower).</span>
 <span class="sd">        Everything is guaranteed to be time synced, so write a single time</span>
@@ -615,8 +635,11 @@
 
         <span class="n">ascii</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">colvals</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">colvals</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
-<div class="viewcode-block" id="XijaModel.write"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Write the model specification as JSON or Python to a file.</span>
+
+<div class="viewcode-block" id="XijaModel.write">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the model specification as JSON or Python to a file.</span>
 
 <span class="sd">        If the file name ends with &quot;.py&quot; then the output will the Python</span>
 <span class="sd">        code to create the model (using ``get_model_code()``), otherwise</span>
@@ -642,8 +665,11 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model_spec</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="XijaModel.get_model_code"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_model_code">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return Python code that will create the current model.</span>
+
+<div class="viewcode-block" id="XijaModel.get_model_code">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_model_code">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_model_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return Python code that will create the current model.</span>
 
 <span class="sd">        This is useful during model development as a way to derive from and</span>
 <span class="sd">        modify existing models while retaining good parameter values.</span>
@@ -708,12 +734,13 @@
 
         <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
 
+
     <span class="k">def</span> <span class="nf">_get_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">val</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the full list of parameter values.  No provision is made for</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the full list of parameter values.  No provision is made for</span>
 <span class="sd">        setting individual elements or slicing (use self.pars directly in this</span>
 <span class="sd">        case).</span>
 
@@ -739,11 +766,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
 
-<div class="viewcode-block" id="XijaModel.make"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make">[docs]</a>    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Call self.make_mvals and self.make_tmal to prepare for model evaluation</span>
+<div class="viewcode-block" id="XijaModel.make">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make">[docs]</a>
+    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call self.make_mvals and self.make_tmal to prepare for model evaluation</span>
 <span class="sd">        once all model components have been added.</span>
 
 <span class="sd">        Parameters</span>
@@ -756,8 +785,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">make_mvals</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">make_tmal</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="XijaModel.make_mvals"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_mvals">[docs]</a>    <span class="k">def</span> <span class="nf">make_mvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize the global mvals (model values) array.  This is an</span>
+
+<div class="viewcode-block" id="XijaModel.make_mvals">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_mvals">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_mvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the global mvals (model values) array.  This is an</span>
 <span class="sd">        N (rows) x n_times (cols) array that contains all data needed</span>
 <span class="sd">        to compute the model prediction.  All rows are initialized to</span>
 <span class="sd">        relevant data values (e.g. node temps, time-dependent power,</span>
@@ -789,8 +821,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">comps</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># why doesn&#39;t this use vstack?</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvals</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="XijaModel.make_tmal"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_tmal">[docs]</a>    <span class="k">def</span> <span class="nf">make_tmal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Make the TMAL &quot;code&quot; using components that generate TMAL</span>
+
+<div class="viewcode-block" id="XijaModel.make_tmal">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_tmal">[docs]</a>
+    <span class="k">def</span> <span class="nf">make_tmal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make the TMAL &quot;code&quot; using components that generate TMAL</span>
 <span class="sd">        statements</span>
 
 <span class="sd">        Parameters</span>
@@ -809,8 +844,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">tmal_ints</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">tmal_ints</span><span class="p">)]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">tmal_ints</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tmal_floats</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">tmal_floats</span><span class="p">)]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">tmal_floats</span></div>
 
-<div class="viewcode-block" id="XijaModel.calc"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the model.  The results appear in the self.mvals array.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="XijaModel.calc">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the model.  The results appear in the self.mvals array.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">make_tmal</span><span class="p">()</span>
         <span class="c1"># int calc_model(int n_times, int n_preds, int n_tmals, float dt,</span>
         <span class="c1">#                float **mvals, int **tmal_ints, float **tmal_floats)</span>
@@ -855,14 +893,20 @@
                     <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">-</span> <span class="n">comp</span><span class="o">.</span><span class="n">delay</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">xp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">mvals</span>
                 <span class="p">)[</span><span class="mi">1</span><span class="p">:]</span></div>
 
-<div class="viewcode-block" id="XijaModel.calc_stat"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_stat">[docs]</a>    <span class="k">def</span> <span class="nf">calc_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Calculate model fit statistic as the sum of component fit stats&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="XijaModel.calc_stat">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_stat">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate model fit statistic as the sum of component fit stats&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calc</span><span class="p">()</span>  <span class="c1"># parvals already set with dummy_calc</span>
         <span class="n">fit_stat</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">calc_stat</span><span class="p">()</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span> <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">predict</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fit_stat</span></div>
 
-<div class="viewcode-block" id="XijaModel.calc_staterror"><a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_staterror">[docs]</a>    <span class="k">def</span> <span class="nf">calc_staterror</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Calculate model fit statistic error (dummy array for Sherpa use)</span>
+
+<div class="viewcode-block" id="XijaModel.calc_staterror">
+<a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_staterror">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_staterror</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate model fit statistic error (dummy array for Sherpa use)</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -875,9 +919,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">date_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstart</span><span class="p">)</span><span class="o">.</span><span class="n">greta</span><span class="p">[:</span><span class="mi">7</span><span class="p">],</span>
             <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstop</span><span class="p">)</span><span class="o">.</span><span class="n">greta</span><span class="p">[:</span><span class="mi">7</span><span class="p">],</span>
@@ -885,7 +930,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">core_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_1&quot; ctypes shared object libary that does the</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_1&quot; ctypes shared object libary that does the</span>
 <span class="sd">        low-level model calculation via the C &quot;calc_model_1&quot; routine.  Only</span>
 <span class="sd">        load once by setting/returning a class attribute.</span>
 
@@ -914,7 +959,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">core_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_2&quot; ctypes shared object libary that does the</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_2&quot; ctypes shared object libary that does the</span>
 <span class="sd">        low-level model calculation via the C &quot;calc_model_2&quot; routine.  Only</span>
 <span class="sd">        load once by setting/returning a class attribute.</span>
 
@@ -962,6 +1007,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bool&quot;</span><span class="p">)</span></div>
 
 
+
 <span class="n">ThermalModel</span> <span class="o">=</span> <span class="n">XijaModel</span>
 </pre></div>
 
@@ -987,7 +1033,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ska_helpers.chandra_models &#8212; xija 4.32.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css?v=f4f7060c" />
+    
+    <script src="../../_static/documentation_options.js?v=54d9916e"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">Ska!</span><span id="logotext2">xija</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="https://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc">
+        <span id="logotext1">ska</span><span id="logotext2">tools</span>
+    </a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../index.html">xija 4.32.0 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ska_helpers.chandra_models</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Licensed under a 3-clause BSD style license - see LICENSE.rst</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Get data from chandra_models repository.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">git</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="kn">from</span> <span class="nn">ska_helpers.git_helpers</span> <span class="kn">import</span> <span class="n">make_git_repo_safe</span>
+<span class="kn">from</span> <span class="nn">ska_helpers.paths</span> <span class="kn">import</span> <span class="n">chandra_models_repo_path</span>
+<span class="kn">from</span> <span class="nn">ska_helpers.utils</span> <span class="kn">import</span> <span class="n">LRUDict</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;chandra_models_cache&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_data&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_repo_version&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_github_version&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">CHANDRA_MODELS_LATEST_URL</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;https://api.github.com/repos/sot/chandra_models/releases/latest&quot;</span>
+<span class="p">)</span>
+
+<span class="n">ENV_VAR_NAMES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;CHANDRA_MODELS_REPO_DIR&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CHANDRA_MODELS_DEFAULT_VERSION&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;THERMAL_MODELS_DIR_FOR_MATLAB_TOOLS_SW&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">chandra_models_cache</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator to cache outputs for a function that gets chandra_models data.</span>
+
+<span class="sd">    The key used for caching the function output includes the passed arguments and</span>
+<span class="sd">    keyword arguments, as well as the values of the environment variables below.</span>
+<span class="sd">    This ensures that the cache is invalidated if any of these environment variables</span>
+<span class="sd">    change:</span>
+
+<span class="sd">    - CHANDRA_MODELS_REPO_DIR</span>
+<span class="sd">    - CHANDRA_MODELS_DEFAULT_VERSION</span>
+<span class="sd">    - THERMAL_MODELS_DIR_FOR_MATLAB_TOOLS_SW</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        @chandra_models_cache</span>
+<span class="sd">        def get_aca_spec_info(version=None):</span>
+<span class="sd">            _, info = get_data(&quot;chandra_models/xija/aca/aca_spec.json&quot;, version=version)</span>
+<span class="sd">            return info</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">LRUDict</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">cached_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">args</span><span class="p">,</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())),</span>
+            <span class="nb">tuple</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ENV_VAR_NAMES</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+            <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">cached_func</span>
+
+
+<span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<span class="k">def</span> <span class="nf">get_local_repo</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get local version of ``repo_path`` and ensure correct clean-up.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">onerror</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">exc_info</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0o0777</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">func</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: temp_dir() could not remove </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> because of </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">clone</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;https://github.com&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">clone</span><span class="p">:</span>
+        <span class="n">repo_path_local</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">git</span><span class="o">.</span><span class="n">Repo</span><span class="o">.</span><span class="n">clone_from</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="n">repo_path_local</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">git</span><span class="o">.</span><span class="n">Repo</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span>
+        <span class="n">make_git_repo_safe</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span>
+        <span class="n">repo_path_local</span> <span class="o">=</span> <span class="n">repo_path</span>
+
+    <span class="k">yield</span> <span class="n">repo</span><span class="p">,</span> <span class="n">repo_path_local</span>
+
+    <span class="n">repo</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">clone</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">repo_path_local</span><span class="p">,</span> <span class="n">onerror</span><span class="o">=</span><span class="n">onerror</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">repo_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">require_latest_version</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">read_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">read_func_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get data from chandra_models repository.</span>
+
+<span class="sd">    There are three environment variables that impact the behavior:</span>
+
+<span class="sd">    - ``CHANDRA_MODELS_REPO_DIR`` or ``THERMAL_MODELS_DIR_FOR_MATLAB_TOOLS_SW``:</span>
+<span class="sd">      override the default root for the chandra_models repository</span>
+<span class="sd">    - ``CHANDRA_MODELS_DEFAULT_VERSION``: override the default repo version. You can set</span>
+<span class="sd">      this to a fixed version in unit tests (e.g. with ``monkeypatch``), or set to a</span>
+<span class="sd">      developement branch to test a model file update with applications like yoshi where</span>
+<span class="sd">      specifying a version would require a long chain of API updates.</span>
+
+<span class="sd">    ``THERMAL_MODELS_DIR_FOR_MATLAB_TOOLS_SW`` is used to define the chandra_models repository</span>
+<span class="sd">    location when running in the MATLAB tools software environment.  If this environment</span>
+<span class="sd">    variable is set, then the git is_dirty() check of the chandra_models directory is skipped</span>
+<span class="sd">    as the chandra_models repository is verified via SVN in the MATLAB tools software environment.</span>
+<span class="sd">    Users in the FOT Matlab tools should exercise caution if using locally-modified files</span>
+<span class="sd">    for testing, as the version information reported by this function in that case will not</span>
+<span class="sd">    be correct.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    First we read the model specification for the ACA model. The ``get_data()`` function</span>
+<span class="sd">    returns the text of the model spec so we need to use ``json.loads()`` to convert it</span>
+<span class="sd">    to a dict.</span>
+<span class="sd">    ::</span>
+
+<span class="sd">        &gt;&gt;&gt; import json</span>
+<span class="sd">        &gt;&gt;&gt; from astropy.io import fits</span>
+<span class="sd">        &gt;&gt;&gt; from ska_helpers import chandra_models</span>
+
+<span class="sd">        &gt;&gt;&gt; txt, info = chandra_models.get_data(&quot;chandra_models/xija/aca/aca_spec.json&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; model_spec = json.loads(txt)</span>
+<span class="sd">        &gt;&gt;&gt; model_spec[&quot;name&quot;]</span>
+<span class="sd">        &#39;aacccdpt&#39;</span>
+
+<span class="sd">    Next we read the acquisition probability model image. Since the image is a gzipped</span>
+<span class="sd">    FITS file we need to use a helper function to read it.</span>
+<span class="sd">    ::</span>
+
+<span class="sd">        &gt;&gt;&gt; def read_fits_image(file_path):</span>
+<span class="sd">        ...     with fits.open(file_path) as hdus:</span>
+<span class="sd">        ...         out = hdus[1].data</span>
+<span class="sd">        ...     return out, file_path</span>
+<span class="sd">        ...</span>
+<span class="sd">        &gt;&gt;&gt; acq_model_image, info = chandra_models.get_data(</span>
+<span class="sd">        ...     &quot;chandra_models/aca_acq_prob/grid-floor-2018-11.fits.gz&quot;,</span>
+<span class="sd">        ...     read_func=read_fits_image</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; acq_model_image.shape</span>
+<span class="sd">        (141, 31, 7)</span>
+
+<span class="sd">    Now let&#39;s get the version of the chandra_models repository::</span>
+
+<span class="sd">        &gt;&gt;&gt; chandra_models.get_repo_version()</span>
+<span class="sd">        &#39;3.47&#39;</span>
+
+<span class="sd">    Finally get version 3.30 of the ACA model spec from GitHub. The use of a lambda</span>
+<span class="sd">    function to read the JSON file is compact but not recommended for production code.</span>
+<span class="sd">    ::</span>
+
+<span class="sd">        &gt;&gt;&gt; model_spec_3_30, info = chandra_models.get_data(</span>
+<span class="sd">        ...     &quot;chandra_models/xija/aca/aca_spec.json&quot;,</span>
+<span class="sd">        ...     version=&quot;3.30&quot;,</span>
+<span class="sd">        ...     repo_path=&quot;https://github.com/sot/chandra_models.git&quot;,</span>
+<span class="sd">        ...     read_func=lambda fn: (json.load(open(fn, &quot;rb&quot;)), fn),</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; model_spec_3_30 == model_spec</span>
+<span class="sd">        False</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : str, Path</span>
+<span class="sd">        Name of model</span>
+<span class="sd">    version : str</span>
+<span class="sd">        Tag, branch or commit of chandra_models to use (default=latest tag from repo).</span>
+<span class="sd">        If the ``CHANDRA_MODELS_DEFAULT_VERSION`` environment variable is set then this</span>
+<span class="sd">        is used as the default. This is useful for testing.</span>
+<span class="sd">    repo_path : str, Path</span>
+<span class="sd">        Path to directory or URL containing chandra_models repository (default is</span>
+<span class="sd">        ``$SKA/data/chandra_models`` or either of the ``CHANDRA_MODELS_REPO_DIR`` or</span>
+<span class="sd">        ``THERMAL_MODELS_DIR_FOR_MATLAB_TOOLS_SW`` environment variables if set).</span>
+<span class="sd">    require_latest_version : bool</span>
+<span class="sd">        Require that ``version`` matches the latest release on GitHub</span>
+<span class="sd">    timeout : int, float</span>
+<span class="sd">        Timeout (sec) for querying GitHub for the expected chandra_models version.</span>
+<span class="sd">        Default = 5 sec.</span>
+<span class="sd">    read_func : callable</span>
+<span class="sd">        Optional function to read the data file. This function must take the file path</span>
+<span class="sd">        as its first argument. If not provided then read the file as a text file.</span>
+<span class="sd">    read_func_kwargs : dict</span>
+<span class="sd">        Optional dict of kwargs to pass to ``read_func``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of dict, str</span>
+<span class="sd">        Xija model specification dict, chandra_models version</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Information about this request.</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;call_args&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">file_path</span><span class="p">),</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">version</span><span class="p">,</span>
+            <span class="s2">&quot;repo_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repo_path</span><span class="p">),</span>
+            <span class="s2">&quot;require_latest_version&quot;</span><span class="p">:</span> <span class="n">require_latest_version</span><span class="p">,</span>
+            <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="n">timeout</span><span class="p">,</span>
+            <span class="s2">&quot;read_func&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">read_func</span><span class="p">),</span>
+            <span class="s2">&quot;read_func_kwargs&quot;</span><span class="p">:</span> <span class="n">read_func_kwargs</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">repo_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">repo_path</span> <span class="o">=</span> <span class="n">chandra_models_repo_path</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CHANDRA_MODELS_DEFAULT_VERSION&quot;</span><span class="p">)</span>
+
+    <span class="c1"># NOTE code in xija.get_model_spec.get_repo_version() which is there to handle the</span>
+    <span class="c1"># fact that a few files are in the repo with permissions 0755 while on Parallels</span>
+    <span class="c1"># windows they are 0644, so the tree is always dirty.</span>
+    <span class="c1"># TODO: just fix the repo permissions.</span>
+    <span class="c1">#</span>
+    <span class="c1"># with temp_directory() as repo_path_local:</span>
+    <span class="c1">#     if platform.system() == &#39;Windows&#39;:</span>
+    <span class="c1">#         repo = git.Repo.clone_from(repo_path, repo_path_local)</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         repo = git.Repo(repo_path)</span>
+
+    <span class="c1"># Potentially work in a clone of the repo in a temporary directory, but only if</span>
+    <span class="c1"># necessary. In particular:</span>
+    <span class="c1"># - If the repo is remote on GitHub then we always clone to a temp dir</span>
+    <span class="c1"># - If the repo is local and the version is not the default then we clone to a temp</span>
+    <span class="c1">#   to allow checking out at the specified version.</span>
+    <span class="c1"># This is all done with a context manager that ensure the repo object is</span>
+    <span class="c1"># properly closed and that all temporary files are cleaned up. Doing this</span>
+    <span class="c1"># on Windows was challenging. Search on slack:</span>
+    <span class="c1"># &quot;The process cannot access the file because it is being used&quot;</span>
+    <span class="k">with</span> <span class="n">get_local_repo</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span> <span class="k">as</span> <span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">repo_path_local</span><span class="p">):</span>
+        <span class="n">repo_file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">repo_path_local</span><span class="p">)</span> <span class="o">/</span> <span class="n">file_path</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">repo_file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;chandra_models </span><span class="si">{</span><span class="n">file_path</span><span class="si">=}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># This also ensures that the repo is not dirty.</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">get_repo_version</span><span class="p">(</span><span class="n">repo</span><span class="o">=</span><span class="n">repo</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">require_latest_version</span><span class="p">:</span>
+            <span class="n">assert_latest_version</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">read_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">repo_file_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">read_func_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">read_func_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># read_func() returns the data and the actual file path used. This is useful</span>
+            <span class="c1"># for file globs where the file path may be a glob pattern (specified in</span>
+            <span class="c1"># the read_func_kwargs).</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">repo_file_path</span> <span class="o">=</span> <span class="n">read_func</span><span class="p">(</span><span class="n">repo_file_path</span><span class="p">,</span> <span class="o">**</span><span class="n">read_func_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Compute the MD5 sum of repo_file_path.</span>
+        <span class="n">file_bytes</span> <span class="o">=</span> <span class="n">repo_file_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">file_bytes</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+        <span class="c1"># Store some info about this request in the cache.</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">version</span><span class="p">,</span>
+                <span class="s2">&quot;commit&quot;</span><span class="p">:</span> <span class="n">repo</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">commit</span><span class="o">.</span><span class="n">hexsha</span><span class="p">,</span>
+                <span class="s2">&quot;data_file_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repo_file_path</span><span class="p">),</span>
+                <span class="s2">&quot;repo_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repo_path</span><span class="p">),</span>
+                <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="n">md5</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">ENV_VAR_NAMES</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">info</span>
+
+
+<span class="k">def</span> <span class="nf">assert_latest_version</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">timeout</span><span class="p">):</span>
+    <span class="n">gh_version</span> <span class="o">=</span> <span class="n">get_github_version</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gh_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Could not verify GitHub chandra_models release tag &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;due to timeout (</span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2"> sec)&quot;</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">version</span> <span class="o">!=</span> <span class="n">gh_version</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;version mismatch: local repo </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2"> vs &quot;</span> <span class="sa">f</span><span class="s2">&quot;github </span><span class="si">{</span><span class="n">gh_version</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_repo_version">
+<a class="viewcode-back" href="../../api.html#xija.get_model_spec.get_repo_version">[docs]</a>
+<span class="k">def</span> <span class="nf">get_repo_version</span><span class="p">(</span>
+    <span class="n">repo_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">repo</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">git</span><span class="o">.</span><span class="n">Repo</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return version (most recent tag) of models repository.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Version (most recent tag) of models repository</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">repo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">repo_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">repo_path</span> <span class="o">=</span> <span class="n">chandra_models_repo_path</span><span class="p">()</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">git</span><span class="o">.</span><span class="n">Repo</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span>
+
+    <span class="c1"># Use the THERMAL_MODELS_DIR_FOR_MATLAB_TOOLS_SW environment variable as a proxy</span>
+    <span class="c1"># to determine if we are running in the MATLAB tools software environment. If so</span>
+    <span class="c1"># the repo will be checked via SVN and using is_dirty() would change the .git/index</span>
+    <span class="c1"># and cause SVN to mark the directory as modified. So skip is_dirty() in this case.</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;THERMAL_MODELS_DIR_FOR_MATLAB_TOOLS_SW&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">repo</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;repo is dirty&quot;</span><span class="p">)</span>
+
+    <span class="n">tags</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">repo</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">tag</span><span class="p">:</span> <span class="n">tag</span><span class="o">.</span><span class="n">commit</span><span class="o">.</span><span class="n">committed_datetime</span><span class="p">)</span>
+    <span class="n">tag_repo</span> <span class="o">=</span> <span class="n">tags</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">tag_repo</span><span class="o">.</span><span class="n">name</span></div>
+
+
+
+<div class="viewcode-block" id="get_github_version">
+<a class="viewcode-back" href="../../api.html#xija.get_model_spec.get_github_version">[docs]</a>
+<span class="k">def</span> <span class="nf">get_github_version</span><span class="p">(</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CHANDRA_MODELS_LATEST_URL</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get latest chandra_models GitHub repo release tag (version).</span>
+
+<span class="sd">    This queries GitHub for the latest release of chandra_models.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        URL for latest chandra_models release on GitHub API</span>
+<span class="sd">    timeout : int, float</span>
+<span class="sd">        Request timeout (sec, default=5)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str, None</span>
+<span class="sd">        Tag name (str) of latest chandra_models release on GitHub.</span>
+<span class="sd">        None if the request timed out, indicating indeterminate answer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">ConnectTimeout</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">ReadTimeout</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+        <span class="n">req</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+    <span class="n">page_json</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">page_json</span><span class="p">[</span><span class="s2">&quot;tag_name&quot;</span><span class="p">]</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2016, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>

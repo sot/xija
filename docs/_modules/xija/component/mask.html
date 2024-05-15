@@ -1,18 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.component.mask &#8212; xija 4.30.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
+    <title>xija.component.mask &#8212; xija 4.32.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/documentation_options.js?v=54d9916e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -46,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">xija 4.30.0 documentation</a>
+	<a href="../../../index.html">xija 4.32.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -75,8 +73,10 @@
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">ModelComponent</span>
 
 
-<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../../api.html#xija.component.mask.Mask">[docs]</a><span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create object with a ``mask`` attribute corresponding to</span>
+<div class="viewcode-block" id="Mask">
+<a class="viewcode-back" href="../../../api.html#xija.component.mask.Mask">[docs]</a>
+<span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create object with a ``mask`` attribute corresponding to</span>
 <span class="sd">      node.dvals op val</span>
 <span class="sd">    where op is a binary operator in operator module that returns a np mask</span>
 <span class="sd">      &quot;ge&quot;: &gt;=</span>
@@ -139,8 +139,11 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: data&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="MaskBox"><a class="viewcode-back" href="../../../api.html#xija.component.mask.MaskBox">[docs]</a><span class="k">class</span> <span class="nc">MaskBox</span><span class="p">(</span><span class="n">Mask</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create object with a ``mask`` attribute corresponding to</span>
+
+<div class="viewcode-block" id="MaskBox">
+<a class="viewcode-back" href="../../../api.html#xija.component.mask.MaskBox">[docs]</a>
+<span class="k">class</span> <span class="nc">MaskBox</span><span class="p">(</span><span class="n">Mask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create object with a ``mask`` attribute corresponding to</span>
 <span class="sd">      val0 &lt; node.dvals &lt; val1</span>
 
 <span class="sd">    Parameters</span>
@@ -173,6 +176,7 @@
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;maskbox__</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">)</span></div>
+
 </pre></div>
 
             <div class="clearer"></div>
@@ -197,7 +201,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>

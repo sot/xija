@@ -1,18 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.component.base &#8212; xija 4.30.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css" />
+    <title>xija.component.base &#8212; xija 4.32.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/documentation_options.js?v=54d9916e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -46,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">xija 4.30.0 documentation</a>
+	<a href="../../../index.html">xija 4.32.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -74,8 +72,10 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">tmal</span>
 
 
-<div class="viewcode-block" id="Param"><a class="viewcode-back" href="../../../api.html#xija.component.base.Param">[docs]</a><span class="k">class</span> <span class="nc">Param</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Model component parameter.  Inherits from dict but adds attribute access</span>
+<div class="viewcode-block" id="Param">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.Param">[docs]</a>
+<span class="k">class</span> <span class="nc">Param</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model component parameter.  Inherits from dict but adds attribute access</span>
 <span class="sd">    for convenience.</span>
 
 <span class="sd">    Parameters</span>
@@ -106,8 +106,11 @@
         <span class="k">return</span> <span class="nb">dict</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ModelComponent"><a class="viewcode-back" href="../../../api.html#xija.component.base.ModelComponent">[docs]</a><span class="k">class</span> <span class="nc">ModelComponent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Model component base class&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModelComponent">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.ModelComponent">[docs]</a>
+<span class="k">class</span> <span class="nc">ModelComponent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model component base class&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="c1"># This class overrides __setattr__ with a method that requires</span>
@@ -137,7 +140,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getAttributeNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add dynamic attribute names for IPython completer.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add dynamic attribute names for IPython completer.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
@@ -223,7 +226,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dvals</span></div>
 
 
-<div class="viewcode-block" id="TelemData"><a class="viewcode-back" href="../../../api.html#xija.component.base.TelemData">[docs]</a><span class="k">class</span> <span class="nc">TelemData</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TelemData">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.TelemData">[docs]</a>
+<span class="k">class</span> <span class="nc">TelemData</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
     <span class="n">times</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -261,13 +267,19 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">msid</span></div>
 
 
-<div class="viewcode-block" id="CmdStatesData"><a class="viewcode-back" href="../../../api.html#xija.component.base.CmdStatesData">[docs]</a><span class="k">class</span> <span class="nc">CmdStatesData</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
+
+<div class="viewcode-block" id="CmdStatesData">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.CmdStatesData">[docs]</a>
+<span class="k">class</span> <span class="nc">CmdStatesData</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">get_dvals_tlm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cmd_states</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">msid</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../../api.html#xija.component.base.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Time-series dataset for prediction.</span>
+
+<div class="viewcode-block" id="Node">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.Node">[docs]</a>
+<span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time-series dataset for prediction.</span>
 
 <span class="sd">    If the ``sigma`` value is negative then sigma is computed from the</span>
 <span class="sd">    node data values as the specified percent of the data standard</span>
@@ -326,7 +338,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">randx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Random X-offset for plotting which is a uniform distribution</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Random X-offset for plotting which is a uniform distribution</span>
 <span class="sd">        with width = self.quant or 1.0</span>
 
 <span class="sd">        Parameters</span>
@@ -449,8 +461,11 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="Coupling"><a class="viewcode-back" href="../../../api.html#xija.component.base.Coupling">[docs]</a><span class="k">class</span> <span class="nc">Coupling</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;\</span>
+
+<div class="viewcode-block" id="Coupling">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.Coupling">[docs]</a>
+<span class="k">class</span> <span class="nc">Coupling</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;\</span>
 <span class="sd">    First-order coupling between Nodes `node1` and `node2`</span>
 <span class="sd">    ::</span>
 
@@ -482,8 +497,11 @@
         <span class="k">return</span> <span class="s2">&quot;coupling__</span><span class="si">{0}</span><span class="s2">__</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node2</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Delay"><a class="viewcode-back" href="../../../api.html#xija.component.base.Delay">[docs]</a><span class="k">class</span> <span class="nc">Delay</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Delay mval from ``node`` by ``delay`` ksec</span>
+
+<div class="viewcode-block" id="Delay">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.Delay">[docs]</a>
+<span class="k">class</span> <span class="nc">Delay</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Delay mval from ``node`` by ``delay`` ksec</span>
 
 <span class="sd">    See the example in examples/delay/. For a positive delay, the computed model</span>
 <span class="sd">    value (``node.mval``) will be constant at the initial value for the first</span>
@@ -500,8 +518,11 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;delay__</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
-<div class="viewcode-block" id="HeatSink"><a class="viewcode-back" href="../../../api.html#xija.component.base.HeatSink">[docs]</a><span class="k">class</span> <span class="nc">HeatSink</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fixed temperature external heat bath&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HeatSink">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.HeatSink">[docs]</a>
+<span class="k">class</span> <span class="nc">HeatSink</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixed temperature external heat bath&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">20.0</span><span class="p">):</span>
         <span class="n">ModelComponent</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
@@ -517,8 +538,11 @@
         <span class="k">return</span> <span class="s2">&quot;heatsink__</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="HeatSinkRef"><a class="viewcode-back" href="../../../api.html#xija.component.base.HeatSinkRef">[docs]</a><span class="k">class</span> <span class="nc">HeatSinkRef</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fixed temperature external heat bath, reparameterized so that varying</span>
+
+<div class="viewcode-block" id="HeatSinkRef">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.HeatSinkRef">[docs]</a>
+<span class="k">class</span> <span class="nc">HeatSinkRef</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixed temperature external heat bath, reparameterized so that varying</span>
 <span class="sd">    tau does not affect the mean model temperature.  This requires an extra</span>
 <span class="sd">    non-fitted parameter T_ref which corresponds to a reference temperature for</span>
 <span class="sd">    the node.::</span>
@@ -554,7 +578,10 @@
         <span class="k">return</span> <span class="s2">&quot;heatsink__</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Pitch"><a class="viewcode-back" href="../../../api.html#xija.component.base.Pitch">[docs]</a><span class="k">class</span> <span class="nc">Pitch</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Pitch">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.Pitch">[docs]</a>
+<span class="k">class</span> <span class="nc">Pitch</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="n">TelemData</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;deg&quot;</span><span class="p">)</span>
 
@@ -574,8 +601,11 @@
         <span class="k">return</span> <span class="s2">&quot;pitch&quot;</span></div>
 
 
-<div class="viewcode-block" id="AcisFPtemp"><a class="viewcode-back" href="../../../api.html#xija.component.base.AcisFPtemp">[docs]</a><span class="k">class</span> <span class="nc">AcisFPtemp</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Make a wrapper around MSID FPTEMP_11 because that currently comes from</span>
+
+<div class="viewcode-block" id="AcisFPtemp">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.AcisFPtemp">[docs]</a>
+<span class="k">class</span> <span class="nc">AcisFPtemp</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make a wrapper around MSID FPTEMP_11 because that currently comes from</span>
 <span class="sd">    the eng_archive in K instead of C.</span>
 
 <span class="sd">    Parameters</span>
@@ -597,7 +627,10 @@
         <span class="k">return</span> <span class="s2">&quot;fptemp&quot;</span></div>
 
 
-<div class="viewcode-block" id="Eclipse"><a class="viewcode-back" href="../../../api.html#xija.component.base.Eclipse">[docs]</a><span class="k">class</span> <span class="nc">Eclipse</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Eclipse">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.Eclipse">[docs]</a>
+<span class="k">class</span> <span class="nc">Eclipse</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="n">TelemData</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;aoeclips&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_mvals</span> <span class="o">=</span> <span class="mi">1</span>
@@ -615,7 +648,10 @@
         <span class="k">return</span> <span class="s2">&quot;eclipse&quot;</span></div>
 
 
-<div class="viewcode-block" id="SimZ"><a class="viewcode-back" href="../../../api.html#xija.component.base.SimZ">[docs]</a><span class="k">class</span> <span class="nc">SimZ</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SimZ">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.SimZ">[docs]</a>
+<span class="k">class</span> <span class="nc">SimZ</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="n">TelemData</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;sim_z&quot;</span><span class="p">)</span>
 
@@ -624,9 +660,13 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">sim_z_mm</span> <span class="o">*</span> <span class="o">-</span><span class="mf">397.7225924607</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Roll"><a class="viewcode-back" href="../../../api.html#xija.component.base.Roll">[docs]</a><span class="k">class</span> <span class="nc">Roll</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Roll">
+<a class="viewcode-back" href="../../../api.html#xija.component.base.Roll">[docs]</a>
+<span class="k">class</span> <span class="nc">Roll</span><span class="p">(</span><span class="n">TelemData</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="n">TelemData</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;roll&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;deg&quot;</span><span class="p">)</span></div>
+
 </pre></div>
 
             <div class="clearer"></div>
@@ -651,7 +691,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 4.2.0. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
   </p>
 </footer>
   </body>
