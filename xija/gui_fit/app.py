@@ -1150,7 +1150,17 @@ class MainWindow:
 
 def get_options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("filename", default="test_gui.json", help="Model file")
+    parser.add_argument(
+        "filename",
+        default="test_gui.json",
+        help="Model or file name: '*.json' is a local spec file, otherwise this is a "
+        "model name (e.g. 'acisfp_spec_matlab') that points to a like-named JSON spec "
+        "file in the Ska chandra_models repo.",
+    )
+    parser.add_argument(
+        "--model-version",
+        help="Model version for model from chandra_models",
+    )
     parser.add_argument(
         "--days",
         type=float,
