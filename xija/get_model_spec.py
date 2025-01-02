@@ -51,21 +51,22 @@ def get_xija_model_spec(
     """
     Get Xija model specification for the specified ``model_name``.
 
-    Supported model names include (but are not limited to): ``'aca'``,
-    ``'acisfp'``, ``'dea'``, ``'dpa'``, ``'psmc'``, ``'minusyz'``, and
-    ``'pftank2t'``.
+    This gets the model specification from the Ska chandra_models repository, looking
+    for ``*.json`` files in the ``chandra_models/xija`` directory of the repository.
 
-    Use ``get_xija_model_names()`` for the full list.
+    The ``model_name`` can be provided in two ways:
+    - Short like ``'acisfp'`` which looks for ``acisfp_spec.json`` (tried first).
+    - Full like ``'acisfp_spec_matlab'`` which looks for ``acisfp_spec_matlab.json``.
 
     Examples
     --------
-    Get the latest version of the ``acisfp`` model spec from the local Ska data
+    Get the latest version of the ``acisfp_spec`` model spec from the local Ska data
     directory ``$SKA/data/chandra_models``, checking that the version matches
     the latest release tag on GitHub.
 
     >>> import xija
     >>> from xija.get_model_spec import get_xija_model_spec
-    >>> model_spec, version = get_xija_model_spec('acisfp', check_version=True)
+    >>> model_spec, version = get_xija_model_spec('acisfp_spec', check_version=True)
     >>> model = xija.XijaModel('acisfp', model_spec=model_spec,
     ...                        start='2020:001', stop='2020:010')
     >>> model.make()
@@ -81,7 +82,7 @@ def get_xija_model_spec(
     Parameters
     ----------
     model_name : str
-        Name of model
+        Name of model or model spec file (e.g. 'acisfp' or 'acisfp_spec_matlab')
     version : str, None
         Tag, branch or commit of chandra_models to use (default=latest tag from
         repo)
@@ -120,17 +121,21 @@ def _get_xija_model_spec(
     if not models_path.exists():
         raise FileNotFoundError(f"xija models directory {models_path} does not exist")
 
-    file_glob = str(models_path / "*" / f"{model_name.lower()}_spec.json")
-    try:
-        # get_globfiles() default requires exactly one file match and returns a list
-        file_name = get_globfiles(file_glob)[0]
-    except ValueError:
-        names = get_xija_model_names(repo_path)
-        raise ValueError(
-            f'no models matched {model_name}. Available models are: {", ".join(names)}'
-        )
+    file_path = None
+    for suffix in ["_spec.json", ".json"]:
+        file_paths = list(models_path.glob(f"*/{model_name}{suffix}"))
+        if len(file_paths) == 1:
+            file_path = file_paths[0]
+            break
+        elif len(file_paths) > 1:
+            raise ValueError(
+                f"Multiple files found for {model_name} in {models_path}: {file_paths}"
+            )
 
-    model_spec = json.load(open(file_name, "r"))
+    if file_path is None:
+        raise ValueError(f"no model spec files matched {model_name}")
+
+    model_spec = json.load(open(file_path, "r"))
 
     # Get version and ensure that repo is clean and tip is at latest tag
     if version is None:
