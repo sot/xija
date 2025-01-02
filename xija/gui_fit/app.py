@@ -3,7 +3,6 @@ import ast
 import fnmatch
 import json
 import logging
-import os
 import re
 import sys
 import time
@@ -12,6 +11,7 @@ from itertools import count
 from pathlib import Path
 
 import acis_taco as taco
+import astropy.units as u
 import numpy as np
 import pyyaks.context as pyc
 from cheta.units import F_to_C
@@ -20,7 +20,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 import xija
 from xija.component.base import Node, TelemData
-from xija.get_model_spec import get_xija_model_names, get_xija_model_spec
+from xija.get_model_spec import get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
 from .plots import HistogramWindow, PlotsBox
@@ -1169,7 +1169,7 @@ def get_options():
     )
     parser.add_argument(
         "--stop",
-        default=CxoTime() - 10,  # remove this
+        default=CxoTime() - 10 * u.day,  # remove this
         help="Stop time of fit interval (default=model values)",
     )
     parser.add_argument(
@@ -1224,12 +1224,11 @@ def main():
 
     if opt.filename.endswith(".json"):
         model_spec = json.load(open(opt.filename, "r"))
-    elif opt.filename in get_xija_model_names():
-        model_spec, model_version = get_xija_model_spec(opt.filename)
     else:
-        raise RuntimeError(
-            "'filename' not a valid path to a JSON file or a valid model name!"
+        model_spec, model_version = get_xija_model_spec(
+            opt.filename, version=opt.model_version
         )
+        print(f"Using model version {model_version} from chandra_models")
 
     gui_config.update(model_spec.get("gui_config", {}))
     src["model"] = model_spec["name"]
@@ -1246,7 +1245,7 @@ def main():
 
     set_data_vals = gui_config.get("set_data_vals", {})
     for set_data_expr in opt.set_data_exprs:
-        set_data_expr = re.sub("\s", "", set_data_expr)
+        set_data_expr = re.sub(r"\s", "", set_data_expr)
         try:
             comp_name, val = set_data_expr.split("=")
         except ValueError:
