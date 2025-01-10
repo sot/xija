@@ -357,17 +357,16 @@ class XijaModel(object):
         -------
 
         """
+        import cheta.fetch_sci as fetch
+
         tpad = DEFAULT_DT * 5.0
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
-        logger.info("Fetching msid: %s over %s to %s" % (msid, datestart, datestop))
-        try:
-            import cheta.fetch_sci as fetch
 
-            tlm = fetch.MSID(msid, datestart, datestop, stat="5min")
-            tlm.filter_bad_times()
-        except ImportError:
-            raise ValueError("cheta.fetch not available")
+        logger.info("Fetching msid: %s over %s to %s" % (msid, datestart, datestop))
+        tlm = fetch.MSID(msid, datestart, datestop, stat="5min")
+        tlm.filter_bad_times()
+
         if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
             raise ValueError(
                 "Fetched telemetry does not span model start and "
