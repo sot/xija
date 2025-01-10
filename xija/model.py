@@ -4,6 +4,7 @@ Xija - framework to model complex time-series data using a network of
 coupled nodes with pluggable model components that define the node
 interactions.
 """
+
 from __future__ import print_function
 
 import ctypes

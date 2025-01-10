@@ -1,14 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
+
 def calc_model(indexes, dt, n_preds, mvals, parvals, mults, heats, heatsinks):
     deriv = np.zeros(n_preds)
+
     def dT_dt(j, y):
         deriv[:] = 0.0
 
         # Couplings with other nodes
         for i in xrange(len(mults)):
-            i1 = mults[i, 0] 
+            i1 = mults[i, 0]
             i2 = mults[i, 1]
             tau = parvals[mults[i, 2]]
             if i2 < n_preds and i1 < n_preds:
@@ -37,6 +39,6 @@ def calc_model(indexes, dt, n_preds, mvals, parvals, mults, heats, heatsinks):
         # 2nd order Runge-Kutta (do 4th order later as needed)
         y = mvals[:n_preds, j]
         k1 = dt * dT_dt(j, y)
-        k2 = dt * dT_dt(j+1, y + k1 / 2.0)
-        mvals[:n_preds, j+1] = y + k2 / 2.0
-        mvals[:n_preds, j+2] = y + k2
+        k2 = dt * dT_dt(j + 1, y + k1 / 2.0)
+        mvals[:n_preds, j + 1] = y + k2 / 2.0
+        mvals[:n_preds, j + 2] = y + k2

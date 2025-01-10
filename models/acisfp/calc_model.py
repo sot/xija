@@ -14,8 +14,7 @@ from ska_matplotlib import plot_cxctime
 start = '2012:001'
 stop = '2012:005'
 
-model = xija.XijaModel('acisfp', model_spec='acisfp_spec.json',
-                       start=start, stop=stop)
+model = xija.XijaModel('acisfp', model_spec='acisfp_spec.json', start=start, stop=stop)
 
 ## PREDICTED COMPONENTS
 
