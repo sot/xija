@@ -622,9 +622,9 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
                     max=10.0,
                 )
 
-        for j, pitch in enumerate(self.dPs):
+        for j, pitch in enumerate(self.dP_pitches):
             self.add_par(
-                "dP_{0:d}".format(int(self.dP_pitches[j])),
+                "dP_{0:d}".format(int(pitch)),
                 self.dPs[j],
                 min=-1.0,
                 max=1.0,
