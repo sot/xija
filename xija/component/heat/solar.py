@@ -2,13 +2,8 @@
 
 import numpy as np
 import scipy.interpolate
-
-try:
-    import Ska.Numpy
-    from Chandra.Time import DateTime
-    from Ska.Matplotlib import plot_cxctime
-except ImportError:
-    pass
+import ska_numpy
+from chandra_time import DateTime
 
 from xija.component.base import ModelComponent
 from xija.component.heat.base import PrecomputedHeatPower
@@ -665,7 +660,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         dPs = self.parvals[
             self.n_instr * self.n_p : (self.n_instr * self.n_p + self.n_dp)
         ]
-        dP_vals = Ska.Numpy.interpolate(dPs, self.dP_pitches, self.pitches)
+        dP_vals = ska_numpy.interpolate(dPs, self.dP_pitches, self.pitches)
         d_heat = (
             dP_vals * self.var_func(self.t_days, self.tau)
             + self.ampl * np.cos(self.t_phase)
@@ -673,7 +668,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
 
         for i in range(self.n_instr):
             P_vals = self.parvals[i * self.n_p : (i + 1) * self.n_p]
-            heat = Ska.Numpy.interpolate(P_vals, self.P_pitches, self.pitches)
+            heat = ska_numpy.interpolate(P_vals, self.P_pitches, self.pitches)
             heats.append(heat + d_heat)
 
         self.heats = np.vstack(heats)

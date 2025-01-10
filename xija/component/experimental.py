@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-
-try:
-    from Ska.Matplotlib import plot_cxctime
-except ImportError:
-    pass
+import scipy
+from chandra_time import DateTime
+from ska_matplotlib import plot_cxctime
 
 from . import tmal
 from .base import ModelComponent
-from .heat import PrecomputedHeatPower
+from .heat import PrecomputedHeatPower, SolarHeat
 
 
 class AcisDpaPower6(PrecomputedHeatPower):

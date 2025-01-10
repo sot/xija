@@ -166,7 +166,7 @@ def test_dpa():
 def test_plotdate():
     # Make sure model_plotdate property works
     mdl = get_dpa_model()
-    mdl.comp["1dpamzt"].model_plotdate
+    _ = mdl.comp["1dpamzt"].model_plotdate
 
 
 def test_data_types():
@@ -189,9 +189,9 @@ def test_data_types():
         dpa.set_data(data_type(30.0))
         if data_type is np.complex64:
             with pytest.raises(ValueError):
-                dpa.dvals
+                _ = dpa.dvals
         else:
-            dpa.dvals  # Property should evaluate OK
+            _ = dpa.dvals  # Property should evaluate OK
 
 
 def test_minusz():
