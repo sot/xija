@@ -11,13 +11,6 @@ import xija
 from xija import Eclipse, HeatSink, Node, Pitch, SolarHeat, ThermalModel, __version__
 from xija.get_model_spec import get_xija_model_names, get_xija_model_spec
 
-try:
-    import Ska.Matplotlib  # noqa
-
-    HAS_PLOTDATE = True
-except ImportError:
-    HAS_PLOTDATE = False
-
 print()
 print("Version =", __version__)
 
@@ -170,7 +163,6 @@ def test_dpa():
     assert np.allclose(dpa.mvals, regr["mvals"])
 
 
-@pytest.mark.skipif("not HAS_PLOTDATE")
 def test_plotdate():
     # Make sure model_plotdate property works
     mdl = get_dpa_model()
