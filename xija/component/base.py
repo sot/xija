@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-from .. import tmal
+from xija import tmal
 
 
 class Param(dict):

@@ -6,7 +6,7 @@ import git
 import pytest
 import requests
 
-from ..get_model_spec import (
+from xija.get_model_spec import (
     get_github_version,
     get_repo_version,
     get_xija_model_names,

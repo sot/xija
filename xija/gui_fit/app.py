@@ -282,7 +282,7 @@ class WriteTableWindow(QtWidgets.QWidget):
 
     def toggle_all_data(self, state):
         checked = state == QtCore.Qt.Checked
-        for i, box in enumerate(self.check_boxes):
+        for _i, box in enumerate(self.check_boxes):
             box.setChecked(checked)
 
     def change_start(self):
@@ -871,11 +871,7 @@ class MainWindow:
         self.hist_msids = []
         for k, v in self.model.comp.items():
             if isinstance(v, Node):
-                if (
-                    k.startswith("fptemp")
-                    or k.startswith("tmp_fep")
-                    or k.startswith("tmp_bep")
-                ):
+                if k.startswith(("fptemp", "tmp_fep", "tmp_bep")):
                     self.hist_msids.append(k)
                 try:
                     Ska.tdb.msids[v.msid]

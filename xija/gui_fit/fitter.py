@@ -10,13 +10,13 @@ logging.basicConfig(level=logging.INFO)
 fit_logger = logging.getLogger("fit")
 
 # Default configurations for fit methods
-sherpa_configs = dict(
-    simplex=dict(
-        ftol=1e-3,
-        finalsimplex=0,  # converge based only on length of simplex
-        maxfev=None,
-    ),
-)
+sherpa_configs = {
+    "simplex": {
+        "ftol": 1e-3,
+        "finalsimplex": 0,  # converge based only on length of simplex
+        "maxfev": None,
+    },
+}
 
 
 class FitTerminated(Exception):

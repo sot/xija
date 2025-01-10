@@ -229,7 +229,7 @@ class XijaModel(object):
         for comp in model_spec["comps"]:
             ComponentClass = getattr(component, comp["class_name"])
             args = comp["init_args"]
-            kwargs = dict((str(k), v) for k, v in comp["init_kwargs"].items())
+            kwargs = {str(k): v for k, v in comp["init_kwargs"].items()}
             self.add(ComponentClass, *args, **kwargs)
 
         pars = model_spec["pars"]
@@ -490,17 +490,17 @@ class XijaModel(object):
         -------
 
         """
-        model_spec = dict(
-            name=self.name,
-            comps=[],
-            dt=self.dt,
-            datestart=self.datestart,
-            datestop=self.datestop,
-            tlm_code=None,
-            mval_names=[],
-            evolve_method=self.evolve_method,
-            rk4=self.rk4,
-        )
+        model_spec = {
+            "name": self.name,
+            "comps": [],
+            "dt": self.dt,
+            "datestart": self.datestart,
+            "datestop": self.datestop,
+            "tlm_code": None,
+            "mval_names": [],
+            "evolve_method": self.evolve_method,
+            "rk4": self.rk4,
+        }
 
         model_spec["bad_times"] = self.bad_times
 
@@ -511,14 +511,14 @@ class XijaModel(object):
         stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent) else x)
         for comp in self.comps:
             init_args = [stringfy(x) for x in comp.init_args]
-            init_kwargs = dict((k, stringfy(v)) for k, v in comp.init_kwargs.items())
+            init_kwargs = {k: stringfy(v) for k, v in comp.init_kwargs.items()}
             model_spec["comps"].append(
-                dict(
-                    class_name=comp.__class__.__name__,
-                    name=comp.name,
-                    init_args=init_args,
-                    init_kwargs=init_kwargs,
-                )
+                {
+                    "class_name": comp.__class__.__name__,
+                    "name": comp.name,
+                    "init_args": init_args,
+                    "init_kwargs": init_kwargs,
+                }
             )
         return model_spec
 

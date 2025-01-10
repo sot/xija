@@ -3,12 +3,16 @@ extend = "ruff-base.toml"
 # These are files to exclude for this project.
 extend-exclude = [
   # "**/*.ipynb",  # commonly not ruff-compliant
+  "models",
+  "dev",
+  "tests_no_pytest",
 ]
 
 # These are rules that commonly cause many ruff warnings. Code will be improved by
 # incrementally fixing code to adhere to these rules, but for practical purposes they
 # can be ignored by uncommenting each one. You can also add to this list as needed.
 lint.extend-ignore = [
+  "D205",
   # "B905", # `zip()` without an explicit `strict=` parameter
   # "PLC1901", # compare-to-empty-string
   # "PLR0911", # Too many returns
