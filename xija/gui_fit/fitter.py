@@ -3,7 +3,7 @@ import multiprocessing as mp
 import time
 
 import numpy as np
-import sherpa.ui as ui
+from sherpa import ui
 
 logging.basicConfig(level=logging.INFO)
 
@@ -34,7 +34,7 @@ class CalcModel(object):
         """
         fit_logger.info("Calculating params:")
         for parname, parval, newparval in zip(
-            self.model.parnames, self.model.parvals, parvals
+            self.model.parnames, self.model.parvals, parvals, strict=False
         ):
             if parval != newparval:
                 fit_logger.info("  {0}: {1}".format(parname, newparval))

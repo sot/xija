@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import xija
-import numpy as np
 import asciitable
-from Chandra.Time import DateTime
+import numpy as np
 from Ska.Matplotlib import plot_cxctime
+
+import xija
 
 pars = dict(
     acis150=28.029,

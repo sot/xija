@@ -161,9 +161,9 @@ class SolarHeat(PrecomputedHeatPower):
 
         self.epoch = epoch
 
-        for pitch, power in zip(self.P_pitches, self.Ps):
+        for pitch, power in zip(self.P_pitches, self.Ps, strict=False):
             self.add_par("P_{0:.0f}".format(float(pitch)), power, min=-10.0, max=10.0)
-        for pitch, dpower in zip(self.dP_pitches, self.dPs):
+        for pitch, dpower in zip(self.dP_pitches, self.dPs, strict=False):
             self.add_par("dP_{0:.0f}".format(float(pitch)), dpower, min=-1.0, max=1.0)
         self.add_par("tau", tau, min=1000.0, max=3000.0)
         self.add_par("ampl", ampl, min=-1.0, max=1.0)
@@ -213,7 +213,7 @@ class SolarHeat(PrecomputedHeatPower):
             dPs_interp = np.interp(x=self.P_pitches, xp=self.dP_pitches, fp=dPs)
 
             Ps += dPs_interp * days / self.tau
-            for par, P in zip(self.pars, Ps):
+            for par, P in zip(self.pars, Ps, strict=False):
                 par.val = P
                 if P > par.max:
                     par.max = P
@@ -238,7 +238,6 @@ class SolarHeat(PrecomputedHeatPower):
 
     def dvals_post_hook(self):
         """Override this method to adjust self._dvals after main computation."""
-        pass
 
     def _compute_dvals(self):
         vf = self.var_func(self.t_days, self.tau)

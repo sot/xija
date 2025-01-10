@@ -5,8 +5,9 @@ Replicate (mostly) the minusz TEPHIN node model.  (dPs set to zero though).
 env PYTHONPATH=$PWD python minusz/minusz.py
 """
 
-import xija
 import json
+
+import xija
 
 P_pitches = [45, 60, 90, 120, 145, 170]
 P_pitches2 = [45, 60, 90, 120, 145, 171]

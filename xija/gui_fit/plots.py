@@ -678,7 +678,9 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def show_fills(self):
         model = self.plots_box.model
-        for (i0, i1), bad in zip(model.mask_times_indices, model.mask_times_bad):
+        for (i0, i1), bad in zip(
+            model.mask_times_indices, model.mask_times_bad, strict=False
+        ):
             t0, t1 = model.times[i0], model.times[i1]
             self.add_fill(t0, t1, bad)
 

@@ -672,7 +672,7 @@ class PanelSlider(QtWidgets.QSlider):
 
     def slider_moved(self):
         val = self.get_value_from_step()
-        setattr(self.par, "val", val)
+        self.par.val = val
         self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(val))
         if self.update_plots:
             self.params_panel.plots_panel.update_plots()

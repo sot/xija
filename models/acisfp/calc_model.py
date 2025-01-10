@@ -7,9 +7,10 @@ set to a constant in this example instead of the correct time-varying
 values.
 """
 
-import xija
 from cheta import fetch_eng
 from ska_matplotlib import plot_cxctime
+
+import xija
 
 start = "2012:001"
 stop = "2012:005"

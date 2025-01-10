@@ -239,7 +239,7 @@ class XijaModel(object):
                     len(pars), len(self.pars)
                 )
             )
-        for par, specpar in zip(self.pars, pars):
+        for par, specpar in zip(self.pars, pars, strict=False):
             for attr in specpar:
                 setattr(par, attr, specpar[attr])
 
@@ -671,7 +671,7 @@ model = xija.XijaModel(
                     len(self.pars), len(vals)
                 )
             )
-        for par, val in zip(self.pars, vals):
+        for par, val in zip(self.pars, vals, strict=False):
             par.val = val
 
     parvals = property(_get_parvals, _set_parvals)

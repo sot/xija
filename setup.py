@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from setuptools import setup, Extension
 import os
+
+from setuptools import Extension, setup
 
 long_description = """
 Xija (pronounced "kiy - yuh", rhymes with Maya) is the thermal modeling
