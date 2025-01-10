@@ -22,16 +22,16 @@ pars = dict(
     u12=8.451,
 )
 
-u01 = pars['u01']
-u12 = pars['u12']
-c1 = pars['c1']
-c2 = pars['c2']
+u01 = pars["u01"]
+u12 = pars["u12"]
+c1 = pars["c1"]
+c2 = pars["c2"]
 
 P_pitches = [50, 90, 150]
 P_vals = []
-for instr in ('hrcs', 'hrci', 'acis'):
+for instr in ("hrcs", "hrci", "acis"):
     for pitch in P_pitches:
-        P_vals.append(pars['{0}{1}'.format(instr, pitch)])
+        P_vals.append(pars["{0}{1}".format(instr, pitch)])
 P_vals = np.array(P_vals).reshape(3, 3) * u01 / c1
 P_vals = P_vals.tolist()
 
@@ -41,10 +41,10 @@ k = 1.0 / c2
 tau12 = c1 / u12
 tau21 = c2 / u12
 
-mdl = xija.ThermalModel('psmc', start='2011:103:00:00:00.00', stop='2011:124:00:00:00')
+mdl = xija.ThermalModel("psmc", start="2011:103:00:00:00.00", stop="2011:124:00:00:00")
 
-pin1at = mdl.add(xija.Node, '1pin1at')
-pdeaat = mdl.add(xija.Node, '1pdeaat')
+pin1at = mdl.add(xija.Node, "1pin1at")
+pdeaat = mdl.add(xija.Node, "1pdeaat")
 pitch = mdl.add(xija.Pitch)
 sim_z = mdl.add(xija.SimZ)
 
@@ -55,10 +55,10 @@ sol = mdl.add(
 )
 heat = mdl.add(xija.HeatSink, pin1at, T=T_e, tau=tau_e)
 # pow = mdl.add(xija.AcisPsmcPower, pdeaat, k=k)
-fep_count = mdl.add(xija.CmdStatesData, 'fep_count')
-ccd_count = mdl.add(xija.CmdStatesData, 'ccd_count')
-vid_board = mdl.add(xija.CmdStatesData, 'vid_board')
-clocking = mdl.add(xija.CmdStatesData, 'clocking')
+fep_count = mdl.add(xija.CmdStatesData, "fep_count")
+ccd_count = mdl.add(xija.CmdStatesData, "ccd_count")
+vid_board = mdl.add(xija.CmdStatesData, "vid_board")
+clocking = mdl.add(xija.CmdStatesData, "clocking")
 pow = mdl.add(
     xija.AcisDpaStatePower,
     pdeaat,
@@ -70,17 +70,17 @@ pow = mdl.add(
 
 mdl.make()
 mdl.calc()
-mdl.write('psmc_classic.json')
+mdl.write("psmc_classic.json")
 
-psmc = asciitable.read('models_dev/psmc/out_2010103_2010124/temperatures.dat')
+psmc = asciitable.read("models_dev/psmc/out_2010103_2010124/temperatures.dat")
 
 figure(1)
 clf()
-plot_cxctime(pdeaat.times, pdeaat.mvals, 'b')
-plot_cxctime(pdeaat.times, pdeaat.dvals, 'r')
-plot_cxctime(psmc['time'], psmc['1pdeaat'], 'g')
+plot_cxctime(pdeaat.times, pdeaat.mvals, "b")
+plot_cxctime(pdeaat.times, pdeaat.dvals, "r")
+plot_cxctime(psmc["time"], psmc["1pdeaat"], "g")
 
 figure(2)
-plot_cxctime(pin1at.times, pin1at.mvals, 'b')
-plot_cxctime(pin1at.times, pin1at.dvals, 'r')
-plot_cxctime(psmc['time'], psmc['1pin1at'], 'g')
+plot_cxctime(pin1at.times, pin1at.mvals, "b")
+plot_cxctime(pin1at.times, pin1at.dvals, "r")
+plot_cxctime(psmc["time"], psmc["1pin1at"], "g")
