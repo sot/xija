@@ -12,7 +12,7 @@ import os
 from collections import OrderedDict
 from io import StringIO
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import pyyaks.context as pyc
@@ -37,11 +37,6 @@ files = (
     else pyc.ContextDict("files", basedir=os.getcwd())
 )
 files.update(xija_files)
-
-if "debug" in globals():
-    from IPython.Debugger import Tracer
-
-    pdb_settrace = Tracer()
 
 logger = clogging.config_logger("xija", level=clogging.INFO)
 
@@ -263,7 +258,7 @@ class XijaModel(object):
         """
         try:
             inherit_spec = json.load(open(inherit_spec, "r"))
-        except:
+        except Exception:
             pass
 
         inherit_pars = {par["full_name"]: par for par in inherit_spec["pars"]}
@@ -596,9 +591,16 @@ class XijaModel(object):
         out = StringIO()
         ms = self.model_spec
 
-        model_call = "model = xija.XijaModel({}, start={}, stop={}, dt={},\n"
-        model_call += "evolve_method={} rk4={}\n"
-
+        model_call = """\
+model = xija.XijaModel(
+  {},
+  start={},
+  stop={},
+  dt={},
+  evolve_method={},
+  rk4={},
+)
+"""
         print("import sys", file=out)
         print("import xija\n", file=out)
         print(
