@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.get_model_spec &#8212; xija 4.32.0 documentation</title>
+    <title>xija.get_model_spec &#8212; xija 4.33.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script src="../../_static/documentation_options.js?v=54d9916e"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/documentation_options.js?v=81745f2e"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../_static/copybutton.js"></script>
@@ -44,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.32.0 documentation</a>
+	<a href="../../index.html">xija 4.33.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -115,21 +115,22 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get Xija model specification for the specified ``model_name``.</span>
 
-<span class="sd">    Supported model names include (but are not limited to): ``&#39;aca&#39;``,</span>
-<span class="sd">    ``&#39;acisfp&#39;``, ``&#39;dea&#39;``, ``&#39;dpa&#39;``, ``&#39;psmc&#39;``, ``&#39;minusyz&#39;``, and</span>
-<span class="sd">    ``&#39;pftank2t&#39;``.</span>
+<span class="sd">    This gets the model specification from the Ska chandra_models repository, looking</span>
+<span class="sd">    for ``*.json`` files in the ``chandra_models/xija`` directory of the repository.</span>
 
-<span class="sd">    Use ``get_xija_model_names()`` for the full list.</span>
+<span class="sd">    The ``model_name`` can be provided in two ways:</span>
+<span class="sd">    - Short like ``&#39;acisfp&#39;`` which looks for ``acisfp_spec.json`` (tried first).</span>
+<span class="sd">    - Full like ``&#39;acisfp_spec_matlab&#39;`` which looks for ``acisfp_spec_matlab.json``.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    Get the latest version of the ``acisfp`` model spec from the local Ska data</span>
+<span class="sd">    Get the latest version of the ``acisfp_spec`` model spec from the local Ska data</span>
 <span class="sd">    directory ``$SKA/data/chandra_models``, checking that the version matches</span>
 <span class="sd">    the latest release tag on GitHub.</span>
 
 <span class="sd">    &gt;&gt;&gt; import xija</span>
 <span class="sd">    &gt;&gt;&gt; from xija.get_model_spec import get_xija_model_spec</span>
-<span class="sd">    &gt;&gt;&gt; model_spec, version = get_xija_model_spec(&#39;acisfp&#39;, check_version=True)</span>
+<span class="sd">    &gt;&gt;&gt; model_spec, version = get_xija_model_spec(&#39;acisfp_spec&#39;, check_version=True)</span>
 <span class="sd">    &gt;&gt;&gt; model = xija.XijaModel(&#39;acisfp&#39;, model_spec=model_spec,</span>
 <span class="sd">    ...                        start=&#39;2020:001&#39;, stop=&#39;2020:010&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; model.make()</span>
@@ -145,7 +146,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    model_name : str</span>
-<span class="sd">        Name of model</span>
+<span class="sd">        Name of model or model spec file (e.g. &#39;acisfp&#39; or &#39;acisfp_spec_matlab&#39;)</span>
 <span class="sd">    version : str, None</span>
 <span class="sd">        Tag, branch or commit of chandra_models to use (default=latest tag from</span>
 <span class="sd">        repo)</span>
@@ -185,17 +186,21 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">models_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;xija models directory </span><span class="si">{</span><span class="n">models_path</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
 
-    <span class="n">file_glob</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">models_path</span> <span class="o">/</span> <span class="s2">&quot;*&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">_spec.json&quot;</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># get_globfiles() default requires exactly one file match and returns a list</span>
-        <span class="n">file_name</span> <span class="o">=</span> <span class="n">get_globfiles</span><span class="p">(</span><span class="n">file_glob</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="n">get_xija_model_names</span><span class="p">(</span><span class="n">repo_path</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;no models matched </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1">. Available models are: </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="p">)</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_spec.json&quot;</span><span class="p">,</span> <span class="s2">&quot;.json&quot;</span><span class="p">]:</span>
+        <span class="n">file_paths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">models_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;*/</span><span class="si">{</span><span class="n">model_name</span><span class="si">}{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">break</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_paths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Multiple files found for </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">models_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">file_paths</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
-    <span class="n">model_spec</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">file_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no model spec files matched </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">model_spec</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">))</span>
 
     <span class="c1"># Get version and ensure that repo is clean and tip is at latest tag</span>
     <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -257,7 +262,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 
 
@@ -275,7 +280,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 8.1.3. &nbsp;
   </p>
 </footer>
   </body>

@@ -4,12 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.component.base &#8212; xija 4.32.0 documentation</title>
+    <title>xija.component.base &#8212; xija 4.33.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script src="../../../_static/documentation_options.js?v=54d9916e"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/documentation_options.js?v=81745f2e"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../../_static/copybutton.js"></script>
@@ -44,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../../index.html">xija 4.32.0 documentation</a>
+	<a href="../../../index.html">xija 4.33.1 documentation</a>
 	 &#187;
       </li>
       <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -112,13 +112,16 @@
 <span class="k">class</span> <span class="nc">ModelComponent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Model component base class&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="c1"># This class overrides __setattr__ with a method that requires</span>
         <span class="c1"># the `pars` and `pars_dict` attrs to be visible.  So do this</span>
         <span class="c1"># with the super (object) method right away.</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s2">&quot;pars&quot;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s2">&quot;pars_dict&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s2">&quot;pars&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ModelComponent</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s2">&quot;pars_dict&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">return</span> <span class="n">instance</span>
 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_mvals</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">predict</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Predict values for this model component</span>
@@ -673,7 +676,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 
 
@@ -691,7 +694,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 7.2.6. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 8.1.3. &nbsp;
   </p>
 </footer>
   </body>
