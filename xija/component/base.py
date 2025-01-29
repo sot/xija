@@ -45,13 +45,16 @@ class Param(dict):
 class ModelComponent(object):
     """Model component base class"""
 
-    def __init__(self, model):
+    def __new__(cls, *args, **kwargs):
+        instance = super(ModelComponent, cls).__new__(cls)
         # This class overrides __setattr__ with a method that requires
         # the `pars` and `pars_dict` attrs to be visible.  So do this
         # with the super (object) method right away.
-        super(ModelComponent, self).__setattr__("pars", [])
-        super(ModelComponent, self).__setattr__("pars_dict", {})
+        super(ModelComponent, instance).__setattr__("pars", [])
+        super(ModelComponent, instance).__setattr__("pars_dict", {})
+        return instance
 
+    def __init__(self, model):
         self.model = model
         self.n_mvals = 0
         self.predict = False  # Predict values for this model component
@@ -81,10 +84,6 @@ class ModelComponent(object):
         if attr == "trait_names":
             return []
 
-        # Ensure pars_dict is initialized before accessing it
-        if "pars_dict" not in self.__dict__:
-            super(ModelComponent, self).__setattr__("pars_dict", {})
-
         if attr in self.pars_dict:
             return self.pars_dict[attr].val
         else:
@@ -92,10 +91,6 @@ class ModelComponent(object):
             return super(ModelComponent, self).__getattribute__(attr)
 
     def __setattr__(self, attr, val):
-        # Ensure pars_dict is initialized before accessing it
-        if "pars_dict" not in self.__dict__:
-            super(ModelComponent, self).__setattr__("pars_dict", {})
-
         if attr in self.pars_dict:
             self.pars_dict[attr].val = val
         else:
