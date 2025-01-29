@@ -81,7 +81,7 @@ class ModelComponent(object):
         if attr == "trait_names":
             return []
 
-        if attr in self.pars_dict:
+        if 'pars_dict' in self.__dict__ and attr in self.pars_dict:
             return self.pars_dict[attr].val
         else:
             # This will raise the expected AttributeError exception
