@@ -81,13 +81,21 @@ class ModelComponent(object):
         if attr == "trait_names":
             return []
 
-        if 'pars_dict' in self.__dict__ and attr in self.pars_dict:
+        # Ensure pars_dict is initialized before accessing it
+        if "pars_dict" not in self.__dict__:
+            super(ModelComponent, self).__setattr__("pars_dict", {})
+
+        if attr in self.pars_dict:
             return self.pars_dict[attr].val
         else:
             # This will raise the expected AttributeError exception
             return super(ModelComponent, self).__getattribute__(attr)
 
     def __setattr__(self, attr, val):
+        # Ensure pars_dict is initialized before accessing it
+        if "pars_dict" not in self.__dict__:
+            super(ModelComponent, self).__setattr__("pars_dict", {})
+
         if attr in self.pars_dict:
             self.pars_dict[attr].val = val
         else:
