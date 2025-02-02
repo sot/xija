@@ -139,17 +139,15 @@ class FitWorker(object):
         ui.set_method(self.method)
         ui.get_method().config.update(sherpa_configs.get(self.method, {}))
         ui.load_user_model(CalcModel(self.model), "xijamod")  # sets global xijamod
-        xijamod = globals()["xijamod"]
         ui.add_user_pars("xijamod", self.model.parnames)
         ui.set_model(1, "xijamod")
         calc_stat = CalcStat(self.model, self.child_pipe, self.maxiter)
         ui.load_user_stat("xijastat", calc_stat, lambda x: np.ones_like(x))
-        xijastat = globals()["xijastat"]
-        ui.set_stat(xijastat)
+        ui.set_stat(xijastat)  # type: ignore  # noqa: F821, PGH003
 
         # Set frozen, min, and max attributes for each xijamod parameter
         for par in self.model.pars:
-            xijamod_par = getattr(xijamod, par.full_name)
+            xijamod_par = getattr(xijamod, par.full_name)  # type: ignore  # noqa: F821, PGH003
             xijamod_par.val = par.val
             xijamod_par.frozen = par.frozen
             xijamod_par.min = par.min
