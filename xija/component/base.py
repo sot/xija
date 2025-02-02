@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from functools import cached_property
+
 import numpy as np
 import six
 
@@ -45,15 +47,6 @@ class Param(dict):
 class ModelComponent(object):
     """Model component base class"""
 
-    def __new__(cls, *args, **kwargs):
-        instance = super(ModelComponent, cls).__new__(cls)
-        # This class overrides __setattr__ with a method that requires
-        # the `pars` and `pars_dict` attrs to be visible.  So do this
-        # with the super (object) method right away.
-        super(ModelComponent, instance).__setattr__("pars", [])
-        super(ModelComponent, instance).__setattr__("pars_dict", {})
-        return instance
-
     def __init__(self, model):
         self.model = model
         self.n_mvals = 0
@@ -61,8 +54,21 @@ class ModelComponent(object):
         self.data = None
         self.data_times = None
 
-    n_parvals = property(lambda self: len(self.parvals))
-    times = property(lambda self: self.model.times)
+    @cached_property
+    def pars(self):
+        return []
+
+    @cached_property
+    def pars_dict(self):
+        return {}
+
+    @property
+    def n_parvals(self):
+        return len(self.parvals)
+
+    @property
+    def times(self):
+        return self.model.times
 
     @property
     def model_plotdate(self):

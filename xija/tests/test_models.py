@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
+import pickle
 import tempfile
 from pathlib import Path
 
@@ -55,17 +56,13 @@ def test_dpa_real(as_path):
     assert np.allclose(dpa.mvals, regr["mvals"])
 
 
-def test_pitch_clip():
+def test_pitch_clip_and_pickle():
     """Pitch in this time range goes from 48.62 to 158.41.  dpa_clip.json
     has been modified so the solarheat pitch range is from 55 .. 153.
     Make sure the model still runs with no interpolation error.
 
-    Parameters
-    ----------
-
-    Returns
-    -------
-
+    Also since there is a model available, test that the model can be pickled.
+    See https://chandramission.slack.com/archives/G01LN40AXPG/p1738153692023699.
     """
     mdl = ThermalModel(
         "dpa",
@@ -77,6 +74,12 @@ def test_pitch_clip():
 
     mdl.make()
     mdl.calc()
+
+    # Test model can be pickled and unpickled and that the comps have same names.
+    mdl_pkl = pickle.loads(pickle.dumps(mdl))
+    for comp, comp_pkl in zip(mdl.comp.values(), mdl_pkl.comp.values(), strict=True):
+        assert comp.name == comp_pkl.name
+        assert comp.pars_dict.keys() == comp_pkl.pars_dict.keys()
 
 
 def test_pitch_range_clip():
