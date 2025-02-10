@@ -199,7 +199,7 @@ class FiltersWindow(QtWidgets.QWidget):
 
 
 class WriteTableWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window):
+    def __init__(self, model, main_window):  # noqa: PLR0915
         super(WriteTableWindow, self).__init__()
         self.model = model
         self.mw = main_window
@@ -282,7 +282,7 @@ class WriteTableWindow(QtWidgets.QWidget):
 
     def toggle_all_data(self, state):
         checked = state == QtCore.Qt.Checked
-        for i, box in enumerate(self.check_boxes):
+        for _i, box in enumerate(self.check_boxes):
             box.setChecked(checked)
 
     def change_start(self):
@@ -672,7 +672,7 @@ class PanelSlider(QtWidgets.QSlider):
 
     def slider_moved(self):
         val = self.get_value_from_step()
-        setattr(self.par, "val", val)
+        self.par.val = val
         self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(val))
         if self.update_plots:
             self.params_panel.plots_panel.update_plots()
@@ -745,7 +745,7 @@ class ParamsPanel(Panel):
 
 
 class ControlButtonsPanel(Panel):
-    def __init__(self, model):
+    def __init__(self, model):  # noqa: PLR0915
         Panel.__init__(self, orient="v")
 
         self.model = model
@@ -863,7 +863,7 @@ class MainRightPanel(Panel):
 class MainWindow:
     # This is a callback function. The data arguments are ignored
     # in this example. More on callbacks below.
-    def __init__(self, model, fit_worker, model_file):
+    def __init__(self, model, fit_worker, model_file):  # noqa: PLR0915
         import Ska.tdb
 
         self.model = model
@@ -871,11 +871,7 @@ class MainWindow:
         self.hist_msids = []
         for k, v in self.model.comp.items():
             if isinstance(v, Node):
-                if (
-                    k.startswith("fptemp")
-                    or k.startswith("tmp_fep")
-                    or k.startswith("tmp_bep")
-                ):
+                if k.startswith(("fptemp", "tmp_fep", "tmp_bep")):
                     self.hist_msids.append(k)
                 try:
                     Ska.tdb.msids[v.msid]
@@ -1200,7 +1196,7 @@ def get_options():
     return parser.parse_args()
 
 
-def main():
+def main():  # noqa: PLR0912, PLR0915
     # Enable fully-randomized evaluation of ACIS-FP model which is desirable
     # for fitting.
     taco.set_random_salt(None)
@@ -1245,11 +1241,13 @@ def main():
 
     set_data_vals = gui_config.get("set_data_vals", {})
     for set_data_expr in opt.set_data_exprs:
-        set_data_expr = re.sub(r"\s", "", set_data_expr)
+        set_data_expr = re.sub(r"\s", "", set_data_expr)  # noqa: PLW2901
         try:
             comp_name, val = set_data_expr.split("=")
         except ValueError:
-            raise ValueError("--set_data must be in form '<comp_name>=<value>'")
+            raise ValueError(
+                "--set_data must be in form '<comp_name>=<value>'"
+            ) from None
         # Set data to value.  ast.literal_eval is a safe way to convert any
         # string literal into the corresponding Python object.
         set_data_vals[comp_name] = ast.literal_eval(val)

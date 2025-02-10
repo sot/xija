@@ -9,7 +9,7 @@ try:
 except ImportError:
     pass
 
-from .. import tmal
+from xija import tmal
 
 
 class Param(dict):
@@ -114,8 +114,7 @@ class ModelComponent(object):
         for par in self.pars:
             if par.name == name:
                 return par
-        else:
-            raise ValueError('No par named "{}" in {}', self.__class__.__name__)
+        raise ValueError('No par named "{}" in {}', self.__class__.__name__)
 
     @property
     def name(self):

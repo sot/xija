@@ -3,20 +3,20 @@ import multiprocessing as mp
 import time
 
 import numpy as np
-import sherpa.ui as ui
+from sherpa import ui
 
 logging.basicConfig(level=logging.INFO)
 
 fit_logger = logging.getLogger("fit")
 
 # Default configurations for fit methods
-sherpa_configs = dict(
-    simplex=dict(
-        ftol=1e-3,
-        finalsimplex=0,  # converge based only on length of simplex
-        maxfev=None,
-    ),
-)
+sherpa_configs = {
+    "simplex": {
+        "ftol": 1e-3,
+        "finalsimplex": 0,  # converge based only on length of simplex
+        "maxfev": None,
+    },
+}
 
 
 class FitTerminated(Exception):
@@ -34,7 +34,7 @@ class CalcModel(object):
         """
         fit_logger.info("Calculating params:")
         for parname, parval, newparval in zip(
-            self.model.parnames, self.model.parvals, parvals
+            self.model.parnames, self.model.parvals, parvals, strict=False
         ):
             if parval != newparval:
                 fit_logger.info("  {0}: {1}".format(parname, newparval))
@@ -143,11 +143,11 @@ class FitWorker(object):
         ui.set_model(1, "xijamod")
         calc_stat = CalcStat(self.model, self.child_pipe, self.maxiter)
         ui.load_user_stat("xijastat", calc_stat, lambda x: np.ones_like(x))
-        ui.set_stat(xijastat)
+        ui.set_stat(xijastat)  # type: ignore  # noqa: F821, PGH003
 
         # Set frozen, min, and max attributes for each xijamod parameter
         for par in self.model.pars:
-            xijamod_par = getattr(xijamod, par.full_name)
+            xijamod_par = getattr(xijamod, par.full_name)  # type: ignore  # noqa: F821, PGH003
             xijamod_par.val = par.val
             xijamod_par.frozen = par.frozen
             xijamod_par.min = par.min

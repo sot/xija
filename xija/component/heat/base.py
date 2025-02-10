@@ -38,5 +38,3 @@ class ActiveHeatPower(ModelComponent):
     -------
 
     """
-
-    pass

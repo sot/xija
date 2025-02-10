@@ -2,6 +2,7 @@
 """
 Get Chandra model specifications
 """
+
 import contextlib
 import json
 import os

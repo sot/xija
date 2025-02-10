@@ -4,6 +4,7 @@ Xija - framework to model complex time-series data using a network of
 coupled nodes with pluggable model components that define the node
 interactions.
 """
+
 from __future__ import print_function
 
 import ctypes
@@ -228,7 +229,7 @@ class XijaModel(object):
         for comp in model_spec["comps"]:
             ComponentClass = getattr(component, comp["class_name"])
             args = comp["init_args"]
-            kwargs = dict((str(k), v) for k, v in comp["init_kwargs"].items())
+            kwargs = {str(k): v for k, v in comp["init_kwargs"].items()}
             self.add(ComponentClass, *args, **kwargs)
 
         pars = model_spec["pars"]
@@ -238,7 +239,7 @@ class XijaModel(object):
                     len(pars), len(self.pars)
                 )
             )
-        for par, specpar in zip(self.pars, pars):
+        for par, specpar in zip(self.pars, pars, strict=False):
             for attr in specpar:
                 setattr(par, attr, specpar[attr])
 
@@ -356,17 +357,16 @@ class XijaModel(object):
         -------
 
         """
+        import cheta.fetch_sci as fetch
+
         tpad = DEFAULT_DT * 5.0
         datestart = DateTime(self.tstart - tpad).date
         datestop = DateTime(self.tstop + tpad).date
-        logger.info("Fetching msid: %s over %s to %s" % (msid, datestart, datestop))
-        try:
-            import cheta.fetch_sci as fetch
 
-            tlm = fetch.MSID(msid, datestart, datestop, stat="5min")
-            tlm.filter_bad_times()
-        except ImportError:
-            raise ValueError("cheta.fetch not available")
+        logger.info("Fetching msid: %s over %s to %s" % (msid, datestart, datestop))
+        tlm = fetch.MSID(msid, datestart, datestop, stat="5min")
+        tlm.filter_bad_times()
+
         if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
             raise ValueError(
                 "Fetched telemetry does not span model start and "
@@ -489,17 +489,17 @@ class XijaModel(object):
         -------
 
         """
-        model_spec = dict(
-            name=self.name,
-            comps=[],
-            dt=self.dt,
-            datestart=self.datestart,
-            datestop=self.datestop,
-            tlm_code=None,
-            mval_names=[],
-            evolve_method=self.evolve_method,
-            rk4=self.rk4,
-        )
+        model_spec = {
+            "name": self.name,
+            "comps": [],
+            "dt": self.dt,
+            "datestart": self.datestart,
+            "datestop": self.datestop,
+            "tlm_code": None,
+            "mval_names": [],
+            "evolve_method": self.evolve_method,
+            "rk4": self.rk4,
+        }
 
         model_spec["bad_times"] = self.bad_times
 
@@ -510,14 +510,14 @@ class XijaModel(object):
         stringfy = lambda x: (str(x) if isinstance(x, component.ModelComponent) else x)
         for comp in self.comps:
             init_args = [stringfy(x) for x in comp.init_args]
-            init_kwargs = dict((k, stringfy(v)) for k, v in comp.init_kwargs.items())
+            init_kwargs = {k: stringfy(v) for k, v in comp.init_kwargs.items()}
             model_spec["comps"].append(
-                dict(
-                    class_name=comp.__class__.__name__,
-                    name=comp.name,
-                    init_args=init_args,
-                    init_kwargs=init_kwargs,
-                )
+                {
+                    "class_name": comp.__class__.__name__,
+                    "name": comp.name,
+                    "init_args": init_args,
+                    "init_kwargs": init_kwargs,
+                }
             )
         return model_spec
 
@@ -670,7 +670,7 @@ model = xija.XijaModel(
                     len(self.pars), len(vals)
                 )
             )
-        for par, val in zip(self.pars, vals):
+        for par, val in zip(self.pars, vals, strict=False):
             par.val = val
 
     parvals = property(_get_parvals, _set_parvals)

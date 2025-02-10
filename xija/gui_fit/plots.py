@@ -109,8 +109,8 @@ def getQuantPlotPoints(quantstats, quantile):
     type
         coordinates for error quantile line
 
-        This is used to calculate the quantile lines plotted on the telemetry vs. error plot (axis 3)
-        enclosing the data (i.e. the 1 and 99 percentile lines).
+        This is used to calculate the quantile lines plotted on the telemetry vs. error
+        plot (axis 3) enclosing the data (i.e. the 1 and 99 percentile lines).
 
     """
 
@@ -193,7 +193,7 @@ def annotate_limits(limits, ax, dir="h"):
 
 
 class HistogramWindow(QtWidgets.QWidget):
-    def __init__(self, model, hist_msids):
+    def __init__(self, model, hist_msids):  # noqa: PLR0915
         super(HistogramWindow, self).__init__()
         self.setGeometry(0, 0, 1000, 600)
         self.model = model
@@ -284,8 +284,8 @@ class HistogramWindow(QtWidgets.QWidget):
         self.ax1 = self.fig.add_subplot(1, 2, 1)
         self.ax2 = self.fig.add_subplot(1, 2, 2)
         self.plot_dict = {}
-        self.rz_mask
-        self.fmt1_mask
+        self.rz_mask  # noqa: B018
+        self.fmt1_mask  # noqa: B018
         self.make_plots()
 
     @property
@@ -381,7 +381,7 @@ class HistogramWindow(QtWidgets.QWidget):
 
         self.update_plots()
 
-    def update_plots(self):
+    def update_plots(self):  # noqa: PLR0915
         mask = np.ones_like(self.comp.resids, dtype="bool")
         if self.comp.mask:
             mask &= self.comp.mask.mask
@@ -678,7 +678,9 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def show_fills(self):
         model = self.plots_box.model
-        for (i0, i1), bad in zip(model.mask_times_indices, model.mask_times_bad):
+        for (i0, i1), bad in zip(
+            model.mask_times_indices, model.mask_times_bad, strict=False
+        ):
             t0, t1 = model.times[i0], model.times[i1]
             self.add_fill(t0, t1, bad)
 

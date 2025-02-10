@@ -96,10 +96,10 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             power_par_res = [par.name[4:].replace("x", ".") for par in self.power_pars]
 
             par_idxs = np.zeros(6612, dtype=np.int_) - 1
-            for fep_count in range(0, 7):
-                for ccd_count in range(0, 7):
-                    for vid_board in range(0, 2):
-                        for clocking in range(0, 2):
+            for fep_count in range(7):
+                for ccd_count in range(7):
+                    for vid_board in range(2):
+                        for clocking in range(2):
                             state = "{}{}{}{}".format(
                                 fep_count, ccd_count, vid_board, clocking
                             )

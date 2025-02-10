@@ -2,13 +2,8 @@
 
 import numpy as np
 import scipy.interpolate
-
-try:
-    import Ska.Numpy
-    from Chandra.Time import DateTime
-    from Ska.Matplotlib import plot_cxctime
-except ImportError:
-    pass
+import ska_numpy
+from chandra_time import DateTime
 
 from xija.component.base import ModelComponent
 from xija.component.heat.base import PrecomputedHeatPower
@@ -161,9 +156,9 @@ class SolarHeat(PrecomputedHeatPower):
 
         self.epoch = epoch
 
-        for pitch, power in zip(self.P_pitches, self.Ps):
+        for pitch, power in zip(self.P_pitches, self.Ps, strict=False):
             self.add_par("P_{0:.0f}".format(float(pitch)), power, min=-10.0, max=10.0)
-        for pitch, dpower in zip(self.dP_pitches, self.dPs):
+        for pitch, dpower in zip(self.dP_pitches, self.dPs, strict=False):
             self.add_par("dP_{0:.0f}".format(float(pitch)), dpower, min=-1.0, max=1.0)
         self.add_par("tau", tau, min=1000.0, max=3000.0)
         self.add_par("ampl", ampl, min=-1.0, max=1.0)
@@ -213,7 +208,7 @@ class SolarHeat(PrecomputedHeatPower):
             dPs_interp = np.interp(x=self.P_pitches, xp=self.dP_pitches, fp=dPs)
 
             Ps += dPs_interp * days / self.tau
-            for par, P in zip(self.pars, Ps):
+            for par, P in zip(self.pars, Ps, strict=False):
                 par.val = P
                 if P > par.max:
                     par.max = P
@@ -238,7 +233,6 @@ class SolarHeat(PrecomputedHeatPower):
 
     def dvals_post_hook(self):
         """Override this method to adjust self._dvals after main computation."""
-        pass
 
     def _compute_dvals(self):
         vf = self.var_func(self.t_days, self.tau)
@@ -623,9 +617,9 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
                     max=10.0,
                 )
 
-        for j, pitch in enumerate(self.dPs):
+        for j, pitch in enumerate(self.dP_pitches):
             self.add_par(
-                "dP_{0:d}".format(int(self.dP_pitches[j])),
+                "dP_{0:d}".format(int(pitch)),
                 self.dPs[j],
                 min=-1.0,
                 max=1.0,
@@ -666,7 +660,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         dPs = self.parvals[
             self.n_instr * self.n_p : (self.n_instr * self.n_p + self.n_dp)
         ]
-        dP_vals = Ska.Numpy.interpolate(dPs, self.dP_pitches, self.pitches)
+        dP_vals = ska_numpy.interpolate(dPs, self.dP_pitches, self.pitches)
         d_heat = (
             dP_vals * self.var_func(self.t_days, self.tau)
             + self.ampl * np.cos(self.t_phase)
@@ -674,7 +668,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
 
         for i in range(self.n_instr):
             P_vals = self.parvals[i * self.n_p : (i + 1) * self.n_p]
-            heat = Ska.Numpy.interpolate(P_vals, self.P_pitches, self.pitches)
+            heat = ska_numpy.interpolate(P_vals, self.P_pitches, self.pitches)
             heats.append(heat + d_heat)
 
         self.heats = np.vstack(heats)

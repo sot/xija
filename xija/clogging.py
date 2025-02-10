@@ -1,12 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import logging
 import sys
-from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING  # noqa: F401
 
 
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
+
+
+# TODO: replace calls to this with ska_helpers.logging.basic_config()
 
 
 def config_logger(

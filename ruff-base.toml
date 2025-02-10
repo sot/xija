@@ -1,0 +1,60 @@
+target-version = "py312"
+
+# fix = true
+lint.unfixable = []
+
+lint.select = [
+  "I", # isort
+  "F", # pyflakes
+  "E", "W", # pycodestyle
+  "YTT", # flake8-2020
+  "B", # flake8-bugbear
+  "Q", # flake8-quotes
+  "T10", # flake8-debugger
+  "INT", # flake8-gettext
+  "PLC", "PLE", "PLR", "PLW", # pylint
+  "PIE", # misc lints
+  "PYI", # flake8-pyi
+  "TID", # tidy imports
+  "ISC", # implicit string concatenation
+  "TCH", # type-checking imports
+  "C4", # comprehensions
+  "PGH" # pygrep-hooks
+]
+
+# Some additional rules that are useful
+lint.extend-select = [
+"UP009",  # UTF-8 encoding declaration is unnecessary
+"SIM118",  # Use `key in dict` instead of `key in dict.keys()`
+"D205",  # One blank line required between summary line and description
+"ARG001",  # Unused function argument
+"RSE102",  # Unnecessary parentheses on raised exception
+"PERF401",  # Use a list comprehension to create a transformed list
+"S101",  # Use of `assert` detected
+]
+
+lint.ignore = [
+  "ISC001", # Disable this for compatibility with ruff format
+  "E402", # module level import not at top of file
+  "E731", # do not assign a lambda expression, use a def
+  "PLR2004", # Magic number
+  "B028", # No explicit `stacklevel` keyword argument found
+  "PLR0913", # Too many arguments to function call
+  "PLR1730", # Checks for if statements that can be replaced with min() or max() calls
+]
+
+extend-exclude = [
+  "docs",
+]
+
+[lint.pycodestyle]
+max-line-length = 100 # E501 reports lines that exceed the length of 100.
+
+[lint.extend-per-file-ignores]
+"__init__.py" = ["E402", "F401", "F403"]
+# For tests:
+# - D205: Don't worry about test docstrings
+# - ARG001: Unused function argument false positives for some fixtures
+# - E501: Line-too-long
+# - S101: Do not use assert
+"**/tests/test_*.py" = ["D205", "ARG001", "E501", "S101"]
