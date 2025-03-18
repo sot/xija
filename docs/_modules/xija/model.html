@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.model &#8212; xija 4.33.1 documentation</title>
+    <title>xija.model &#8212; xija 4.33.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script src="../../_static/documentation_options.js?v=81745f2e"></script>
+    <script src="../../_static/documentation_options.js?v=b68cd544"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
@@ -44,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.33.1 documentation</a>
+	<a href="../../index.html">xija 4.33.2 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -66,6 +66,7 @@
 <span class="sd">coupled nodes with pluggable model components that define the node</span>
 <span class="sd">interactions.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 
 <span class="kn">import</span> <span class="nn">ctypes</span>
@@ -295,7 +296,7 @@
         <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">model_spec</span><span class="p">[</span><span class="s2">&quot;comps&quot;</span><span class="p">]:</span>
             <span class="n">ComponentClass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">comp</span><span class="p">[</span><span class="s2">&quot;class_name&quot;</span><span class="p">])</span>
             <span class="n">args</span> <span class="o">=</span> <span class="n">comp</span><span class="p">[</span><span class="s2">&quot;init_args&quot;</span><span class="p">]</span>
-            <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comp</span><span class="p">[</span><span class="s2">&quot;init_kwargs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comp</span><span class="p">[</span><span class="s2">&quot;init_kwargs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ComponentClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">pars</span> <span class="o">=</span> <span class="n">model_spec</span><span class="p">[</span><span class="s2">&quot;pars&quot;</span><span class="p">]</span>
@@ -305,7 +306,7 @@
                     <span class="nb">len</span><span class="p">(</span><span class="n">pars</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="p">)</span>
-        <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">specpar</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">,</span> <span class="n">pars</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">specpar</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">,</span> <span class="n">pars</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">specpar</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">specpar</span><span class="p">[</span><span class="n">attr</span><span class="p">])</span>
 
@@ -428,17 +429,16 @@
 <span class="sd">        -------</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">cheta.fetch_sci</span> <span class="k">as</span> <span class="nn">fetch</span>
+
         <span class="n">tpad</span> <span class="o">=</span> <span class="n">DEFAULT_DT</span> <span class="o">*</span> <span class="mf">5.0</span>
         <span class="n">datestart</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="o">-</span> <span class="n">tpad</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
         <span class="n">datestop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstop</span> <span class="o">+</span> <span class="n">tpad</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching msid: </span><span class="si">%s</span><span class="s2"> over </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">))</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">cheta.fetch_sci</span> <span class="k">as</span> <span class="nn">fetch</span>
 
-            <span class="n">tlm</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">MSID</span><span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;5min&quot;</span><span class="p">)</span>
-            <span class="n">tlm</span><span class="o">.</span><span class="n">filter_bad_times</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cheta.fetch not available&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching msid: </span><span class="si">%s</span><span class="s2"> over </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">))</span>
+        <span class="n">tlm</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">MSID</span><span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;5min&quot;</span><span class="p">)</span>
+        <span class="n">tlm</span><span class="o">.</span><span class="n">filter_bad_times</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="ow">or</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstop</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Fetched telemetry does not span model start and &quot;</span>
@@ -571,17 +571,17 @@
 <span class="sd">        -------</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">model_spec</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">comps</span><span class="o">=</span><span class="p">[],</span>
-            <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
-            <span class="n">datestart</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datestart</span><span class="p">,</span>
-            <span class="n">datestop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datestop</span><span class="p">,</span>
-            <span class="n">tlm_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">mval_names</span><span class="o">=</span><span class="p">[],</span>
-            <span class="n">evolve_method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evolve_method</span><span class="p">,</span>
-            <span class="n">rk4</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rk4</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="n">model_spec</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;comps&quot;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span>
+            <span class="s2">&quot;datestart&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">datestart</span><span class="p">,</span>
+            <span class="s2">&quot;datestop&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">datestop</span><span class="p">,</span>
+            <span class="s2">&quot;tlm_code&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;mval_names&quot;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">&quot;evolve_method&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">evolve_method</span><span class="p">,</span>
+            <span class="s2">&quot;rk4&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rk4</span><span class="p">,</span>
+        <span class="p">}</span>
 
         <span class="n">model_spec</span><span class="p">[</span><span class="s2">&quot;bad_times&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span>
 
@@ -592,14 +592,14 @@
         <span class="n">stringfy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">ModelComponent</span><span class="p">)</span> <span class="k">else</span> <span class="n">x</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span><span class="p">:</span>
             <span class="n">init_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">stringfy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">init_args</span><span class="p">]</span>
-            <span class="n">init_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">stringfy</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">init_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">init_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">stringfy</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">init_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
             <span class="n">model_spec</span><span class="p">[</span><span class="s2">&quot;comps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">class_name</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                    <span class="n">name</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                    <span class="n">init_args</span><span class="o">=</span><span class="n">init_args</span><span class="p">,</span>
-                    <span class="n">init_kwargs</span><span class="o">=</span><span class="n">init_kwargs</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;class_name&quot;</span><span class="p">:</span> <span class="n">comp</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">comp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s2">&quot;init_args&quot;</span><span class="p">:</span> <span class="n">init_args</span><span class="p">,</span>
+                    <span class="s2">&quot;init_kwargs&quot;</span><span class="p">:</span> <span class="n">init_kwargs</span><span class="p">,</span>
+                <span class="p">}</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">model_spec</span>
 
@@ -761,7 +761,7 @@
                     <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="p">)</span>
-        <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="n">par</span><span class="o">.</span><span class="n">val</span> <span class="o">=</span> <span class="n">val</span>
 
     <span class="n">parvals</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_parvals</span><span class="p">,</span> <span class="n">_set_parvals</span><span class="p">)</span>

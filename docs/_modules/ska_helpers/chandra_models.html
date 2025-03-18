@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ska_helpers.chandra_models &#8212; xija 4.33.1 documentation</title>
+    <title>ska_helpers.chandra_models &#8212; xija 4.33.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script src="../../_static/documentation_options.js?v=81745f2e"></script>
+    <script src="../../_static/documentation_options.js?v=b68cd544"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
@@ -44,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.33.1 documentation</a>
+	<a href="../../index.html">xija 4.33.2 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -363,7 +363,7 @@
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">version</span> <span class="o">!=</span> <span class="n">gh_version</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;version mismatch: local repo </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2"> vs &quot;</span> <span class="sa">f</span><span class="s2">&quot;github </span><span class="si">{</span><span class="n">gh_version</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;version mismatch: local repo </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2"> vs github </span><span class="si">{</span><span class="n">gh_version</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
 
@@ -403,7 +403,7 @@
 <a class="viewcode-back" href="../../api.html#xija.get_model_spec.get_github_version">[docs]</a>
 <span class="k">def</span> <span class="nf">get_github_version</span><span class="p">(</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CHANDRA_MODELS_LATEST_URL</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get latest chandra_models GitHub repo release tag (version).</span>
 
 <span class="sd">    This queries GitHub for the latest release of chandra_models.</span>
