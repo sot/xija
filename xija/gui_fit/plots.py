@@ -472,10 +472,10 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict["50_2"].set_data(Epoints50, tmid)
 
             self.plot_dict["step"].set_data(bin_mid, hist)
-            self.plot_dict["q01"].set_xdata(stats["q01"])
-            self.plot_dict["q99"].set_xdata(stats["q99"])
-            self.plot_dict["min_hist"].set_xdata(min_resid)
-            self.plot_dict["max_hist"].set_xdata(max_resid)
+            self.plot_dict["q01"].set_xdata([stats["q01"]])
+            self.plot_dict["q99"].set_xdata([stats["q99"]])
+            self.plot_dict["min_hist"].set_xdata([min_resid])
+            self.plot_dict["max_hist"].set_xdata([max_resid])
             self.plot_dict["fill"].remove()
 
         self.ax1.set_xlim(*self._errorlimits)
@@ -618,7 +618,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def update_xline(self):
         if self.plot_name.endswith("time") and self.ly is not None:
-            self.ly.set_xdata(self.plots_box.xline)
+            self.ly.set_xdata([self.plots_box.xline])
             self.fig.canvas.draw_idle()
 
     _rz_times = None
