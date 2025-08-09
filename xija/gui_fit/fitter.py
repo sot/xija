@@ -70,6 +70,7 @@ class CalcStat:
             "time": time.time(),
             "parvals": self.model.parvals,
             "fit_stat": fit_stat,
+            "niter": self.niter,
             "min_parvals": self.min_parvals,
             "min_fit_stat": self.min_fit_stat,
         }

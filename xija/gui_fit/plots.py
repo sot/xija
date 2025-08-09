@@ -192,6 +192,61 @@ def annotate_limits(limits, ax, dir="h"):
     return lines
 
 
+class FitStatWindow(QtWidgets.QWidget):
+    def __init__(self, main_window):
+        super(FitStatWindow, self).__init__()
+        self.setGeometry(0, 0, 1000, 600)
+        self.setWindowTitle("Fit Statistic vs. Iteration")
+        self.box = QtWidgets.QVBoxLayout()
+        self.setLayout(self.box)
+        self.main_window = main_window
+ 
+        self.fig = Figure()
+
+        canvas = FigureCanvas(self.fig)
+        toolbar = NavigationToolbar(canvas, parent=None)
+
+        toolbar_box = QtWidgets.QHBoxLayout()
+        toolbar_box.addWidget(toolbar)
+        toolbar_box.addStretch(1)
+
+        redraw_button = QtWidgets.QPushButton("Redraw")
+        redraw_button.clicked.connect(self.update_plot)
+
+        close_button = QtWidgets.QPushButton("Close")
+        close_button.clicked.connect(self.close_window)
+
+        toolbar_box.addWidget(redraw_button)
+        toolbar_box.addWidget(close_button)
+        self.box.addWidget(canvas)
+        self.box.addLayout(toolbar_box)
+
+        self.stat_line = None
+
+        self.ax = self.fig.add_subplot(111)
+
+        self.update_plot()
+
+    def update_plot(self):
+        """Update the plot with the current fit statistics."""
+        if not self.stat_line:
+            self.stat_line = self.ax.plot(self.main_window.niter_hist, self.main_window.fit_stat_hist)[0]
+            self.ax.set_xlabel("# of Iterations")
+            self.ax.set_ylabel("Fit Statistic")
+        else:
+            self.stat_line.set_data(
+                self.main_window.niter_hist, self.main_window.fit_stat_hist
+            )
+            self.ax.relim()  # Recompute data limits for the Axes
+            self.ax.autoscale_view()  # Rescale view to the new limits
+
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
+
+    def close_window(self, *args):
+        self.close()
+
+
 class HistogramWindow(QtWidgets.QWidget):
     def __init__(self, model, hist_msids):  # noqa: PLR0915
         super(HistogramWindow, self).__init__()

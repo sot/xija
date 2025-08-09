@@ -23,7 +23,7 @@ from xija.component.base import Node, TelemData
 from xija.get_model_spec import get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
-from .plots import HistogramWindow, PlotsBox
+from .plots import HistogramWindow, PlotsBox, FitStatWindow
 
 gui_config = {}
 
@@ -969,12 +969,15 @@ class MainWindow:
         self.hist_action = QtWidgets.QAction("&Histogram...", self.mwindow)
         self.filt_action = QtWidgets.QAction("&Filters...", self.mwindow)
         self.table_action = QtWidgets.QAction("&Write Table...", self.mwindow)
+        self.stat_action = QtWidgets.QAction("&Fit Statistic...", self.mwindow)
         self.hist_action.triggered.connect(self.make_histogram)
         self.filt_action.triggered.connect(self.filters)
         self.table_action.triggered.connect(self.write_table)
+        self.stat_action.triggered.connect(self.show_fitstat)
         util_menu.addAction(self.hist_action)
         util_menu.addAction(self.filt_action)
         util_menu.addAction(self.table_action)
+        util_menu.addAction(self.stat_action)
         self.mwindow.setMenuBar(menu_bar)
 
         self.cbp = mlp.control_buttons_panel
@@ -1017,7 +1020,8 @@ class MainWindow:
         self.mwindow.show()
         self.hist_window = None
         self.model_info_window = None
-
+        self.stat_window = None
+        
     @property
     def model_spec(self):
         ms = self.model.model_spec
@@ -1068,6 +1072,8 @@ class MainWindow:
         }
 
         self.fmt_telem_data = FormattedTelemData(self.telem_data)
+        self.niter_hist = np.array([], dtype=int)
+        self.fit_stat_hist = np.array([])
 
     def reset_model(self, new_start, new_stop):
         model = xija.ThermalModel(self.model.model_spec["name"], new_start,
@@ -1102,6 +1108,10 @@ class MainWindow:
     def make_histogram(self):
         self.hist_window = HistogramWindow(self.model, self.hist_msids)
         self.hist_window.show()
+
+    def show_fitstat(self):
+        self.stat_window = FitStatWindow(self)
+        self.stat_window.show()
 
     def plot_limits(self, state):
         self.show_limits = state == QtCore.Qt.Checked
@@ -1154,6 +1164,11 @@ class MainWindow:
         if msg:
             # Update the fit_worker model parameters and then the corresponding
             # params table widget.
+            niters = np.array(msg["niter"])
+            if len(self.niter_hist) > 0:
+                niters += self.niter_hist[-1] + 1
+            self.niter_hist = np.append(self.niter_hist, niters)
+            self.fit_stat_hist = np.append(self.fit_stat_hist, msg["fit_stat"])
             self.fit_worker.model.parvals = msg["parvals"]
             self.main_right_panel.params_panel.update()
             self.main_left_panel.plots_box.update_plots()
