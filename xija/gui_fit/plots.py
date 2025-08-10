@@ -210,14 +210,24 @@ class FitStatWindow(QtWidgets.QWidget):
         toolbar_box.addWidget(toolbar)
         toolbar_box.addStretch(1)
 
+        linlog_button = QtWidgets.QComboBox()
+        linlog_button.addItem("linear")
+        linlog_button.addItem("logarithmic")
+        linlog_button.activated[str].connect(self.change_yscale)
+
         redraw_button = QtWidgets.QPushButton("Redraw")
         redraw_button.clicked.connect(self.update_plot)
 
         close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close_window)
 
+        linlog_label = QtWidgets.QLabel("Y-scale")
+        
+        toolbar_box.addWidget(linlog_label)
+        toolbar_box.addWidget(linlog_button)
         toolbar_box.addWidget(redraw_button)
         toolbar_box.addWidget(close_button)
+
         self.box.addWidget(canvas)
         self.box.addLayout(toolbar_box)
 
@@ -226,6 +236,14 @@ class FitStatWindow(QtWidgets.QWidget):
         self.ax = self.fig.add_subplot(111)
 
         self.update_plot()
+
+    def change_yscale(self, scale):
+        if scale == "linear":
+            self.ax.set_yscale("linear")
+        else:
+            self.ax.set_yscale("log")
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
 
     def update_plot(self):
         """Update the plot with the current fit statistics."""
