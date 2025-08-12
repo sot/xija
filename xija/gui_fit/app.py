@@ -82,7 +82,7 @@ class FormattedTelemData:
 
 
 class FiltersWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window):
+    def __init__(self, main_window):
         super().__init__()
         self.mw = main_window
         self.setWindowTitle("Filters")
@@ -198,7 +198,7 @@ class FiltersWindow(QtWidgets.QWidget):
 
 
 class ChangeTimesWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window):
+    def __init__(self, main_window):
         super().__init__()
         self.mw = main_window
         self.setWindowTitle("Change Times")
@@ -241,7 +241,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
             t0, t1 = CxoTime(lim).secs
             if t0 > t1:
                 err_msg = "Time stop is earlier than time start!"
-        except (IndexError, ValueError) as e:
+        except (IndexError, ValueError):
             if len(vals) == 2:
                 err_msg = f"Invalid input for time change: {vals[0]} {vals[1]}"
             else:
@@ -261,7 +261,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
 
 
 class WriteTableWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window):  # noqa: PLR0915
+    def __init__(self, main_window):  # noqa: PLR0915
         super().__init__()
         self.mw = main_window
         self.setWindowTitle("Write Table")
@@ -484,7 +484,7 @@ class ModelInfoWindow(QtWidgets.QWidget):
 
 
 class LineDataWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window, plots_box):
+    def __init__(self, main_window, plots_box):
         super().__init__()
         self.setWindowTitle("Line Data")
         self.box = QtWidgets.QVBoxLayout()
@@ -899,7 +899,7 @@ class MainRightPanel(Panel):
 
 
 class MainWindow:
-    def __init__(self, model, fit_worker, model_file):  # noqa: PLR0915
+    def __init__(self, model, fit_worker):  # noqa: PLR0915
         import Ska.tdb
 
         self.model = model
@@ -1088,15 +1088,15 @@ class MainWindow:
         self.fit_worker.model = model
 
     def change_times(self):
-        self.change_times_window = ChangeTimesWindow(self.model, self)
+        self.change_times_window = ChangeTimesWindow(self)
         self.change_times_window.show()
 
     def write_table(self):
-        self.write_table_window = WriteTableWindow(self.model, self)
+        self.write_table_window = WriteTableWindow(self)
         self.write_table_window.show()
 
     def filters(self):
-        self.filters_window = FiltersWindow(self.model, self)
+        self.filters_window = FiltersWindow(self)
         self.filters_window.show()
 
     def model_info(self):
@@ -1123,7 +1123,7 @@ class MainWindow:
         self.main_left_panel.plots_box.update_plots()
         if self.show_line:
             self.line_data_window = LineDataWindow(
-                self.model, self, self.main_left_panel.plots_box
+                self, self.main_left_panel.plots_box
             )
             self.plots_box.add_annotations("line")
             self.line_data_window.show()
@@ -1405,7 +1405,7 @@ def main():  # noqa: PLR0912, PLR0915
     icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
     app.setApplicationName("xija_gui_fit")
-    MainWindow(model, fit_worker, opt.filename)
+    MainWindow(model, fit_worker)
     app.setStyleSheet("""
         QMenu {font-size: 15px}
         QMenu QWidget {font-size: 15px}
