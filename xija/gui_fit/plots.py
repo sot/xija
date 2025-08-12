@@ -200,7 +200,7 @@ class FitStatWindow(QtWidgets.QWidget):
         self.box = QtWidgets.QVBoxLayout()
         self.setLayout(self.box)
         self.main_window = main_window
- 
+
         self.fig = Figure()
 
         canvas = FigureCanvas(self.fig)
@@ -222,7 +222,7 @@ class FitStatWindow(QtWidgets.QWidget):
         close_button.clicked.connect(self.close_window)
 
         linlog_label = QtWidgets.QLabel("Y-scale")
-        
+
         toolbar_box.addWidget(linlog_label)
         toolbar_box.addWidget(linlog_button)
         toolbar_box.addWidget(redraw_button)
@@ -248,7 +248,9 @@ class FitStatWindow(QtWidgets.QWidget):
     def update_plot(self):
         """Update the plot with the current fit statistics."""
         if not self.stat_line:
-            self.stat_line = self.ax.plot(self.main_window.niter_hist, self.main_window.fit_stat_hist)[0]
+            self.stat_line = self.ax.plot(
+                self.main_window.niter_hist, self.main_window.fit_stat_hist
+            )[0]
             self.ax.set_xlabel("# of Iterations")
             self.ax.set_ylabel("Fit Statistic")
         else:
@@ -629,11 +631,13 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         self.fig = Figure()
         canvas = FigureCanvas(self.fig)
-        # The next two lines make sure that the canvas doesn't 
+        # The next two lines make sure that the canvas doesn't
         # shrink as we add more plots--instead the parent layout
         # scrolls
-        canvas.setMinimumHeight(280)  
-        canvas.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        canvas.setMinimumHeight(280)
+        canvas.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
 
         toolbar = NavigationToolbar(canvas, parent=None)
         delete_plot_button = QtWidgets.QPushButton("Delete")

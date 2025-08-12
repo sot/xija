@@ -23,7 +23,7 @@ from xija.component.base import Node, TelemData
 from xija.get_model_spec import get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
-from .plots import HistogramWindow, PlotsBox, FitStatWindow
+from .plots import FitStatWindow, HistogramWindow, PlotsBox
 
 gui_config = {}
 
@@ -245,9 +245,8 @@ class ChangeTimesWindow(QtWidgets.QWidget):
             if len(vals) == 2:
                 err_msg = f"Invalid input for time change: {vals[0]} {vals[1]}"
             else:
-                err_msg = (
-                    "Changing model times requires two arguments, the start time and the stop time."
-                )
+                err_msg = ("Changing model times requires two "
+                           "arguments, the start time and the stop time.")
         if len(err_msg) > 0:
             raise_error_box("Change Time Error", err_msg)
         else:
@@ -889,11 +888,17 @@ class MainLeftPanel(Panel):
         # want it to be scrollable
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
-        self.scroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.scroll.setFrameShape(QtWidgets.QFrame.NoFrame)  # optional, just looks nicer
+        self.scroll.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
+        self.scroll.setFrameShape(
+            QtWidgets.QFrame.NoFrame
+        )  # optional, just looks nicer
         container = QtWidgets.QWidget()
-        container.setLayout(self.plots_box)  
-        container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        container.setLayout(self.plots_box)
+        container.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
+        )
         self.scroll.setWidget(container)
         self.box.addWidget(self.scroll, 1)
 
@@ -1028,7 +1033,7 @@ class MainWindow:
         self.hist_window = None
         self.model_info_window = None
         self.stat_window = None
-        
+
     @property
     def model_spec(self):
         ms = self.model.model_spec
@@ -1054,16 +1059,13 @@ class MainWindow:
 
     def _init_model(self, model, reset=False):
         import Ska.tdb
+
         self.model = model
         if not reset:
             self.hist_msids = []
             for k, v in self.model.comp.items():
                 if isinstance(v, Node):
-                    if (
-                        k.startswith("fptemp")
-                        or k.startswith("tmp_fep")
-                        or k.startswith("tmp_bep")
-                    ):
+                    if k.startswith(("fptemp", "tmp_fep", "tmp_bep")):
                         self.hist_msids.append(k)
                     try:
                         Ska.tdb.msids[v.msid]
@@ -1083,8 +1085,12 @@ class MainWindow:
         self.fit_stat_hist = np.array([])
 
     def reset_model(self, new_start, new_stop):
-        model = xija.ThermalModel(self.model.model_spec["name"], new_start,
-                                  new_stop, model_spec=self.model.model_spec)
+        model = xija.ThermalModel(
+            self.model.model_spec["name"],
+            new_start,
+            new_stop,
+            model_spec=self.model.model_spec,
+        )
 
         for comp_name, val in gui_config["set_data_vals"].items():
             model.comp[comp_name].set_data(val)
@@ -1131,9 +1137,7 @@ class MainWindow:
         self.show_line = state == QtCore.Qt.Checked
         self.main_left_panel.plots_box.update_plots()
         if self.show_line:
-            self.line_data_window = LineDataWindow(
-                self, self.main_left_panel.plots_box
-            )
+            self.line_data_window = LineDataWindow(self, self.main_left_panel.plots_box)
             self.plots_box.add_annotations("line")
             self.line_data_window.show()
         else:
