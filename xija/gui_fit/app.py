@@ -899,8 +899,6 @@ class MainRightPanel(Panel):
 
 
 class MainWindow:
-    # This is a callback function. The data arguments are ignored
-    # in this example. More on callbacks below.
     def __init__(self, model, fit_worker, model_file):  # noqa: PLR0915
         import Ska.tdb
 
