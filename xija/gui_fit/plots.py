@@ -194,7 +194,7 @@ def annotate_limits(limits, ax, dir="h"):
 
 class FitStatWindow(QtWidgets.QWidget):
     def __init__(self, main_window):
-        super(FitStatWindow, self).__init__()
+        super().__init__()
         self.setGeometry(0, 0, 1000, 600)
         self.setWindowTitle("Fit Statistic vs. Iteration")
         self.box = QtWidgets.QVBoxLayout()
@@ -267,7 +267,7 @@ class FitStatWindow(QtWidgets.QWidget):
 
 class HistogramWindow(QtWidgets.QWidget):
     def __init__(self, model, hist_msids):  # noqa: PLR0915
-        super(HistogramWindow, self).__init__()
+        super().__init__()
         self.setGeometry(0, 0, 1000, 600)
         self.model = model
         self.hist_msids = hist_msids
@@ -619,7 +619,7 @@ class HistogramWindow(QtWidgets.QWidget):
 
 class PlotBox(QtWidgets.QVBoxLayout):
     def __init__(self, plot_name, plots_box):
-        super(PlotBox, self).__init__()
+        super().__init__()
 
         comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
         self.comp = plots_box.model.comp[comp_name]
@@ -785,7 +785,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
 class PlotsBox(QtWidgets.QVBoxLayout):
     def __init__(self, model, main_window):
-        super(QtWidgets.QVBoxLayout, self).__init__()
+        super().__init__()
         self.main_window = main_window
         self.model = model
         self.plot_boxes = []

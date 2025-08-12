@@ -83,7 +83,7 @@ class FormattedTelemData:
 
 class FiltersWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
-        super(FiltersWindow, self).__init__()
+        super().__init__()
         self.mw = main_window
         self.setWindowTitle("Filters")
 
@@ -199,7 +199,7 @@ class FiltersWindow(QtWidgets.QWidget):
 
 class ChangeTimesWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
-        super(ChangeTimesWindow, self).__init__()
+        super().__init__()
         self.mw = main_window
         self.setWindowTitle("Change Times")
 
@@ -262,7 +262,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
 
 class WriteTableWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):  # noqa: PLR0915
-        super(WriteTableWindow, self).__init__()
+        super().__init__()
         self.mw = main_window
         self.setWindowTitle("Write Table")
         self.box = QtWidgets.QVBoxLayout()
@@ -412,7 +412,7 @@ class WriteTableWindow(QtWidgets.QWidget):
 
 class ModelInfoWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
-        super(ModelInfoWindow, self).__init__()
+        super().__init__()
         self.setWindowTitle("Model Info")
         self.box = QtWidgets.QVBoxLayout()
         self.setLayout(self.box)
@@ -485,7 +485,7 @@ class ModelInfoWindow(QtWidgets.QWidget):
 
 class LineDataWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window, plots_box):
-        super(LineDataWindow, self).__init__()
+        super().__init__()
         self.setWindowTitle("Line Data")
         self.box = QtWidgets.QVBoxLayout()
         self.setLayout(self.box)
@@ -594,7 +594,7 @@ class Panel:
 
 class PanelCheckBox(QtWidgets.QCheckBox):
     def __init__(self, par, main_window):
-        super(PanelCheckBox, self).__init__()
+        super().__init__()
         self.par = par
         self.main_window = main_window
 
@@ -608,7 +608,7 @@ class PanelCheckBox(QtWidgets.QCheckBox):
 
 class PanelText(QtWidgets.QLineEdit):
     def __init__(self, params_panel, row, par, attr, slider):
-        super(PanelText, self).__init__()
+        super().__init__()
         self.par = par
         self.row = row
         self.attr = attr
@@ -692,7 +692,7 @@ class PanelParam:
 
 class PanelSlider(QtWidgets.QSlider):
     def __init__(self, params_panel, par, row):
-        super(PanelSlider, self).__init__(QtCore.Qt.Horizontal)
+        super().__init__(QtCore.Qt.Horizontal)
         self.par = par
         self.row = row
         self.params_panel = params_panel
