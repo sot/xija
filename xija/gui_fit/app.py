@@ -885,8 +885,17 @@ class MainLeftPanel(Panel):
         self.control_buttons_panel = ControlButtonsPanel(model)
         self.plots_box = PlotsBox(model, main_window)
         self.pack_start(self.control_buttons_panel)
-        self.pack_start(self.plots_box)
-        self.add_stretch(1)
+        # This specialized code is for the PlotsBox because we
+        # want it to be scrollable
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.scroll.setFrameShape(QtWidgets.QFrame.NoFrame)  # optional, just looks nicer
+        container = QtWidgets.QWidget()
+        container.setLayout(self.plots_box)  
+        container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.scroll.setWidget(container)
+        self.box.addWidget(self.scroll, 1)
 
 
 class MainRightPanel(Panel):

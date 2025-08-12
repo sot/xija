@@ -629,6 +629,12 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
         self.fig = Figure()
         canvas = FigureCanvas(self.fig)
+        # The next two lines make sure that the canvas doesn't 
+        # shrink as we add more plots--instead the parent layout
+        # scrolls
+        canvas.setMinimumHeight(280)  
+        canvas.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+
         toolbar = NavigationToolbar(canvas, parent=None)
         delete_plot_button = QtWidgets.QPushButton("Delete")
         delete_plot_button.clicked.connect(
