@@ -744,7 +744,7 @@ class ParamsPanel(Panel):
 
         params_table = WidgetTable(
             n_rows=len(self.pars),
-            colnames=["fit", "name", "val", "min", "", "max"],
+            colnames=["fit", "name", "val", "min", "range", "max"],
             colwidths={0: 30, 1: 250},
             show_header=True,
         )
