@@ -1,4 +1,5 @@
 import functools
+import re
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -187,6 +188,9 @@ def annotate_limits(limits, ax, dir="h"):
         convert = lambda x: x
     for limit in limits:
         if limit == "unit":
+            continue
+        if re.search("data_quality.high.acis[is]", limit):
+            # Skip old limits in ACIS FP model
             continue
         lines.append(draw_line(convert(limits[limit]), color=get_limit_color(limit)))
     return lines
