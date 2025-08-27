@@ -247,7 +247,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
     def days_changed(self):
         try:
             days = float(self.days_text.text())
-            if days < 0.0:
+            if days <= 0.0:
                 raise ValueError
             stop = CxoTime(self.stop_text.text())
             start = stop - days * u.day
@@ -263,7 +263,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
             start = CxoTime(self.start_text.text())
             stop = CxoTime(self.stop_text.text())
             dt = stop-start
-            if dt < zero_days:
+            if dt <= zero_days:
                 raise ValueError
             self.sender().setStyleSheet("color: black;")
             self.days_text.setStyleSheet("color: black;")
