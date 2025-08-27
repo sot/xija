@@ -247,13 +247,13 @@ class ChangeTimesWindow(QtWidgets.QWidget):
     def days_changed(self):
         try:
             days = float(self.days_text.text())
-            if days <= 0.0:
-                raise ValueError
             stop = CxoTime(self.stop_text.text())
             start = stop - days * u.day
+            self.start_text.setText(start.yday)
+            if days <= 0.0:
+                raise ValueError
             self.days_text.setStyleSheet("color: black;")
             self.start_text.setStyleSheet("color: black;")
-            self.start_text.setText(start.yday)
         except ValueError:
             self.days_text.setStyleSheet("color: red;")
             self.start_text.setStyleSheet("color: red;")
@@ -263,11 +263,11 @@ class ChangeTimesWindow(QtWidgets.QWidget):
             start = CxoTime(self.start_text.text())
             stop = CxoTime(self.stop_text.text())
             dt = stop-start
+            self.days_text.setText(str(dt.jd))
             if dt <= zero_days:
                 raise ValueError
             self.sender().setStyleSheet("color: black;")
             self.days_text.setStyleSheet("color: black;")
-            self.days_text.setText(str(dt.jd))
         except ValueError:
             self.sender().setStyleSheet("color: red;")
             self.days_text.setStyleSheet("color: red;")
@@ -280,12 +280,8 @@ class ChangeTimesWindow(QtWidgets.QWidget):
             t0, t1 = CxoTime(lim).secs
             if t0 > t1:
                 err_msg = "Time stop is earlier than time start!"
-        except (IndexError, ValueError):
-            if len(vals) == 2:
-                err_msg = f"Invalid input for time change: {vals[0]} {vals[1]}"
-            else:
-                err_msg = ("Changing model times requires two "
-                           "arguments, the start time and the stop time.")
+        except ValueError:
+            err_msg = f"Invalid input for time change:\nstart: {vals[0]}\nstop: {vals[1]}\ndays: {self.days_text.text()}"
         if len(err_msg) > 0:
             raise_error_box("Change Time Error", err_msg)
         else:
