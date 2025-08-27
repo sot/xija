@@ -9,7 +9,7 @@ the ``xija_gui_fit`` application.
 ``xija_gui_fit`` Overview
 -------------------------
 
-The image below shows an example of fitting the ACIS DPA model with
+The image below shows an example of fitting the ACIS FP model with
 ``xija_gui_fit``.
 
 .. image:: gui_fit_guide.png
@@ -77,22 +77,50 @@ then a typical calling sequence is:
 
     % xija_gui_fit --stop 2012:002 --days 180 my_model_spec.json
 
-Manipulating plots
-------------------
+Menu Bar Options
+----------------
 
-Many model components have built-in plots that can be added to the fit window
-via the ``Add plots...`` drop down menu. The available plot names correspond to the
-model component followed by a description of the plot. Plots can be deleted by
-pressing the corresponding ``Delete`` button.
+The top-level menu bar has a number of options:
 
-For the particular node that is being modeled, there will be a plot showing the data
-(blue) and model (red) together vs time. 
-One handy feature is that the time-based plots are always linked in the time
-axis so that if you zoom in or pan on one then all plots zoom or pan accordingly.  
-When you want to go back to the full view, you can use the ``Home`` button on the 
-plot where you originally zoomed.
+File Menu
+^^^^^^^^^
 
-Manipulating parameters
+.. image:: file_menu.png
+
+Save...
++++++++
+
+Opens a dialog to save the current model specification file.
+
+Info...
++++++++
+
+The "Info..." option allows one to get some quick information about
+the model which is being fit, which includes the full path to the filename,
+the MD5 sum of the model JSON file, the start time and the stop time of the
+model run, the timestep, the chosen evolution method, the limits for the model,
+and the order of the method (RK2 or RK4). If the MD5 of the current model is 
+different from the one on disk (due to a parameter change, etc.) it will show 
+up in red. 
+
+.. image:: model_info.png
+
+Model Menu
+^^^^^^^^^^
+
+.. image:: model_menu.png
+
+Change Times...
++++++++++++++++
+
+Opens a dialog to change the start and stop times of the model run. This can
+be useful if you want to expand the model evalulation to a longer time range
+(e.g., in order to include more data for fitting, or better constrain the
+long-term pitch parameters). 
+
+.. image:: change_times.png
+
+Manipulating Parameters
 -----------------------
 
 One of the key features of ``xija_gui_fit`` is the ability to visualize and
@@ -109,13 +137,56 @@ If you want to change the min or max values just type in the box and then hit
 enter. (If you don't hit enter the new value won't apply).
 
 You can freeze or thaw many parameters at once using the "glob" syntax in the
-entry box at the top of the fit window. Examples:
+"Freeze:" or "Thaw:" entry boxes at the top of the fit window. Examples:
 
 .. code-block:: bash
 
-    thaw *                 # thaw all parameters
-    freeze solarheat*      # freeze all the solarheat params
-    freeze solarheat*_dP_* # freeze the long-term solarheat variation params
+    *               # freeze/thaw all parameters
+    solarheat*      # freeze/thaw all the solarheat params
+    solarheat*_dP_* # freeze/thaw the long-term solarheat variation params
+
+Plots
+-----
+
+Many model components have built-in plots that can be added to the fit window
+via the "Add plots..." drop down menu. The available plot names correspond to the
+model component followed by a description of the plot. Plots can be deleted by
+pressing the corresponding "Delete" button.
+
+For the particular node that is being modeled, there will be a plot showing the data
+(blue) and model (red) together vs time. One handy feature is that the time-based 
+plots are always linked in the time axis so that if you zoom in or pan on one then 
+all plots zoom or pan accordingly. When you want to go back to the full view, you 
+can use the "Reset Plots" button. Plots will update in real-time if parameters are
+changed, either by moving the sliders, setting values directly, or by fitting.
+
+There are also a few types of plot annotations that may be useful:
+
+Annotate Limits and Radzones
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the thermal limits are included in the JSON model specification file, they can
+be plotted on the ``data__time`` and ``resid__data`` plots for the modeled 
+temperature. To enable this, toggle the "Show limits" checkbox. Different colors
+are used for different limits.
+
+It may also be useful to know when the radzones begin and end. Toggling the
+"Show radzones" checkbox puts dashed green lines on the time plots indicating the
+times of the radzones. 
+
+.. image:: annot_lims_rads.png
+   :width: 75 %
+
+Annotate Line Option
+^^^^^^^^^^^^^^^^^^^^
+
+Clicking the "Annotate line" checkbox adds a brown vertical line to the time plots
+which can be dragged around from any plot and its motion will by synchronized between
+them. It also pops up a "Line Data" window which shows the values of all of the model
+inputs and outputs at the time marked by the brown line. 
+
+.. image:: annot_line.png
+   :width: 75 %
 
 Fit strategy
 ------------
@@ -142,17 +213,17 @@ skill here. A few rules of thumb and tips:
   parameter is degenerate with the ``solarheat_*_P_*`` values and is used for
   certain diagnostics.
 
-* Once you have a model that fits reasonably well over the one year period then freeze all
+* Once you have a model that fits reasonably well over the one year period, freeze all
   parameters *except* for ``solarheat_*_dP_*`` and ``solarheat_*_ampl`` parameters. Fit
   over a 2-3 year time period which ends at the present time.
 
-* Next you might want to refine the ``solarheat_*_P_*`` parameters at this point by
+* Next, you might want to refine the ``solarheat_*_P_*`` parameters at this point by
   thawing those ones and freezing the long-term parameters and fitting. Remember that if
-  the time span is not long enough then ``P`` and ``dP`` are degenerate and the fit may
+  the time span is not long enough, then ``P`` and ``dP`` are degenerate and the fit may
   not converge.
 
-* It can be useful to include long normal-sun dwells in the fitting to have
-  some high-temperature data in the fit dataset.
+* It can be useful to include long dwells at the worst-case pitch for your model 
+  in the fitting to have some high-temperature data in the fit dataset.
 
 * Remember to save your model fit when you get a good fit. It is not saved by
   default and there is currently no warning to this effect. Often there is a
@@ -169,51 +240,11 @@ Other ``xija_gui_fit`` features
 A number of other optional features are included with ``xija_gui_fit`` which may
 help with interpreting model fits and other analyses. 
 
-Annotate Limits and Radzones
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If the thermal limits are included in the JSON model specification file, they can
-be plotted on the ``data__time`` and ``resid__data`` plots for the modeled 
-temperature. To enable this, toggle the "Show limits" checkbox. Different colors
-are used for different limits:
-
-* 
-*
-*
-
-It may also be useful to know when the radzones begin and end. Toggling the
-"Show radzones" checkbox puts dashed green lines on the time plots indicating the
-times of the radzones. 
-
-.. image:: annot_lims_rads.png
-   :width: 75 %
-
-Annotate Line Option
-^^^^^^^^^^^^^^^^^^^^
-
-Clicking the "Annotate line" checkbox adds a brown vertical line to the time plots
-which can be dragged around from any plot and its motion will by synchronized between
-them. It also pops up a "Line Data" window which shows the values of all of the model
-inputs and outputs at the time marked by the brown line. 
-
-.. image:: annot_line.png
-   :width: 75 %
-
 Histogram Button
 ^^^^^^^^^^^^^^^^
 
 .. image:: histogram.png
    :width: 75 %
-
-Model Info Button
-^^^^^^^^^^^^^^^^^
-
-The ``Model Info`` button allows one to get some quick information about
-the model which is being fit, which includes the full path to the filename,
-the MD5 sum of the model JSON file, the start time and the stop time of the
-model run, the timestep, the chosen evolution method, and the order of the 
-method (RK2 or RK4). If the MD5 of the current model is different from the
-one on disk (due to a parameter change, etc.) it will show up in red. 
 
 Write Table Button
 ^^^^^^^^^^^^^^^^^^

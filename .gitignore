@@ -21,10 +21,10 @@ dist/
 MANIFEST
 *.png
 !app_icon.png
-doc/_build
-doc/_static
-doc/_templates
-!doc/*.png
+docs/_build
+docs/_static
+docs/_templates
+!docs/*.png
 *.pyc
 examples/
 .nfs*
