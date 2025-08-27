@@ -27,6 +27,8 @@ from .plots import FitStatWindow, HistogramWindow, PlotsBox
 
 gui_config = {}
 
+zero_days = 0.0*u.day
+
 
 def raise_error_box(win_title, err_msg):
     msg_box = QtWidgets.QMessageBox()
@@ -198,7 +200,7 @@ class FiltersWindow(QtWidgets.QWidget):
 
 
 class ChangeTimesWindow(QtWidgets.QWidget):
-    def __init__(self, main_window):
+    def __init__(self, main_window, current_start, current_stop):
         super().__init__()
         self.mw = main_window
         self.setWindowTitle("Change Times")
@@ -207,6 +209,12 @@ class ChangeTimesWindow(QtWidgets.QWidget):
         self.start_text = QtWidgets.QLineEdit()
         self.stop_label = QtWidgets.QLabel("Stop time:")
         self.stop_text = QtWidgets.QLineEdit()
+        self.days_label = QtWidgets.QLabel("Days before stop:")
+        self.days_text = QtWidgets.QLineEdit()
+        
+        self.start_text.textEdited.connect(self.times_changed)
+        self.stop_text.textEdited.connect(self.times_changed)
+        self.days_text.textEdited.connect(self.days_changed)
 
         cancel_button = QtWidgets.QPushButton("Cancel")
         cancel_button.clicked.connect(self.close_window)
@@ -224,19 +232,50 @@ class ChangeTimesWindow(QtWidgets.QWidget):
         self.box.addWidget(self.start_text)
         self.box.addWidget(self.stop_label)
         self.box.addWidget(self.stop_text)
+        self.box.addWidget(self.days_label)
+        self.box.addWidget(self.days_text)
         self.box.addLayout(pair)
 
         self.setLayout(self.box)
         self.setGeometry(0, 0, 400, 200)
 
+        self.start_text.setText(current_start)
+        self.stop_text.setText(current_stop)
+        dt = CxoTime(current_stop)-CxoTime(current_start)
+        self.days_text.setText(str(dt.jd))
+
+    def days_changed(self):
+        try:
+            days = float(self.days_text.text())
+            if days < 0.0:
+                raise ValueError
+            stop = CxoTime(self.stop_text.text())
+            start = stop - days * u.day
+            self.days_text.setStyleSheet("color: black;")
+            self.start_text.setStyleSheet("color: black;")
+            self.start_text.setText(start.yday)
+        except ValueError:
+            self.days_text.setStyleSheet("color: red;")
+            self.start_text.setStyleSheet("color: red;")
+
+    def times_changed(self):
+        try:
+            start = CxoTime(self.start_text.text())
+            stop = CxoTime(self.stop_text.text())
+            dt = stop-start
+            if dt < zero_days:
+                raise ValueError
+            self.sender().setStyleSheet("color: black;")
+            self.days_text.setStyleSheet("color: black;")
+            self.days_text.setText(str(dt.jd))
+        except ValueError:
+            self.sender().setStyleSheet("color: red;")
+            self.days_text.setStyleSheet("color: red;")
+
     def change_pushed(self):
         err_msg = ""
         vals = [self.start_text.text(), self.stop_text.text()]
         try:
-            if vals[0] == "*":
-                vals[0] = self.mw.model.datestart
-            if vals[1] == "*":
-                vals[1] = self.mw.model.datestop
             lim = CxoTime(vals).date
             t0, t1 = CxoTime(lim).secs
             if t0 > t1:
@@ -251,9 +290,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
             raise_error_box("Change Time Error", err_msg)
         else:
             self.mw.reset_model(*vals)
-        self.start_text.setText("")
-        self.stop_text.setText("")
-        self.close()
+            self.close()
 
     def close_window(self, *args):
         self.close()
@@ -1103,7 +1140,7 @@ class MainWindow:
         self.fit_worker.model = model
 
     def change_times(self):
-        self.change_times_window = ChangeTimesWindow(self)
+        self.change_times_window = ChangeTimesWindow(self, self.model.datestart, self.model.datestop)
         self.change_times_window.show()
 
     def write_table(self):
