@@ -2,6 +2,7 @@ import functools
 import re
 
 import matplotlib.dates as mdates
+import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import numpy as np
 from cheta.units import F_to_C
@@ -537,6 +538,12 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict["q99"] = self.ax2.axvline(
                 stats["q99"], color="k", linestyle="--", linewidth=1.5, alpha=1
             )
+            self.plot_dict["q50"] = self.ax2.axvline(
+                stats["q50"], color=[1, 1, 1], linestyle="-", linewidth=2.5, alpha=1
+            )
+            self.plot_dict["q50_2"] = self.ax2.axvline(
+                stats["q50"], color="k", linestyle="--", linewidth=1.5, alpha=1
+            )
             self.plot_dict["min_hist"] = self.ax2.axvline(
                 min_resid, color="k", linestyle="--", linewidth=1.5, alpha=1
             )
@@ -552,6 +559,8 @@ class HistogramWindow(QtWidgets.QWidget):
 
             self.plot_dict["step"].set_data(bin_mid, hist)
             self.plot_dict["q01"].set_xdata([stats["q01"]])
+            self.plot_dict["q50"].set_xdata([stats["q50"]])
+            self.plot_dict["q50_2"].set_xdata([stats["q50"]])
             self.plot_dict["q99"].set_xdata([stats["q99"]])
             self.plot_dict["min_hist"].set_xdata([min_resid])
             self.plot_dict["max_hist"].set_xdata([max_resid])
@@ -573,11 +582,13 @@ class HistogramWindow(QtWidgets.QWidget):
         self.ax2.set_xlim(*self._errorlimits)
 
         xpos_q01 = stats["q01"] + xoffset * 1.1
+        xpos_q50 = stats["q50"] + xoffset * 1.1
         xpos_q99 = stats["q99"] - xoffset * 0.9
         xpos_min = min_resid + xoffset * 1.1
         xpos_max = max_resid - xoffset * 0.9
         if "q01_text" in self.plot_dict:
             self.plot_dict["q01_text"].set_position((xpos_q01, ystart))
+            self.plot_dict["q50_text"].set_position((xpos_q50, ystart))
             self.plot_dict["q99_text"].set_position((xpos_q99, ystart))
             self.plot_dict["min_text"].set_position((xpos_min, ystart))
             self.plot_dict["max_text"].set_position((xpos_max, ystart))
@@ -590,6 +601,19 @@ class HistogramWindow(QtWidgets.QWidget):
                 va="center",
                 rotation=90,
                 clip_on=True,
+            )
+            txt_50 = self.plot_dict["q50_text"] = self.ax2.text(
+                xpos_q50,
+                ystart,
+                "50% Quantile",
+                ha="right",
+                va="center",
+                rotation=90,
+                clip_on=True,
+            )
+            txt_50.set_path_effects(
+                [path_effects.Stroke(linewidth=4, foreground='white', alpha=1.0),
+                 path_effects.Normal()]
             )
             self.plot_dict["q99_text"] = self.ax2.text(
                 xpos_q99,
