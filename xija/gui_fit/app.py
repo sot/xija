@@ -312,15 +312,17 @@ class WriteTableWindow(QtWidgets.QWidget):
 
         main_box = QtWidgets.QVBoxLayout()
 
-        self.start_label = QtWidgets.QLabel("Start time: {}".format(self.start_date))
-        self.stop_label = QtWidgets.QLabel("Stop time: {}".format(self.stop_date))
+        self.start_label = QtWidgets.QLabel("Start time:")
+        self.stop_label = QtWidgets.QLabel("Stop time:")
         self.list_label = QtWidgets.QLabel("Data to write:")
 
         self.start_text = QtWidgets.QLineEdit()
-        self.start_text.returnPressed.connect(self.change_start)
+        self.start_text.textEdited.connect(self.change_start)
+        self.start_text.setText(self.start_date)
 
         self.stop_text = QtWidgets.QLineEdit()
-        self.stop_text.returnPressed.connect(self.change_stop)
+        self.stop_text.textEdited.connect(self.change_stop)
+        self.stop_text.setText(self.stop_date)
 
         main_box.addWidget(self.start_label)
         main_box.addWidget(self.start_text)
@@ -381,22 +383,20 @@ class WriteTableWindow(QtWidgets.QWidget):
     def change_start(self):
         start_date = self.start_text.text()
         try:
-            _ = CxoTime(start_date).secs
-            self.start_label.setText("Start time: {}".format(start_date))
             self.start_date = start_date
+            _ = CxoTime(start_date).secs
+            self.start_text.setStyleSheet("color: black;")
         except ValueError:
-            raise_error_box("Write Table Error", f"Start time not valid: {start_date}")
-        self.start_text.setText("")
+            self.start_text.setStyleSheet("color: red;")
 
     def change_stop(self):
         stop_date = self.stop_text.text()
         try:
-            _ = CxoTime(stop_date).secs
-            self.start_label.setText("Stop time: {}".format(stop_date))
             self.stop_date = stop_date
+            _ = CxoTime(stop_date).secs
+            self.stop_text.setStyleSheet("color: black;")
         except ValueError:
-            raise_error_box("Write Table Error", f"Stop time not valid: {stop_date}")
-        self.stop_text.setText("")
+            self.start_text.setStyleSheet("color: red;")
 
     def close_window(self, *args):
         self.close()
@@ -404,6 +404,14 @@ class WriteTableWindow(QtWidgets.QWidget):
     def save_ascii_table(self):
         from astropy.table import Column, Table
 
+        try:
+            dt = CxoTime(self.stop_date) - CxoTime(self.start_date)
+            if dt <= zero_days:
+                raise ValueError
+        except ValueError:
+            err_msg = f"Invalid input for times:\nstart: {self.start_date}\nstop: {self.stop_date}"
+            raise_error_box("Write Table Error", err_msg)
+            return
         dlg = QtWidgets.QFileDialog()
         dlg.setNameFilters(["ECSV files (*.ecsv)", "All files (*)"])
         dlg.selectNameFilter("ECSV files (*.ecsv)")
