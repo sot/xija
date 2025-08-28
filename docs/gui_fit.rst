@@ -80,7 +80,8 @@ then a typical calling sequence is:
 Menu Bar Options
 ----------------
 
-The top-level menu bar has a number of options:
+The top-level menu bar has a number of options. The :ref:`utils_menu`
+will be discussed below. 
 
 File Menu
 ^^^^^^^^^
@@ -105,6 +106,8 @@ up in red.
 
 .. image:: model_info.png
 
+.. _model_menu:
+
 Model Menu
 ^^^^^^^^^^
 
@@ -120,6 +123,26 @@ long-term pitch parameters).
 
 .. image:: change_times.png
 
+There are two ways to update the new times. You can either enter a new start
+and/or stop time in the boxes and then press the "Change" button, or you can
+select a new stop time and then set the number of days to go back to to
+calculate the new start time. Regardless of which method you use, the values
+in the boxes will be updated to reflect the new values. 
+
+If you enter an invalid time (e.g. a stop time before or equal to the start 
+time, or an invalid date string) or an invalid number of days (e.g. negative, 
+zero, or not a number), then the values will turn red until a valid value is
+entered:
+
+.. image:: change_times_bad.png
+
+If you enter bad values and then press "Change", a dialog will pop up to 
+remind you that the values are bad, with the messge depending on the reason:
+
+.. image:: change_times_msg1.png
+
+.. image:: change_times_msg2.png
+
 Manipulating Parameters
 -----------------------
 
@@ -134,7 +157,7 @@ will be recalculated and the plots updated. It helps to make the ``xija_gui_fit`
 window as wide as possible to make the sliders longer.
 
 If you want to change the min or max values just type in the box and then hit
-enter. (If you don't hit enter the new value won't apply).
+enter (if you don't hit enter, the new value won't apply).
 
 You can freeze or thaw many parameters at once using the "glob" syntax in the
 "Freeze:" or "Thaw:" entry boxes at the top of the fit window. Examples:
@@ -188,7 +211,7 @@ inputs and outputs at the time marked by the brown line.
 .. image:: annot_line.png
    :width: 75 %
 
-Fit strategy
+Fit Strategy
 ------------
 
 Fitting Xija models is a bit of an art and will it take some time to develop
@@ -215,7 +238,10 @@ skill here. A few rules of thumb and tips:
 
 * Once you have a model that fits reasonably well over the one year period, freeze all
   parameters *except* for ``solarheat_*_dP_*`` and ``solarheat_*_ampl`` parameters. Fit
-  over a 2-3 year time period which ends at the present time.
+  over a 2-3 year time period which ends at the present time. You can do this by either
+  saving the model spec file and then restarting ``xija_gui_fit`` with the new
+  ``--days`` and ``--stop`` values, or by using the "Change Times..." option in the
+  :ref:`model_menu`.
 
 * Next, you might want to refine the ``solarheat_*_P_*`` parameters at this point by
   thawing those ones and freezing the long-term parameters and fitting. Remember that if
@@ -234,20 +260,52 @@ skill here. A few rules of thumb and tips:
 
 * Saving also saves the state of plots and your parameters.
 
-Other ``xija_gui_fit`` features
--------------------------------
+.. _utils_menu:
 
-A number of other optional features are included with ``xija_gui_fit`` which may
-help with interpreting model fits and other analyses. 
+Utilities Menu
+--------------
 
-Histogram Button
-^^^^^^^^^^^^^^^^
+A number of other optional features are included with ``xija_gui_fit`` under the
+Utilities Menu, which may help with interpreting model fits and other analyses. 
+
+Histogram...
+^^^^^^^^^^^^
+
+The "Histogram..." menu item brings up a window which shows two histograms of the
+model performance, similar to a dashboard plot. The left histogram shows the
+distribution of the residuals (data - model) versus the data temperature. Lines
+are drawn for the 1%, 50%, and 99% quantiles. The right histogram shows the 
+binned distribution of the residuals, with lines drawn for the 1%, 50%, and 99% 
+quantiles.
 
 .. image:: histogram.png
-   :width: 75 %
 
-Write Table Button
-^^^^^^^^^^^^^^^^^^
+Though the histogram window can be open while fitting, it will not update
+automatically. To update the histograms, press the "Redraw" button.
+
+Note that there are a number of options that can be set to modify the histograms.
+First, there is the standard Matplotlib toolbox for zooming, panning, saving, etc.
+Second, there are two dialog boxes that can be used to set the limits of the 
+residuals. Finally, there are three checkboxes. The "Mask radzones" and "Mask FMT1"
+checkboxes will exclude data during radzones and FMT1 periods, respectively. In 
+this example, we mask out data from the radzones--note how different the histograms
+look from the unmasked version above:
+
+.. image:: histogram_mask.png
+
+.. note::
+
+    These options may only be useful for certain models, such as the ACIS FP model. 
+
+The "Show limits" checkbox will overplot the thermal limits on the left histogram:
+
+.. image:: histogram_limits.png
+
+Filters...
+^^^^^^^^^^
+
+Write Table...
+^^^^^^^^^^^^^^
 
 It may be useful to take a number of model/data outputs associated with the
 fitting procedure and output to an ASCII table in the 
