@@ -197,9 +197,13 @@ class FiltersWindow(QtWidgets.QWidget):
                 self.mw.model.append_mask_time([tt[0].date, tt[1].date])
                 bad = False
                 self.mw.plots_box.add_fill(tt[0].secs, tt[1].secs)
+                self.start_text.setText("")
+                self.stop_text.setText("")
             elif filter_type == "bad_time":
-                self.mw.model.append_bad_time(tt[0].date, tt[1].date)
+                self.mw.model.append_bad_time([tt[0].date, tt[1].date])
                 bad = True
+                self.bt_start_text.setText("")
+                self.bt_stop_text.setText("")
             self.mw.plots_box.add_fill(tt[0].secs, tt[1].secs, bad=bad)
 
     def notice_pushed(self):
