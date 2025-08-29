@@ -132,16 +132,9 @@ in the boxes will be updated to reflect the new values.
 If you enter an invalid time (e.g. a stop time before or equal to the start 
 time, or an invalid date string) or an invalid number of days (e.g. negative, 
 zero, or not a number), then the values will turn red until a valid value is
-entered:
-
-.. image:: change_times_bad.png
-
-If you enter bad values and then press "Change", a dialog will pop up to 
-remind you that the values are bad, with the messge depending on the reason:
-
-.. image:: change_times_msg1.png
-
-.. image:: change_times_msg2.png
+entered. If you enter bad values and then press "Change", a dialog will pop 
+up to remind you that the values are bad, with the message depending on the 
+reason.
 
 Manipulating Parameters
 -----------------------
@@ -304,12 +297,24 @@ The "Show limits" checkbox will overplot the thermal limits on the left histogra
 Filters...
 ^^^^^^^^^^
 
+If you enter an invalid start or stop date, then the bad value(s) will turn 
+red until a valid value is entered. If you enter bad values and then press 
+"Write Table", a dialog will pop up to remind you that the value(s) are bad, 
+with the message depending on the reason.
+
 Write Table...
 ^^^^^^^^^^^^^^
 
 It may be useful to take a number of model/data outputs associated with the
 fitting procedure and output to an ASCII table in the 
 `AstroPy ECSV format <https://docs.astropy.org/en/stable/io/ascii/write.html#ecsv-format">`_
-The ``Write Table`` button brings up a window which allows one to select from 
+The "Write Table..." menu item brings up a window which allows one to select from 
 the different quantities which are inputs to the model and its outputs, select 
-a time window within which to output data, and then write the quantities to the table. 
+a time window within which to output data, and then write the quantities to the table.
+
+.. image:: write_table.png
+
+If you enter an invalid start or stop date, then the bad value(s) will turn 
+red until a valid value is entered. If you enter bad values and then press 
+"Write Table", a dialog will pop up to remind you that the value(s) are bad, 
+with the message depending on the reason.
