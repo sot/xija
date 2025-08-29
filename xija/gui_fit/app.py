@@ -96,8 +96,10 @@ class FiltersWindow(QtWidgets.QWidget):
         self.ignore_label.setFont(header_font)
         self.start_label = QtWidgets.QLabel("Start time:")
         self.start_text = QtWidgets.QLineEdit()
+        self.start_text.textEdited.connect(lambda: self.change_time("start_text"))
         self.stop_label = QtWidgets.QLabel("Stop time:")
         self.stop_text = QtWidgets.QLineEdit()
+        self.stop_text.textEdited.connect(lambda: self.change_time("stop_text"))
 
         add_ignore_button = QtWidgets.QPushButton("Add Ignore")
         add_ignore_button.clicked.connect(self.add_ignore)
@@ -113,8 +115,10 @@ class FiltersWindow(QtWidgets.QWidget):
         self.bt_label.setFont(header_font)
         self.bt_start_label = QtWidgets.QLabel("Start time:")
         self.bt_start_text = QtWidgets.QLineEdit()
+        self.bt_start_text.textEdited.connect(lambda: self.change_time("start_text"))
         self.bt_stop_label = QtWidgets.QLabel("Stop time:")
         self.bt_stop_text = QtWidgets.QLineEdit()
+        self.bt_stop_text.textEdited.connect(lambda: self.change_time("stop_text"))
 
         add_bt_button = QtWidgets.QPushButton("Add Bad Time")
         add_bt_button.clicked.connect(self.add_bad_time)
@@ -152,6 +156,15 @@ class FiltersWindow(QtWidgets.QWidget):
     def add_bad_time(self):
         self.add_filter("bad_time")
 
+    def change_time(self, which_box):
+        text_box = getattr(self, which_box)
+        date = text_box.text()
+        try:
+            _ = CxoTime(date).secs
+            text_box.setStyleSheet("color: black;")
+        except ValueError:
+            text_box.setStyleSheet("color: red;")
+
     def add_filter(self, filter_type):
         err_msg = ""
         if filter_type == "ignore":
@@ -159,36 +172,35 @@ class FiltersWindow(QtWidgets.QWidget):
         elif filter_type == "bad_time":
             vals = [self.bt_start_text.text(), self.bt_stop_text.text()]
         try:
+            if vals[0] == "" or vals[0].isspace():
+                vals[0] = "Nothing"
+            if vals[1] == "" or vals[1].isspace():
+                vals[1] = "Nothing"
             if vals[0] == "*":
                 vals[0] = self.mw.model.datestart
             if vals[1] == "*":
                 vals[1] = self.mw.model.datestop
-            lim = CxoTime(vals).date
-            t0, t1 = CxoTime(lim).secs
-            if t0 > t1:
-                err_msg = "Filter stop is earlier than filter start!"
-        except (IndexError, ValueError):
-            if len(vals) == 2:
-                err_msg = f"Invalid input for filter: {vals[0]} {vals[1]}"
-            else:
-                err_msg = (
-                    "Filter requires two arguments, the start time and the stop time."
-                )
+            tt = CxoTime(vals)
+            if filter_type == "ignore":
+                if np.any(tt.secs < self.mw.model.tstart):
+                    err_msg = f"Filter start and/or stop is before model start!\nmodel start: {self.mw.model.datestart}\nstart: {vals[0]}\nstop: {vals[1]}"
+                if np.any(tt.secs > self.mw.model.tstop):
+                    err_msg = f"Filter start and/or stop is after model stop!\nmodel stop: {self.mw.model.datestop}\nstart: {vals[0]}\nstop: {vals[1]}"
+            if tt[0] > tt[1]:
+                err_msg = f"Filter stop is earlier than filter start!\nstart: {vals[0]}\nstop: {vals[1]}"
+        except ValueError:
+            err_msg = f"Invalid input for time change:\nstart: {vals[0]}\nstop: {vals[1]}"
         if len(err_msg) > 0:
             raise_error_box("Filters Error", err_msg)
         else:
             if filter_type == "ignore":
-                self.mw.model.append_mask_time([lim[0], lim[1]])
+                self.mw.model.append_mask_time([tt[0].date, tt[1].date])
                 bad = False
-                self.mw.plots_box.add_fill(t0, t1)
+                self.mw.plots_box.add_fill(tt[0].secs, tt[1].secs)
             elif filter_type == "bad_time":
-                self.mw.model.append_bad_time([lim[0], lim[1]])
+                self.mw.model.append_bad_time(tt[0].date, tt[1].date)
                 bad = True
-            self.mw.plots_box.add_fill(t0, t1, bad=bad)
-        self.start_text.setText("")
-        self.stop_text.setText("")
-        self.bt_start_text.setText("")
-        self.bt_stop_text.setText("")
+            self.mw.plots_box.add_fill(tt[0].secs, tt[1].secs, bad=bad)
 
     def notice_pushed(self):
         self.mw.plots_box.remove_ignores()
