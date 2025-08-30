@@ -28,20 +28,25 @@ Command line options
 The ``xija_gui_fit`` tool supports the following command line options:
 
 .. code-block:: bash
-
     % xija_gui_fit --help
 
-    usage: xija_gui_fit [-h] [--days DAYS] [--stop STOP] [--maxiter MAXITER]
+    usage: xija_gui_fit [-h] [--model-version MODEL_VERSION] [--days DAYS]
+                        [--stop STOP] [--maxiter MAXITER]
                         [--fit-method FIT_METHOD] [--inherit-from INHERIT_FROM]
                         [--set-data SET_DATA_EXPRS] [--quiet]
                         filename
     
     positional arguments:
-      filename              Model file
+      filename              Model or file name: '*.json' is a local spec file,
+                            otherwise this is a model name (e.g.
+                            'acisfp_spec_matlab') that points to a like-named JSON
+                            spec file in the Ska chandra_models repo.
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
-      --days DAYS           Number of days in fit interval (default=90
+      --model-version MODEL_VERSION
+                            Model version for model from chandra_models
+      --days DAYS           Number of days in fit interval (default=90)
       --stop STOP           Stop time of fit interval (default=model values)
       --maxiter MAXITER     Maximum number of fit iterations (default=1000)
       --fit-method FIT_METHOD
@@ -50,7 +55,6 @@ The ``xija_gui_fit`` tool supports the following command line options:
                             Inherit par values from model spec file
       --set-data SET_DATA_EXPRS
                             Set data value as '<comp_name>=<value>'
-      --quiet               Suppress screen output
 
 Most of the time you should use the ``--days`` and ``--stop`` options. Note that
 if you have saved a model specification and then restart ``xija_gui_fit``, the
