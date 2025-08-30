@@ -123,6 +123,10 @@ class FiltersWindow(QtWidgets.QWidget):
         add_bt_button = QtWidgets.QPushButton("Add Bad Time")
         add_bt_button.clicked.connect(self.add_bad_time)
 
+        add_bt = QtWidgets.QHBoxLayout()
+        add_bt.addWidget(add_bt_button, 1)
+        add_bt.addStretch(1)
+
         close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close_window)
 
@@ -143,7 +147,7 @@ class FiltersWindow(QtWidgets.QWidget):
         self.box.addWidget(self.bt_start_text)
         self.box.addWidget(self.bt_stop_label)
         self.box.addWidget(self.bt_stop_text)
-        self.box.addWidget(add_bt_button)
+        self.box.addLayout(add_bt)
         self.box.addStretch(1)
         self.box.addLayout(close)
 
