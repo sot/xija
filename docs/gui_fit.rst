@@ -87,6 +87,7 @@ File Menu
 ^^^^^^^^^
 
 .. image:: file_menu.png
+    :width: 50 %
 
 Save...
 +++++++
@@ -112,6 +113,7 @@ Model Menu
 ^^^^^^^^^^
 
 .. image:: model_menu.png
+    :width: 50 %
 
 Change Times...
 +++++++++++++++
@@ -122,6 +124,7 @@ be useful if you want to expand the model evalulation to a longer time range
 long-term pitch parameters). 
 
 .. image:: change_times.png
+    :width: 60 %
 
 There are two ways to update the new times. You can either enter a new start
 and/or stop time in the boxes and then press the "Change" button, or you can
@@ -191,7 +194,6 @@ It may also be useful to know when the radzones begin and end. Toggling the
 times of the radzones. 
 
 .. image:: annot_lims_rads.png
-   :width: 75 %
 
 Annotate Line Option
 ^^^^^^^^^^^^^^^^^^^^
@@ -202,7 +204,6 @@ them. It also pops up a "Line Data" window which shows the values of all of the 
 inputs and outputs at the time marked by the brown line. 
 
 .. image:: annot_line.png
-   :width: 75 %
 
 Fit Strategy
 ------------
@@ -297,10 +298,40 @@ The "Show limits" checkbox will overplot the thermal limits on the left histogra
 Filters...
 ^^^^^^^^^^
 
+Sometimes it may be desirable to exclude certain telemetry data from the fit 
+if it is known to be bad or one just wants to experiment. This functionality
+is available under the "Filters..." menu item, which brings up a window that
+presents two options for filtering data on time ranges.
+
+The first option is to filter out data within a given time intervals for the 
+the current session only. To do this, enter a start and stop time under the
+"Add Ignore/Notice" section of the "Filters" window and then press the
+"Add Ignore" button. The time interval will be added to the intervals that
+are ignored for the current session, and will be shown in red on the plots.
+If you want to remove all ignored intervals, press the "Notice All" button.
+Once you exit the ``xija_gui_fit`` application, these ignored intervals
+will be forgotten.
+
+The second option is to permanently filter out data by adding time intervals
+known as "bad times" to the model specification file. Historically, these
+have been added by hand, but now this can also be done in the "Filters" window,
+by entering a start and stop time under the "Add Bad Time" section and then
+pressing the "Add Bad Time" button. The time interval will be added to the
+list of bad times in the model specification file, and will be shown in green
+on the plots.
+
+.. image:: filters.png
+    :width: 60 %
+
+.. image:: filters_plot.png
+
 If you enter an invalid start or stop date, then the bad value(s) will turn 
-red until a valid value is entered. If you enter bad values and then press 
-"Write Table", a dialog will pop up to remind you that the value(s) are bad, 
-with the message depending on the reason.
+red until a valid value is entered. If you enter bad values for the intervals
+and then press either of the buttons to add them, a dialog will pop up to 
+This will also occur if you set the stop time to be before or equal to the
+start time, or if you enter ignore intervals that are outside of the current
+model time range. However, you can add bad time intervals that are outside
+of the current model time range.
 
 Write Table...
 ^^^^^^^^^^^^^^
@@ -313,8 +344,10 @@ the different quantities which are inputs to the model and its outputs, select
 a time window within which to output data, and then write the quantities to the table.
 
 .. image:: write_table.png
+    :width: 50 %
 
 If you enter an invalid start or stop date, then the bad value(s) will turn 
 red until a valid value is entered. If you enter bad values and then press 
 "Write Table", a dialog will pop up to remind you that the value(s) are bad, 
-with the message depending on the reason.
+with the message depending on the reason. This will also occur if you set the 
+stop time to be before or equal to the start time.
