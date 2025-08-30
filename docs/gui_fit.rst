@@ -28,6 +28,7 @@ Command line options
 The ``xija_gui_fit`` tool supports the following command line options:
 
 .. code-block:: bash
+
     % xija_gui_fit --help
 
     usage: xija_gui_fit [-h] [--model-version MODEL_VERSION] [--days DAYS]
