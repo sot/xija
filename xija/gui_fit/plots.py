@@ -657,7 +657,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.comp_name = comp_name
         self.plot_name = plot_name
 
-        self.fig = Figure()
+        self.fig = Figure(constrained_layout=True)
         canvas = FigureCanvas(self.fig)
         # The next two lines make sure that the canvas doesn't
         # shrink as we add more plots--instead the parent layout
