@@ -184,10 +184,88 @@ all plots zoom or pan accordingly. When you want to go back to the full view, yo
 can use the "Reset Plots" button. Plots will update in real-time if parameters are
 changed, either by moving the sliders, setting values directly, or by fitting.
 
-There are also a few types of plot annotations that may be useful:
+Plot Types
+^^^^^^^^^^
+
+Model and Data vs. Time
++++++++++++++++++++++++
+
+The main plot that you will want to see is the model's main ``data__time`` plot, 
+which shows the data and model vs. time. This is the key plot to see how well the 
+model is fitting the data. In the plot dropdown menu, select ``<node> data__time``
+where ``<node>`` is the name of the node being modeled (e.g. ``fptemp``):
+
+.. image:: data_time.png
+
+Model Residuals vs. Time
+++++++++++++++++++++++++
+
+Another useful plot is the ``<node> resid__time`` plot, which shows the data-model
+residuals vs. time. This is useful for seeing trends in the residuals which may be
+related to certain spacecraft conditions:
+
+.. image:: resid_time.png
+
+Model Residuals vs. Data
+++++++++++++++++++++++++
+
+One may want to see the residuals plotted against the data temperature to see if
+there are any trends. This is available as the ``<node> resid__data`` plot
+which shows the residuals vs. the data temperature:
+
+.. image:: resid_data.png
+
+Model Inputs vs. Time
++++++++++++++++++++++
+
+Model inputs, such as other MSIDs or commanded states, can also be plotted vs. time. 
+Some examples are ``pitch`` and ``fep_count``:
+
+.. image:: pitch_time.png
+
+.. image:: fep_count_time.png
+
+Solar Heating Power vs. Pitch
++++++++++++++++++++++++++++++
+
+Each node in the model which has a solar heating component has a corresponding plot 
+of the solar heating power vs. pitch. For most models, this is the 
+``solarheat__<node> solar_heat__pitch`` plot, which shows the amount of solar heating
+power being applied to the node as a function of pitch angle:
+
+.. image:: solarheat_power_pitch.png
+
+The blue line "P" shows the nominal solar heating power vs. pitch, while the purple 
+line "P + dP" shows the added effect of the long-term variation in the solar heating 
+power.
+
+Some models (ACIS FP, ACIS PSMC, HRC CEA) have a solar heating curve for multiple 
+SIM-Z positions. This plot has a name like 
+``hrc_*_acis_*_simz_solarheat__<node> solar_heat__pitch`` and looks like this:
+
+.. image:: solarheat_power_pitch_simz.png
+
+ACIS Power States
++++++++++++++++++
+
+ACIS thermal models (and the HRC CEA model) have a plot showing the ACIS power
+states, which depend on CCD count, FEP count, and whether the detector is taking
+data ("clocking"). This plot is called ``dpa_power power__state`` and looks like 
+this:
+
+.. image:: acis_state_power.png
+
+The x-axis shows FEP or CCD count, depending on the model. The different colors
+of the points indicate whether the detector is clocking (blue), not (orange), or
+if the state is unknown (green). 
+
+Plot Annotations
+^^^^^^^^^^^^^^^^
+
+There are also a few types of plot annotations that may be useful.
 
 Annotate Limits and Radzones
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++++++++++
 
 If the thermal limits are included in the JSON model specification file, they can
 be plotted on the ``data__time`` and ``resid__data`` plots for the modeled 
@@ -201,7 +279,7 @@ times of the radzones.
 .. image:: annot_lims_rads.png
 
 Annotate Line Option
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
 Clicking the "Annotate line" checkbox adds a brown vertical line to the time plots
 which can be dragged around from any plot and its motion will by synchronized between
@@ -263,6 +341,9 @@ skill here. A few rules of thumb and tips:
 
 Utilities Menu
 --------------
+
+.. image:: utils_menu.png
+    :width: 50 %
 
 A number of other optional features are included with ``xija_gui_fit`` under the
 Utilities Menu, which may help with interpreting model fits and other analyses. 
@@ -356,3 +437,16 @@ red until a valid value is entered. If you enter bad values and then press
 "Write Table", a dialog will pop up to remind you that the value(s) are bad, 
 with the message depending on the reason. This will also occur if you set the 
 stop time to be before or equal to the start time.
+
+Fit Statistic...
+^^^^^^^^^^^^^^^^
+
+The "Fit Statistic..." menu item brings up a window which shows the change in
+the fit statistic vs. the number of fit iterations. This plot is not renewed 
+in real-time, it must be refreshed by pressing the "Redraw" button, or it will
+be refreshed if the window is closed and then reopened. The plot has no data
+until a fit is performed. It will retain the history of the fit statistic from
+previous fits during the current session, but not if the times are changed or 
+if the application is exited.
+
+.. image:: fit_stat.png
