@@ -612,8 +612,10 @@ class HistogramWindow(QtWidgets.QWidget):
                 clip_on=True,
             )
             txt_50.set_path_effects(
-                [path_effects.Stroke(linewidth=4, foreground='white', alpha=1.0),
-                 path_effects.Normal()]
+                [
+                    path_effects.Stroke(linewidth=4, foreground="white", alpha=1.0),
+                    path_effects.Normal(),
+                ]
             )
             self.plot_dict["q99_text"] = self.ax2.text(
                 xpos_q99,

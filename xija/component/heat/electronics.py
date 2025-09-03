@@ -183,10 +183,9 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             ax.set_title(f"{self.name}: model (red) and data (blue)")
             ax.set_ylabel("Power (W)")
 
-
     def plot_power__state(self, fig, ax):
         xm = self.model
-        dtype = [('x', 'int'), ('y', 'float'), ('name', '<U32')]
+        dtype = [("x", "int"), ("y", "float"), ("name", "<U32")]
         clocking = []
         not_clocking = []
         either = []
@@ -223,25 +222,31 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             for i, txt in enumerate(either["name"]):
                 ax.texts[k].set_y(either["y"][i])
                 k += 1
-            ax.autoscale(axis='y')
+            ax.autoscale(axis="y")
         else:
-            ax.plot(clocking["x"], clocking["y"], 'x', label="Clocking", ms=10,
-                    color="C0")
-            ax.plot(not_clocking["x"], not_clocking["y"], 'x', label="Not Clocking",
-                    ms=10, color="C1")
-            ax.plot(either["x"], either["y"], 'x', label="Either", ms=10, color="C2")
+            ax.plot(
+                clocking["x"], clocking["y"], "x", label="Clocking", ms=10, color="C0"
+            )
+            ax.plot(
+                not_clocking["x"],
+                not_clocking["y"],
+                "x",
+                label="Not Clocking",
+                ms=10,
+                color="C1",
+            )
+            ax.plot(either["x"], either["y"], "x", label="Either", ms=10, color="C2")
             for i, txt in enumerate(clocking["name"]):
                 ax.text(clocking["x"][i] + 0.25, clocking["y"][i], txt, color="C0")
             for i, txt in enumerate(not_clocking["name"]):
-                ax.text(not_clocking["x"][i] + 0.25, not_clocking["y"][i], txt, 
-                        color="C1")
+                ax.text(
+                    not_clocking["x"][i] + 0.25, not_clocking["y"][i], txt, color="C1"
+                )
             for i, txt in enumerate(either["name"]):
                 ax.text(either["x"][i] + 0.25, either["y"][i], txt, color="C2")
             ax.set_xlabel("{} Count".format("CCD" if use_ccd_count else "FEP"))
             ax.set_ylabel("Coefficient Value")
             ax.set_xticks(np.arange(7))
             ax.set_xlim(-0.25, 7.0)
-            ax.legend(loc='best')
+            ax.legend(loc="best")
             ax.grid()
-
-

@@ -287,7 +287,7 @@ class SolarHeat(PrecomputedHeatPower):
             lines[0].set_data(self.P_pitches, Ps)
             lines[1].set_data(pitches, P_vals)
             lines[2].set_data(pitches, dP_vals + P_vals)
-            ax.autoscale(axis='y')
+            ax.autoscale(axis="y")
         else:
             ax.plot(self.P_pitches, Ps, "or", markersize=3)
             ax.plot(pitches, P_vals, "-b", label="P")
@@ -295,7 +295,7 @@ class SolarHeat(PrecomputedHeatPower):
             ax.set_title("{} solar heat input".format(self.node.name))
             ax.set_xlim(40, 180)
             ax.grid()
-            ax.legend(loc='best')
+            ax.legend(loc="best")
 
 
 class SolarHeatMulplicative(SolarHeat):
@@ -698,7 +698,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
             for i, instr_name in enumerate(self.instr_names):
                 lines[i].set_data(self.P_pitches, P_vals[instr_name])
                 # lines[i * 2 + 1].set_data(self.P_pitches, P_vals[instr_name], '-b')
-            ax.autoscale(axis='y')
+            ax.autoscale(axis="y")
         else:
             for i, instr_name in enumerate(self.instr_names):
                 color = colors[i]

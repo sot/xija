@@ -27,7 +27,7 @@ from .plots import FitStatWindow, HistogramWindow, PlotsBox
 
 gui_config = {}
 
-zero_days = 0.0*u.day
+zero_days = 0.0 * u.day
 
 
 def raise_error_box(win_title, err_msg):
@@ -193,7 +193,9 @@ class FiltersWindow(QtWidgets.QWidget):
             if tt[0] > tt[1]:
                 err_msg = f"Filter stop is earlier than filter start!\nstart: {vals[0]}\nstop: {vals[1]}"
         except ValueError:
-            err_msg = f"Invalid input for time change:\nstart: {vals[0]}\nstop: {vals[1]}"
+            err_msg = (
+                f"Invalid input for time change:\nstart: {vals[0]}\nstop: {vals[1]}"
+            )
         if len(err_msg) > 0:
             raise_error_box("Filters Error", err_msg)
         else:
@@ -231,7 +233,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
         self.stop_text = QtWidgets.QLineEdit()
         self.days_label = QtWidgets.QLabel("Days before stop:")
         self.days_text = QtWidgets.QLineEdit()
-        
+
         self.start_text.textEdited.connect(self.times_changed)
         self.stop_text.textEdited.connect(self.times_changed)
         self.days_text.textEdited.connect(self.days_changed)
@@ -261,7 +263,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
 
         self.start_text.setText(current_start)
         self.stop_text.setText(current_stop)
-        dt = CxoTime(current_stop)-CxoTime(current_start)
+        dt = CxoTime(current_stop) - CxoTime(current_start)
         self.days_text.setText(str(dt.jd))
 
     def days_changed(self):
@@ -282,7 +284,7 @@ class ChangeTimesWindow(QtWidgets.QWidget):
         try:
             start = CxoTime(self.start_text.text())
             stop = CxoTime(self.stop_text.text())
-            dt = stop-start
+            dt = stop - start
             self.days_text.setText(str(dt.jd))
             if dt <= zero_days:
                 raise ValueError
@@ -1164,7 +1166,9 @@ class MainWindow:
         self.fit_worker.model = model
 
     def change_times(self):
-        self.change_times_window = ChangeTimesWindow(self, self.model.datestart, self.model.datestop)
+        self.change_times_window = ChangeTimesWindow(
+            self, self.model.datestart, self.model.datestop
+        )
         self.change_times_window.show()
 
     def write_table(self):
