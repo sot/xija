@@ -84,7 +84,7 @@ class FormattedTelemData:
 
 
 class FiltersWindow(QtWidgets.QWidget):
-    def __init__(self, main_window):
+    def __init__(self, main_window):  # noqa: PLR0915
         super().__init__()
         self.mw = main_window
         self.setWindowTitle("Filters")
@@ -169,29 +169,37 @@ class FiltersWindow(QtWidgets.QWidget):
         except ValueError:
             text_box.setStyleSheet("color: red;")
 
-    def add_filter(self, filter_type):
+    def add_filter(self, filter_type):  # noqa: PLR0912
         err_msg = ""
         if filter_type == "ignore":
             vals = [self.start_text.text(), self.stop_text.text()]
         elif filter_type == "bad_time":
             vals = [self.bt_start_text.text(), self.bt_stop_text.text()]
         try:
-            if vals[0] == "" or vals[0].isspace():
-                vals[0] = "Nothing"
-            if vals[1] == "" or vals[1].isspace():
-                vals[1] = "Nothing"
-            if vals[0] == "*":
-                vals[0] = self.mw.model.datestart
-            if vals[1] == "*":
-                vals[1] = self.mw.model.datestop
+            for i, tlimit in zip(
+                [0, 1], [self.mw.model.datestart, self.mw.model.datestop], strict=False
+            ):
+                if vals[i] == "" or vals[i].isspace():
+                    vals[i] = "Nothing"
+                if vals[i] == "*":
+                    vals[i] = tlimit
             tt = CxoTime(vals)
             if filter_type == "ignore":
                 if np.any(tt.secs < self.mw.model.tstart):
-                    err_msg = f"Filter start and/or stop is before model start!\nmodel start: {self.mw.model.datestart}\nstart: {vals[0]}\nstop: {vals[1]}"
+                    err_msg = (
+                        "Filter start and/or stop is before model start!\nmodel start: "
+                        f"{self.mw.model.datestart}\nstart: {vals[0]}\nstop: {vals[1]}"
+                    )
                 if np.any(tt.secs > self.mw.model.tstop):
-                    err_msg = f"Filter start and/or stop is after model stop!\nmodel stop: {self.mw.model.datestop}\nstart: {vals[0]}\nstop: {vals[1]}"
+                    err_msg = (
+                        "Filter start and/or stop is after model stop!\nmodel stop: "
+                        f"{self.mw.model.datestop}\nstart: {vals[0]}\nstop: {vals[1]}"
+                    )
             if tt[0] > tt[1]:
-                err_msg = f"Filter stop is earlier than filter start!\nstart: {vals[0]}\nstop: {vals[1]}"
+                err_msg = (
+                    "Filter stop is earlier than filter start!\nstart: "
+                    f"{vals[0]}\nstop: {vals[1]}"
+                )
         except ValueError:
             err_msg = (
                 f"Invalid input for time change:\nstart: {vals[0]}\nstop: {vals[1]}"
@@ -303,7 +311,10 @@ class ChangeTimesWindow(QtWidgets.QWidget):
             if t0 > t1:
                 err_msg = "Time stop is earlier than time start!"
         except ValueError:
-            err_msg = f"Invalid input for time change:\nstart: {vals[0]}\nstop: {vals[1]}\ndays: {self.days_text.text()}"
+            err_msg = (
+                "Invalid input for time change:\nstart: "
+                f"{vals[0]}\nstop: {vals[1]}\ndays: {self.days_text.text()}"
+            )
         if len(err_msg) > 0:
             raise_error_box("Change Time Error", err_msg)
         else:

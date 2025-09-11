@@ -194,10 +194,7 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             name = parname.split("__")[-1]
             if name.startswith("pow"):
                 coeff = name.split("_")[-1]
-                if use_ccd_count:
-                    count = int(coeff[1])
-                else:
-                    count = int(coeff[0])
+                count = int(coeff[int(use_ccd_count)])
                 if name.endswith("x"):
                     either.append((count, xm.parvals[i], coeff))
                 elif name.endswith("1"):
@@ -216,10 +213,10 @@ class AcisDpaStatePower(PrecomputedHeatPower):
             for i in range(clocking["name"].size):
                 ax.texts[k].set_y(clocking["y"][i])
                 k += 1
-            for i, txt in enumerate(not_clocking["name"]):
+            for i in range(not_clocking["name"].size):
                 ax.texts[k].set_y(not_clocking["y"][i])
                 k += 1
-            for i, txt in enumerate(either["name"]):
+            for i in range(either["name"].size):
                 ax.texts[k].set_y(either["y"][i])
                 k += 1
             ax.autoscale(axis="y")
@@ -236,14 +233,11 @@ class AcisDpaStatePower(PrecomputedHeatPower):
                 color="C1",
             )
             ax.plot(either["x"], either["y"], "x", label="Either", ms=10, color="C2")
-            for i, txt in enumerate(clocking["name"]):
-                ax.text(clocking["x"][i] + 0.25, clocking["y"][i], txt, color="C0")
-            for i, txt in enumerate(not_clocking["name"]):
-                ax.text(
-                    not_clocking["x"][i] + 0.25, not_clocking["y"][i], txt, color="C1"
-                )
-            for i, txt in enumerate(either["name"]):
-                ax.text(either["x"][i] + 0.25, either["y"][i], txt, color="C2")
+            for state, color in zip(
+                [clocking, not_clocking, either], ["C0", "C1", "C2"], strict=False
+            ):
+                for i, txt in enumerate(state["name"]):
+                    ax.text(state["x"][i] + 0.25, state["y"][i], txt, color=color)
             ax.set_xlabel("{} Count".format("CCD" if use_ccd_count else "FEP"))
             ax.set_ylabel("Coefficient Value")
             ax.set_xticks(np.arange(7))
