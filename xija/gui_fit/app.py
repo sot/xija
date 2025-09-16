@@ -23,9 +23,11 @@ from xija.component.base import Node, TelemData
 from xija.get_model_spec import get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
-from .plots import HistogramWindow, PlotsBox
+from .plots import FitStatWindow, HistogramWindow, PlotsBox
 
 gui_config = {}
+
+zero_days = 0.0 * u.day
 
 
 def raise_error_box(win_title, err_msg):
@@ -82,9 +84,8 @@ class FormattedTelemData:
 
 
 class FiltersWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window):
-        super(FiltersWindow, self).__init__()
-        self.model = model
+    def __init__(self, main_window):  # noqa: PLR0915
+        super().__init__()
         self.mw = main_window
         self.setWindowTitle("Filters")
 
@@ -95,8 +96,10 @@ class FiltersWindow(QtWidgets.QWidget):
         self.ignore_label.setFont(header_font)
         self.start_label = QtWidgets.QLabel("Start time:")
         self.start_text = QtWidgets.QLineEdit()
+        self.start_text.textEdited.connect(lambda: self.change_time("start_text"))
         self.stop_label = QtWidgets.QLabel("Stop time:")
         self.stop_text = QtWidgets.QLineEdit()
+        self.stop_text.textEdited.connect(lambda: self.change_time("stop_text"))
 
         add_ignore_button = QtWidgets.QPushButton("Add Ignore")
         add_ignore_button.clicked.connect(self.add_ignore)
@@ -112,11 +115,17 @@ class FiltersWindow(QtWidgets.QWidget):
         self.bt_label.setFont(header_font)
         self.bt_start_label = QtWidgets.QLabel("Start time:")
         self.bt_start_text = QtWidgets.QLineEdit()
+        self.bt_start_text.textEdited.connect(lambda: self.change_time("start_text"))
         self.bt_stop_label = QtWidgets.QLabel("Stop time:")
         self.bt_stop_text = QtWidgets.QLineEdit()
+        self.bt_stop_text.textEdited.connect(lambda: self.change_time("stop_text"))
 
         add_bt_button = QtWidgets.QPushButton("Add Bad Time")
         add_bt_button.clicked.connect(self.add_bad_time)
+
+        add_bt = QtWidgets.QHBoxLayout()
+        add_bt.addWidget(add_bt_button, 1)
+        add_bt.addStretch(1)
 
         close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.close_window)
@@ -138,7 +147,7 @@ class FiltersWindow(QtWidgets.QWidget):
         self.box.addWidget(self.bt_start_text)
         self.box.addWidget(self.bt_stop_label)
         self.box.addWidget(self.bt_stop_text)
-        self.box.addWidget(add_bt_button)
+        self.box.addLayout(add_bt)
         self.box.addStretch(1)
         self.box.addLayout(close)
 
@@ -151,57 +160,174 @@ class FiltersWindow(QtWidgets.QWidget):
     def add_bad_time(self):
         self.add_filter("bad_time")
 
-    def add_filter(self, filter_type):
+    def change_time(self, which_box):
+        text_box = getattr(self, which_box)
+        date = text_box.text()
+        try:
+            _ = CxoTime(date).secs
+            text_box.setStyleSheet("color: black;")
+        except ValueError:
+            text_box.setStyleSheet("color: red;")
+
+    def add_filter(self, filter_type):  # noqa: PLR0912
         err_msg = ""
         if filter_type == "ignore":
             vals = [self.start_text.text(), self.stop_text.text()]
         elif filter_type == "bad_time":
             vals = [self.bt_start_text.text(), self.bt_stop_text.text()]
         try:
-            if vals[0] == "*":
-                vals[0] = self.model.datestart
-            if vals[1] == "*":
-                vals[1] = self.model.datestop
-            lim = CxoTime(vals).date
-            t0, t1 = CxoTime(lim).secs
-            if t0 > t1:
-                err_msg = "Filter stop is earlier than filter start!"
-        except (IndexError, ValueError):
-            if len(vals) == 2:
-                err_msg = f"Invalid input for filter: {vals[0]} {vals[1]}"
-            else:
+            for i, tlimit in zip(
+                [0, 1], [self.mw.model.datestart, self.mw.model.datestop], strict=False
+            ):
+                if vals[i] == "" or vals[i].isspace():
+                    vals[i] = "Nothing"
+                if vals[i] == "*":
+                    vals[i] = tlimit
+            tt = CxoTime(vals)
+            if filter_type == "ignore":
+                if np.any(tt.secs < self.mw.model.tstart):
+                    err_msg = (
+                        "Filter start and/or stop is before model start!\nmodel start: "
+                        f"{self.mw.model.datestart}\nstart: {vals[0]}\nstop: {vals[1]}"
+                    )
+                if np.any(tt.secs > self.mw.model.tstop):
+                    err_msg = (
+                        "Filter start and/or stop is after model stop!\nmodel stop: "
+                        f"{self.mw.model.datestop}\nstart: {vals[0]}\nstop: {vals[1]}"
+                    )
+            if tt[0] > tt[1]:
                 err_msg = (
-                    "Filter requires two arguments, the start time and the stop time."
+                    "Filter stop is earlier than filter start!\nstart: "
+                    f"{vals[0]}\nstop: {vals[1]}"
                 )
+        except ValueError:
+            err_msg = (
+                f"Invalid input for time change:\nstart: {vals[0]}\nstop: {vals[1]}"
+            )
         if len(err_msg) > 0:
             raise_error_box("Filters Error", err_msg)
         else:
             if filter_type == "ignore":
-                self.model.append_mask_time([lim[0], lim[1]])
+                self.mw.model.append_mask_time([tt[0].date, tt[1].date])
                 bad = False
-                self.mw.plots_box.add_fill(t0, t1)
+                self.mw.plots_box.add_fill(tt[0].secs, tt[1].secs)
+                self.start_text.setText("")
+                self.stop_text.setText("")
             elif filter_type == "bad_time":
-                self.model.append_bad_time([lim[0], lim[1]])
+                self.mw.model.append_bad_time([tt[0].date, tt[1].date])
                 bad = True
-            self.mw.plots_box.add_fill(t0, t1, bad=bad)
-        self.start_text.setText("")
-        self.stop_text.setText("")
-        self.bt_start_text.setText("")
-        self.bt_stop_text.setText("")
+                self.bt_start_text.setText("")
+                self.bt_stop_text.setText("")
+            self.mw.plots_box.add_fill(tt[0].secs, tt[1].secs, bad=bad)
 
     def notice_pushed(self):
         self.mw.plots_box.remove_ignores()
-        self.model.reset_mask_times()
+        self.mw.model.reset_mask_times()
         self.mw.plots_box.update_plots()
 
     def close_window(self, *args):
         self.close()
 
 
+class ChangeTimesWindow(QtWidgets.QWidget):
+    def __init__(self, main_window, current_start, current_stop):
+        super().__init__()
+        self.mw = main_window
+        self.setWindowTitle("Change Times")
+
+        self.start_label = QtWidgets.QLabel("Start time:")
+        self.start_text = QtWidgets.QLineEdit()
+        self.stop_label = QtWidgets.QLabel("Stop time:")
+        self.stop_text = QtWidgets.QLineEdit()
+        self.days_label = QtWidgets.QLabel("Days before stop:")
+        self.days_text = QtWidgets.QLineEdit()
+
+        self.start_text.textEdited.connect(self.times_changed)
+        self.stop_text.textEdited.connect(self.times_changed)
+        self.days_text.textEdited.connect(self.days_changed)
+
+        cancel_button = QtWidgets.QPushButton("Cancel")
+        cancel_button.clicked.connect(self.close_window)
+
+        change_button = QtWidgets.QPushButton("Change")
+        change_button.clicked.connect(self.change_pushed)
+
+        pair = QtWidgets.QHBoxLayout()
+        pair.addWidget(cancel_button)
+        pair.addWidget(change_button)
+
+        self.box = QtWidgets.QVBoxLayout()
+
+        self.box.addWidget(self.start_label)
+        self.box.addWidget(self.start_text)
+        self.box.addWidget(self.stop_label)
+        self.box.addWidget(self.stop_text)
+        self.box.addWidget(self.days_label)
+        self.box.addWidget(self.days_text)
+        self.box.addLayout(pair)
+
+        self.setLayout(self.box)
+        self.setGeometry(0, 0, 400, 200)
+
+        self.start_text.setText(current_start)
+        self.stop_text.setText(current_stop)
+        dt = CxoTime(current_stop) - CxoTime(current_start)
+        self.days_text.setText(str(dt.jd))
+
+    def days_changed(self):
+        try:
+            days = float(self.days_text.text())
+            stop = CxoTime(self.stop_text.text())
+            start = stop - days * u.day
+            self.start_text.setText(start.yday)
+            if days <= 0.0:
+                raise ValueError
+            self.days_text.setStyleSheet("color: black;")
+            self.start_text.setStyleSheet("color: black;")
+        except ValueError:
+            self.days_text.setStyleSheet("color: red;")
+            self.start_text.setStyleSheet("color: red;")
+
+    def times_changed(self):
+        try:
+            start = CxoTime(self.start_text.text())
+            stop = CxoTime(self.stop_text.text())
+            dt = stop - start
+            self.days_text.setText(str(dt.jd))
+            if dt <= zero_days:
+                raise ValueError
+            self.sender().setStyleSheet("color: black;")
+            self.days_text.setStyleSheet("color: black;")
+        except ValueError:
+            self.sender().setStyleSheet("color: red;")
+            self.days_text.setStyleSheet("color: red;")
+
+    def change_pushed(self):
+        err_msg = ""
+        vals = [self.start_text.text(), self.stop_text.text()]
+        try:
+            lim = CxoTime(vals).date
+            t0, t1 = CxoTime(lim).secs
+            if t0 > t1:
+                err_msg = "Time stop is earlier than time start!"
+        except ValueError:
+            err_msg = (
+                "Invalid input for time change:\nstart: "
+                f"{vals[0]}\nstop: {vals[1]}\ndays: {self.days_text.text()}"
+            )
+        if len(err_msg) > 0:
+            raise_error_box("Change Time Error", err_msg)
+        else:
+            self.mw.reset_model(*vals)
+            self.close()
+
+    def close_window(self, *args):
+        self.close()
+
+
 class WriteTableWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window):  # noqa: PLR0915
-        super(WriteTableWindow, self).__init__()
-        self.model = model
+    def __init__(self, main_window):  # noqa: PLR0915
+        super().__init__()
         self.mw = main_window
         self.setWindowTitle("Write Table")
         self.box = QtWidgets.QVBoxLayout()
@@ -219,15 +345,17 @@ class WriteTableWindow(QtWidgets.QWidget):
 
         main_box = QtWidgets.QVBoxLayout()
 
-        self.start_label = QtWidgets.QLabel("Start time: {}".format(self.start_date))
-        self.stop_label = QtWidgets.QLabel("Stop time: {}".format(self.stop_date))
+        self.start_label = QtWidgets.QLabel("Start time:")
+        self.stop_label = QtWidgets.QLabel("Stop time:")
         self.list_label = QtWidgets.QLabel("Data to write:")
 
         self.start_text = QtWidgets.QLineEdit()
-        self.start_text.returnPressed.connect(self.change_start)
+        self.start_text.textEdited.connect(self.change_start)
+        self.start_text.setText(self.start_date)
 
         self.stop_text = QtWidgets.QLineEdit()
-        self.stop_text.returnPressed.connect(self.change_stop)
+        self.stop_text.textEdited.connect(self.change_stop)
+        self.stop_text.setText(self.stop_date)
 
         main_box.addWidget(self.start_label)
         main_box.addWidget(self.start_text)
@@ -288,22 +416,20 @@ class WriteTableWindow(QtWidgets.QWidget):
     def change_start(self):
         start_date = self.start_text.text()
         try:
-            _ = CxoTime(start_date).secs
-            self.start_label.setText("Start time: {}".format(start_date))
             self.start_date = start_date
+            _ = CxoTime(start_date).secs
+            self.start_text.setStyleSheet("color: black;")
         except ValueError:
-            raise_error_box("Write Table Error", f"Start time not valid: {start_date}")
-        self.start_text.setText("")
+            self.start_text.setStyleSheet("color: red;")
 
     def change_stop(self):
         stop_date = self.stop_text.text()
         try:
-            _ = CxoTime(stop_date).secs
-            self.start_label.setText("Stop time: {}".format(stop_date))
             self.stop_date = stop_date
+            _ = CxoTime(stop_date).secs
+            self.stop_text.setStyleSheet("color: black;")
         except ValueError:
-            raise_error_box("Write Table Error", f"Stop time not valid: {stop_date}")
-        self.stop_text.setText("")
+            self.start_text.setStyleSheet("color: red;")
 
     def close_window(self, *args):
         self.close()
@@ -311,9 +437,17 @@ class WriteTableWindow(QtWidgets.QWidget):
     def save_ascii_table(self):
         from astropy.table import Column, Table
 
+        try:
+            dt = CxoTime(self.stop_date) - CxoTime(self.start_date)
+            if dt <= zero_days:
+                raise ValueError
+        except ValueError:
+            err_msg = f"Invalid input for times:\nstart: {self.start_date}\nstop: {self.stop_date}"
+            raise_error_box("Write Table Error", err_msg)
+            return
         dlg = QtWidgets.QFileDialog()
-        dlg.setNameFilters(["DAT files (*.dat)", "TXT files (*.txt)", "All files (*)"])
-        dlg.selectNameFilter("DAT files (*.dat)")
+        dlg.setNameFilters(["ECSV files (*.ecsv)", "All files (*)"])
+        dlg.selectNameFilter("ECSV files (*.ecsv)")
         dlg.setAcceptMode(dlg.AcceptSave)
         dlg.exec_()
         filename = str(dlg.selectedFiles()[0])
@@ -351,8 +485,7 @@ class WriteTableWindow(QtWidgets.QWidget):
 
 class ModelInfoWindow(QtWidgets.QWidget):
     def __init__(self, model, main_window):
-        super(ModelInfoWindow, self).__init__()
-        self.model = model
+        super().__init__()
         self.setWindowTitle("Model Info")
         self.box = QtWidgets.QVBoxLayout()
         self.setLayout(self.box)
@@ -382,8 +515,8 @@ class ModelInfoWindow(QtWidgets.QWidget):
         main_box.addWidget(
             QtWidgets.QLabel("Runge-Kutta Order: {}".format(4 if model.rk4 else 2))
         )
-        for msid in self.model.limits:
-            limits = self.model.limits[msid]
+        for msid in self.main_window.model.limits:
+            limits = self.main_window.model.limits[msid]
             units = limits["unit"]
             main_box.addWidget(QtWidgets.QLabel(f"{msid.upper()} limits:"))
             for limit, val in limits.items():
@@ -424,9 +557,8 @@ class ModelInfoWindow(QtWidgets.QWidget):
 
 
 class LineDataWindow(QtWidgets.QWidget):
-    def __init__(self, model, main_window, plots_box):
-        super(LineDataWindow, self).__init__()
-        self.model = model
+    def __init__(self, main_window, plots_box):
+        super().__init__()
         self.setWindowTitle("Line Data")
         self.box = QtWidgets.QVBoxLayout()
         self.setLayout(self.box)
@@ -535,7 +667,7 @@ class Panel:
 
 class PanelCheckBox(QtWidgets.QCheckBox):
     def __init__(self, par, main_window):
-        super(PanelCheckBox, self).__init__()
+        super().__init__()
         self.par = par
         self.main_window = main_window
 
@@ -549,7 +681,7 @@ class PanelCheckBox(QtWidgets.QCheckBox):
 
 class PanelText(QtWidgets.QLineEdit):
     def __init__(self, params_panel, row, par, attr, slider):
-        super(PanelText, self).__init__()
+        super().__init__()
         self.par = par
         self.row = row
         self.attr = attr
@@ -633,7 +765,7 @@ class PanelParam:
 
 class PanelSlider(QtWidgets.QSlider):
     def __init__(self, params_panel, par, row):
-        super(PanelSlider, self).__init__(QtCore.Qt.Horizontal)
+        super().__init__(QtCore.Qt.Horizontal)
         self.par = par
         self.row = row
         self.params_panel = params_panel
@@ -682,18 +814,18 @@ class ParamsPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient="v")
         self.plots_panel = plots_panel
-        self.model = model
+        self.pars = model.pars
 
         params_table = WidgetTable(
-            n_rows=len(self.model.pars),
-            colnames=["fit", "name", "val", "min", "", "max"],
+            n_rows=len(self.pars),
+            colnames=["fit", "name", "val", "min", "range", "max"],
             colwidths={0: 30, 1: 250},
             show_header=True,
         )
 
         self.params_dict = OrderedDict()
 
-        for row, par in zip(count(), self.model.pars):
+        for row, par in zip(count(), self.pars):
             # Thawed (i.e. fit the parameter)
             frozen = params_table[row, 0] = PanelCheckBox(
                 par, self.plots_panel.main_window
@@ -732,7 +864,7 @@ class ParamsPanel(Panel):
         self.params_table = params_table
 
     def update(self):
-        for row, par in enumerate(self.model.pars):
+        for row, par in enumerate(self.pars):
             val_label = self.params_table[row, 2]
             par_val_text = par.fmt.format(par.val)
             if str(val_label.text) != par_val_text:
@@ -748,30 +880,17 @@ class ControlButtonsPanel(Panel):
     def __init__(self, model):  # noqa: PLR0915
         Panel.__init__(self, orient="v")
 
-        self.model = model
+        self.comps = model.comps
 
         self.fit_button = QtWidgets.QPushButton("Fit")
         self.stop_button = QtWidgets.QPushButton("Stop")
-        self.save_button = QtWidgets.QPushButton("Save")
-        self.hist_button = QtWidgets.QPushButton("Histogram")
-        self.notice_button = QtWidgets.QPushButton("Notice")
-        self.filters_button = QtWidgets.QPushButton("Filters")
-        self.model_info_button = QtWidgets.QPushButton("Model Info")
-        self.write_table_button = QtWidgets.QPushButton("Write Table")
+        self.reset_plots_button = QtWidgets.QPushButton("Reset Plots")
         self.add_plot_button = self.make_add_plot_button()
-        self.update_status = QtWidgets.QLabel()
-        self.quit_button = QtWidgets.QPushButton("Quit")
-
-        self.ignore_entry = QtWidgets.QLineEdit()
-        self.ignore_panel = Panel()
-        self.ignore_panel.pack_start(QtWidgets.QLabel("Ignore:"))
-        self.ignore_panel.pack_start(self.ignore_entry)
-        self.ignore_panel.pack_start(self.notice_button)
 
         self.radzone_chkbox = QtWidgets.QCheckBox()
         self.limits_chkbox = QtWidgets.QCheckBox()
         self.line_chkbox = QtWidgets.QCheckBox()
-        if len(self.model.limits) == 0:
+        if len(model.limits) == 0:
             self.limits_chkbox.setEnabled(False)
 
         self.top_panel = Panel()
@@ -779,13 +898,7 @@ class ControlButtonsPanel(Panel):
 
         self.top_panel.pack_start(self.fit_button)
         self.top_panel.pack_start(self.stop_button)
-        self.top_panel.pack_start(self.save_button)
-        self.top_panel.pack_start(self.hist_button)
-        self.top_panel.pack_start(self.filters_button)
-        self.top_panel.pack_start(self.model_info_button)
-        self.top_panel.pack_start(self.write_table_button)
         self.top_panel.add_stretch(1)
-        self.top_panel.pack_start(self.quit_button)
 
         self.radzone_panel = Panel()
         self.radzone_panel.pack_start(QtWidgets.QLabel("Show radzones"))
@@ -799,11 +912,11 @@ class ControlButtonsPanel(Panel):
         self.line_panel.pack_start(QtWidgets.QLabel("Annotate line"))
         self.line_panel.pack_start(self.line_chkbox)
 
+        self.bottom_panel.pack_start(self.reset_plots_button)
         self.bottom_panel.pack_start(self.add_plot_button)
         self.bottom_panel.pack_start(self.radzone_panel)
         self.bottom_panel.pack_start(self.limits_panel)
         self.bottom_panel.pack_start(self.line_panel)
-        self.bottom_panel.pack_start(self.update_status)
         self.bottom_panel.add_stretch(1)
 
         self.pack_start(self.top_panel)
@@ -814,8 +927,8 @@ class ControlButtonsPanel(Panel):
         apb.addItem("Add plot...")
 
         plot_names = [
-            "{} {}".format(comp.name, attr[5:])
-            for comp in self.model.comps
+            f"{comp.name} {attr[5:]}"
+            for comp in self.comps
             for attr in dir(comp)
             if attr.startswith("plot_")
         ]
@@ -828,9 +941,8 @@ class ControlButtonsPanel(Panel):
 
 
 class FreezeThawPanel(Panel):
-    def __init__(self, model, plots_panel):
+    def __init__(self):
         Panel.__init__(self, orient="h")
-        self.model = model
         self.freeze_entry = QtWidgets.QLineEdit()
         self.thaw_entry = QtWidgets.QLineEdit()
 
@@ -846,24 +958,36 @@ class MainLeftPanel(Panel):
         self.control_buttons_panel = ControlButtonsPanel(model)
         self.plots_box = PlotsBox(model, main_window)
         self.pack_start(self.control_buttons_panel)
-        self.pack_start(self.plots_box)
-        self.add_stretch(1)
-        self.model = model
+        # This specialized code is for the PlotsBox because we
+        # want it to be scrollable
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
+        self.scroll.setFrameShape(
+            QtWidgets.QFrame.NoFrame
+        )  # optional, just looks nicer
+        container = QtWidgets.QWidget()
+        container.setLayout(self.plots_box)
+        container.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
+        )
+        self.scroll.setWidget(container)
+        self.box.addWidget(self.scroll, 1)
 
 
 class MainRightPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient="v")
-        self.freeze_thaw_panel = FreezeThawPanel(model, plots_panel)
+        self.freeze_thaw_panel = FreezeThawPanel()
         self.params_panel = ParamsPanel(model, plots_panel)
         self.pack_start(self.freeze_thaw_panel)
         self.pack_start(self.params_panel)
 
 
 class MainWindow:
-    # This is a callback function. The data arguments are ignored
-    # in this example. More on callbacks below.
-    def __init__(self, model, fit_worker, model_file):  # noqa: PLR0915
+    def __init__(self, model, fit_worker):  # noqa: PLR0915
         import Ska.tdb
 
         self.model = model
@@ -880,6 +1004,8 @@ class MainWindow:
                 else:
                     self.hist_msids.append(k)
 
+        self._init_model(model)
+
         if gui_config["filename"] is None:
             self.checksum_match = False
         else:
@@ -887,9 +1013,11 @@ class MainWindow:
 
         self.fit_worker = fit_worker
         # create a new window
+        self.mwindow = QtWidgets.QMainWindow()
         self.window = QtWidgets.QWidget()
-        self.window.setGeometry(0, 0, *gui_config.get("size", (1400, 800)))
+        self.mwindow.setGeometry(0, 0, *gui_config.get("size", (1400, 800)))
         self.set_title()
+        self.mwindow.setCentralWidget(self.window)
         self.main_box = Panel(orient="h")
 
         # This is the Layout Box that holds the top-level stuff in the main window
@@ -907,33 +1035,55 @@ class MainWindow:
         self.show_limits = False
         self.show_line = False
 
+        menu_bar = QtWidgets.QMenuBar()
+        menu_bar.setNativeMenuBar(True)
+        file_menu = menu_bar.addMenu("&File")
+        self.save_action = QtWidgets.QAction("&Save...", self.mwindow)
+        self.info_action = QtWidgets.QAction("&Info...", self.mwindow)
+        self.quit_action = QtWidgets.QAction("&Quit", self.mwindow)
+        self.save_action.triggered.connect(self.save_model_file)
+        self.info_action.triggered.connect(self.model_info)
+        self.quit_action.triggered.connect(self.quit_pushed)
+        file_menu.addAction(self.save_action)
+        file_menu.addAction(self.info_action)
+        file_menu.addAction(self.quit_action)
+        model_menu = menu_bar.addMenu("&Model")
+        self.time_action = QtWidgets.QAction("&Change Times...", self.mwindow)
+        self.time_action.triggered.connect(self.change_times)
+        model_menu.addAction(self.time_action)
+        util_menu = menu_bar.addMenu("&Utilities")
+        self.hist_action = QtWidgets.QAction("&Histogram...", self.mwindow)
+        self.filt_action = QtWidgets.QAction("&Filters...", self.mwindow)
+        self.table_action = QtWidgets.QAction("&Write Table...", self.mwindow)
+        self.stat_action = QtWidgets.QAction("&Fit Statistic...", self.mwindow)
+        self.hist_action.triggered.connect(self.make_histogram)
+        self.filt_action.triggered.connect(self.filters)
+        self.table_action.triggered.connect(self.write_table)
+        self.stat_action.triggered.connect(self.show_fitstat)
+        util_menu.addAction(self.hist_action)
+        util_menu.addAction(self.filt_action)
+        util_menu.addAction(self.table_action)
+        util_menu.addAction(self.stat_action)
+        self.mwindow.setMenuBar(menu_bar)
+
         self.cbp = mlp.control_buttons_panel
         self.cbp.fit_button.clicked.connect(self.fit_worker.start)
         self.cbp.fit_button.clicked.connect(self.fit_monitor)
         self.cbp.stop_button.clicked.connect(self.fit_worker.terminate)
-        self.cbp.save_button.clicked.connect(self.save_model_file)
-        self.cbp.write_table_button.clicked.connect(self.write_table)
-        self.cbp.model_info_button.clicked.connect(self.model_info)
-        self.cbp.filters_button.clicked.connect(self.filters)
-        self.cbp.quit_button.clicked.connect(self.quit_pushed)
-        self.cbp.hist_button.clicked.connect(self.make_histogram)
         self.cbp.radzone_chkbox.stateChanged.connect(self.plot_radzones)
         self.cbp.limits_chkbox.stateChanged.connect(self.plot_limits)
         self.cbp.line_chkbox.stateChanged.connect(self.plot_line)
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
+        self.cbp.reset_plots_button.clicked.connect(self.plots_box.reset_plots)
 
         self.ftp = mrp.freeze_thaw_panel
         self.ftp.freeze_entry.returnPressed.connect(self.freeze_activated)
         self.ftp.thaw_entry.returnPressed.connect(self.thaw_activated)
 
-        self.dates = CxoTime(self.model.times).date
-
-        self.telem_data = {
-            k: v for k, v in self.model.comp.items() if isinstance(v, TelemData)
-        }
-        self.fmt_telem_data = FormattedTelemData(self.telem_data)
-
         self.set_checksum(newfile=True)
+
+        self.status_bar = QtWidgets.QStatusBar()
+        self.mwindow.setStatusBar(self.status_bar)
 
         # Add plots from previous Save
         for plot_name in gui_config.get("plot_names", []):
@@ -941,7 +1091,7 @@ class MainWindow:
                 self.add_plot(plot_name)
                 time.sleep(0.05)  # is it needed?
             except ValueError:
-                print("ERROR: Unexpected plot_name {}".format(plot_name))
+                print(f"ERROR: Unexpected plot_name {plot_name}")
 
         # Show everything finally
         splitter = QtWidgets.QSplitter()
@@ -953,9 +1103,10 @@ class MainWindow:
         splitter.addWidget(right_widget)
         main_window_hbox.addWidget(splitter)
 
-        self.window.show()
+        self.mwindow.show()
         self.hist_window = None
         self.model_info_window = None
+        self.stat_window = None
 
     @property
     def model_spec(self):
@@ -980,12 +1131,63 @@ class MainWindow:
         else:
             self.checksum_match = self.file_md5sum == self.md5sum
 
+    def _init_model(self, model, reset=False):
+        import Ska.tdb
+
+        self.model = model
+        if not reset:
+            self.hist_msids = []
+            for k, v in self.model.comp.items():
+                if isinstance(v, Node):
+                    if k.startswith(("fptemp", "tmp_fep", "tmp_bep")):
+                        self.hist_msids.append(k)
+                    try:
+                        Ska.tdb.msids[v.msid]
+                    except KeyError:
+                        pass
+                    else:
+                        self.hist_msids.append(k)
+
+        self.dates = CxoTime(self.model.times).date
+
+        self.telem_data = {
+            k: v for k, v in self.model.comp.items() if isinstance(v, TelemData)
+        }
+
+        self.fmt_telem_data = FormattedTelemData(self.telem_data)
+        self.niter_hist = np.array([], dtype=int)
+        self.fit_stat_hist = np.array([])
+
+    def reset_model(self, new_start, new_stop):
+        model = xija.ThermalModel(
+            self.model.model_spec["name"],
+            new_start,
+            new_stop,
+            model_spec=self.model.model_spec,
+        )
+
+        for comp_name, val in gui_config["set_data_vals"].items():
+            model.comp[comp_name].set_data(val)
+
+        model.make()
+        model.calc()
+
+        self._init_model(model, reset=True)
+        self.plots_box.reset_model(model)
+        self.fit_worker.model = model
+
+    def change_times(self):
+        self.change_times_window = ChangeTimesWindow(
+            self, self.model.datestart, self.model.datestop
+        )
+        self.change_times_window.show()
+
     def write_table(self):
-        self.write_table_window = WriteTableWindow(self.model, self)
+        self.write_table_window = WriteTableWindow(self)
         self.write_table_window.show()
 
     def filters(self):
-        self.filters_window = FiltersWindow(self.model, self)
+        self.filters_window = FiltersWindow(self)
         self.filters_window.show()
 
     def model_info(self):
@@ -995,6 +1197,10 @@ class MainWindow:
     def make_histogram(self):
         self.hist_window = HistogramWindow(self.model, self.hist_msids)
         self.hist_window.show()
+
+    def show_fitstat(self):
+        self.stat_window = FitStatWindow(self)
+        self.stat_window.show()
 
     def plot_limits(self, state):
         self.show_limits = state == QtCore.Qt.Checked
@@ -1007,9 +1213,7 @@ class MainWindow:
         self.show_line = state == QtCore.Qt.Checked
         self.main_left_panel.plots_box.update_plots()
         if self.show_line:
-            self.line_data_window = LineDataWindow(
-                self.model, self, self.main_left_panel.plots_box
-            )
+            self.line_data_window = LineDataWindow(self, self.main_left_panel.plots_box)
             self.plots_box.add_annotations("line")
             self.line_data_window.show()
         else:
@@ -1027,7 +1231,8 @@ class MainWindow:
         pp = self.main_left_panel.plots_box
         pp.add_plot_box(plotname)
 
-    def fit_monitor(self, *args):
+    def fit_monitor(self):
+        self.status_bar.showMessage("BUSY... ")
         msg = None
         fit_stopped = False
         while self.fit_worker.parent_pipe.poll():
@@ -1040,11 +1245,17 @@ class MainWindow:
                 print("\n*********************************")
                 print("  FIT", msg["status"].upper())
                 print("*********************************\n")
+                self.status_bar.clearMessage()
                 break
 
         if msg:
             # Update the fit_worker model parameters and then the corresponding
             # params table widget.
+            niters = np.array(msg["niter"])
+            if len(self.niter_hist) > 0:
+                niters += self.niter_hist[-1] + 1
+            self.niter_hist = np.append(self.niter_hist, niters)
+            self.fit_stat_hist = np.append(self.fit_stat_hist, msg["fit_stat"])
             self.fit_worker.model.parvals = msg["parvals"]
             self.main_right_panel.params_panel.update()
             self.main_left_panel.plots_box.update_plots()
@@ -1095,7 +1306,7 @@ class MainWindow:
             title_str = "no filename"
         if not self.checksum_match:
             title_str += "*"
-        self.window.setWindowTitle(f"xija_gui_fit v{xija.__version__} ({title_str})")
+        self.mwindow.setWindowTitle(f"xija_gui_fit v{xija.__version__} ({title_str})")
 
     def save_model_file(self, *args):
         dlg = QtWidgets.QFileDialog()
@@ -1161,7 +1372,7 @@ def get_options():
         "--days",
         type=float,
         default=15,  # Fix this
-        help="Number of days in fit interval (default=90",
+        help="Number of days in fit interval (default=90)",
     )
     parser.add_argument(
         "--stop",
@@ -1203,7 +1414,6 @@ def main():  # noqa: PLR0912, PLR0915
 
     opt = get_options()
 
-    src = pyc.CONTEXT["src"] if "src" in pyc.CONTEXT else pyc.ContextDict("src")
     files = (
         pyc.CONTEXT["file"]
         if "file" in pyc.CONTEXT
@@ -1227,7 +1437,6 @@ def main():  # noqa: PLR0912, PLR0915
         print(f"Using model version {model_version} from chandra_models")
 
     gui_config.update(model_spec.get("gui_config", {}))
-    src["model"] = model_spec["name"]
 
     # Use supplied stop time and days OR use model_spec values if stop not supplied
     if opt.stop:
@@ -1284,7 +1493,14 @@ def main():  # noqa: PLR0912, PLR0915
     icon_path = str(Path(__file__).parent / "app_icon.png")
     icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
-    MainWindow(model, fit_worker, opt.filename)
+    app.setApplicationName("xija_gui_fit")
+    MainWindow(model, fit_worker)
+    app.setStyleSheet("""
+        QMenu {font-size: 15px}
+        QMenu QWidget {font-size: 15px}
+        QMenuBar {font-size: 15px}
+    """)
+
     sys.exit(app.exec_())
 
 

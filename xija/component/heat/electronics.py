@@ -180,5 +180,67 @@ class AcisDpaStatePower(PrecomputedHeatPower):
                 self.model.times, self.dvals, color="#386cb0", ls="-", fig=fig, ax=ax
             )
             ax.grid()
-            ax.set_title("{}: model (red) and data (blue)".format(self.name))
+            ax.set_title(f"{self.name}: model (red) and data (blue)")
             ax.set_ylabel("Power (W)")
+
+    def plot_power__state(self, fig, ax):
+        xm = self.model
+        dtype = [("x", "int"), ("y", "float"), ("name", "<U32")]
+        clocking = []
+        not_clocking = []
+        either = []
+        use_ccd_count = "dea" in str(self.node).lower()
+        for i, parname in enumerate(xm.parnames):
+            name = parname.split("__")[-1]
+            if name.startswith("pow"):
+                coeff = name.split("_")[-1]
+                count = int(coeff[int(use_ccd_count)])
+                if name.endswith("x"):
+                    either.append((count, xm.parvals[i], coeff))
+                elif name.endswith("1"):
+                    clocking.append((count, xm.parvals[i], coeff))
+                elif name.endswith("0"):
+                    not_clocking.append((count, xm.parvals[i], coeff))
+        clocking = np.array(clocking, dtype=dtype)
+        not_clocking = np.array(not_clocking, dtype=dtype)
+        either = np.array(either, dtype=dtype)
+        lines = ax.get_lines()
+        if lines:
+            lines[0].set_data(clocking["x"], clocking["y"])
+            lines[1].set_data(not_clocking["x"], not_clocking["y"])
+            lines[2].set_data(either["x"], either["y"])
+            k = 0
+            for i in range(clocking["name"].size):
+                ax.texts[k].set_y(clocking["y"][i])
+                k += 1
+            for i in range(not_clocking["name"].size):
+                ax.texts[k].set_y(not_clocking["y"][i])
+                k += 1
+            for i in range(either["name"].size):
+                ax.texts[k].set_y(either["y"][i])
+                k += 1
+            ax.autoscale(axis="y")
+        else:
+            ax.plot(
+                clocking["x"], clocking["y"], "x", label="Clocking", ms=10, color="C0"
+            )
+            ax.plot(
+                not_clocking["x"],
+                not_clocking["y"],
+                "x",
+                label="Not Clocking",
+                ms=10,
+                color="C1",
+            )
+            ax.plot(either["x"], either["y"], "x", label="Either", ms=10, color="C2")
+            for state, color in zip(
+                [clocking, not_clocking, either], ["C0", "C1", "C2"], strict=False
+            ):
+                for i, txt in enumerate(state["name"]):
+                    ax.text(state["x"][i] + 0.25, state["y"][i], txt, color=color)
+            ax.set_xlabel("{} Count".format("CCD" if use_ccd_count else "FEP"))
+            ax.set_ylabel("Coefficient Value")
+            ax.set_xticks(np.arange(7))
+            ax.set_xlim(-0.25, 7.0)
+            ax.legend(loc="best")
+            ax.grid()

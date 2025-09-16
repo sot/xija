@@ -87,7 +87,7 @@ class FetchError(Exception):
     pass
 
 
-class XijaModel(object):
+class XijaModel:
     """Xija model class to encapsulate all ModelComponents and provide the
     infrastructure to define and evaluate models.
 

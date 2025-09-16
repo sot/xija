@@ -41,10 +41,13 @@ lint.ignore = [
   "B028", # No explicit `stacklevel` keyword argument found
   "PLR0913", # Too many arguments to function call
   "PLR1730", # Checks for if statements that can be replaced with min() or max() calls
+  "PLC0415", # `import` should be at the top-level of a file
+  "PLW1641", # Class implements `__hash__` if `__eq__` is implemented
 ]
 
 extend-exclude = [
   "docs",
+  "build",
 ]
 
 [lint.pycodestyle]

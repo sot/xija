@@ -1,6 +1,8 @@
 import functools
+import re
 
 import matplotlib.dates as mdates
+import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import numpy as np
 from cheta.units import F_to_C
@@ -132,7 +134,7 @@ def get_radzones(model):
     return rad_zones
 
 
-def clearLayout(layout):
+def clear_layout(layout):
     """From http://stackoverflow.com/questions/9374063/pyqt4-remove-widgets-and-layout-as-well
 
     Parameters
@@ -151,7 +153,7 @@ def clearLayout(layout):
             if widget is not None:
                 widget.deleteLater()
             else:
-                clearLayout(item.layout())
+                clear_layout(item.layout())
 
 
 def annotate_limits(limits, ax, dir="h"):
@@ -188,13 +190,91 @@ def annotate_limits(limits, ax, dir="h"):
     for limit in limits:
         if limit == "unit":
             continue
+        if re.search("data_quality.high.acis[is]", limit):
+            # Skip old limits in ACIS FP model
+            continue
         lines.append(draw_line(convert(limits[limit]), color=get_limit_color(limit)))
     return lines
 
 
+class FitStatWindow(QtWidgets.QWidget):
+    def __init__(self, main_window):
+        super().__init__()
+        self.setGeometry(0, 0, 1000, 600)
+        self.setWindowTitle("Fit Statistic vs. Iteration")
+        self.box = QtWidgets.QVBoxLayout()
+        self.setLayout(self.box)
+        self.main_window = main_window
+
+        self.fig = Figure()
+
+        canvas = FigureCanvas(self.fig)
+        toolbar = NavigationToolbar(canvas, parent=None)
+
+        toolbar_box = QtWidgets.QHBoxLayout()
+        toolbar_box.addWidget(toolbar)
+        toolbar_box.addStretch(1)
+
+        linlog_button = QtWidgets.QComboBox()
+        linlog_button.addItem("linear")
+        linlog_button.addItem("logarithmic")
+        linlog_button.activated[str].connect(self.change_yscale)
+
+        redraw_button = QtWidgets.QPushButton("Redraw")
+        redraw_button.clicked.connect(self.update_plot)
+
+        close_button = QtWidgets.QPushButton("Close")
+        close_button.clicked.connect(self.close_window)
+
+        linlog_label = QtWidgets.QLabel("Y-scale")
+
+        toolbar_box.addWidget(linlog_label)
+        toolbar_box.addWidget(linlog_button)
+        toolbar_box.addWidget(redraw_button)
+        toolbar_box.addWidget(close_button)
+
+        self.box.addWidget(canvas)
+        self.box.addLayout(toolbar_box)
+
+        self.stat_line = None
+
+        self.ax = self.fig.add_subplot(111)
+
+        self.update_plot()
+
+    def change_yscale(self, scale):
+        if scale == "linear":
+            self.ax.set_yscale("linear")
+        else:
+            self.ax.set_yscale("log")
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
+
+    def update_plot(self):
+        """Update the plot with the current fit statistics."""
+        if not self.stat_line:
+            self.stat_line = self.ax.plot(
+                self.main_window.niter_hist, self.main_window.fit_stat_hist
+            )[0]
+            self.ax.set_xlabel("# of Iterations")
+            self.ax.set_ylabel("Fit Statistic")
+        else:
+            self.stat_line.set_data(
+                self.main_window.niter_hist, self.main_window.fit_stat_hist
+            )
+            self.ax.relim()  # Recompute data limits for the Axes
+            self.ax.autoscale_view()  # Rescale view to the new limits
+
+        self.fig.canvas.draw_idle()
+        self.fig.canvas.flush_events()
+
+    def close_window(self, *args):
+        self.close()
+
+
 class HistogramWindow(QtWidgets.QWidget):
     def __init__(self, model, hist_msids):  # noqa: PLR0915
-        super(HistogramWindow, self).__init__()
+        super().__init__()
         self.setGeometry(0, 0, 1000, 600)
         self.model = model
         self.hist_msids = hist_msids
@@ -458,6 +538,12 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict["q99"] = self.ax2.axvline(
                 stats["q99"], color="k", linestyle="--", linewidth=1.5, alpha=1
             )
+            self.plot_dict["q50"] = self.ax2.axvline(
+                stats["q50"], color=[1, 1, 1], linestyle="-", linewidth=2.5, alpha=1
+            )
+            self.plot_dict["q50_2"] = self.ax2.axvline(
+                stats["q50"], color="k", linestyle="--", linewidth=1.5, alpha=1
+            )
             self.plot_dict["min_hist"] = self.ax2.axvline(
                 min_resid, color="k", linestyle="--", linewidth=1.5, alpha=1
             )
@@ -472,10 +558,12 @@ class HistogramWindow(QtWidgets.QWidget):
             self.plot_dict["50_2"].set_data(Epoints50, tmid)
 
             self.plot_dict["step"].set_data(bin_mid, hist)
-            self.plot_dict["q01"].set_xdata(stats["q01"])
-            self.plot_dict["q99"].set_xdata(stats["q99"])
-            self.plot_dict["min_hist"].set_xdata(min_resid)
-            self.plot_dict["max_hist"].set_xdata(max_resid)
+            self.plot_dict["q01"].set_xdata([stats["q01"]])
+            self.plot_dict["q50"].set_xdata([stats["q50"]])
+            self.plot_dict["q50_2"].set_xdata([stats["q50"]])
+            self.plot_dict["q99"].set_xdata([stats["q99"]])
+            self.plot_dict["min_hist"].set_xdata([min_resid])
+            self.plot_dict["max_hist"].set_xdata([max_resid])
             self.plot_dict["fill"].remove()
 
         self.ax1.set_xlim(*self._errorlimits)
@@ -494,11 +582,13 @@ class HistogramWindow(QtWidgets.QWidget):
         self.ax2.set_xlim(*self._errorlimits)
 
         xpos_q01 = stats["q01"] + xoffset * 1.1
+        xpos_q50 = stats["q50"] + xoffset * 1.1
         xpos_q99 = stats["q99"] - xoffset * 0.9
         xpos_min = min_resid + xoffset * 1.1
         xpos_max = max_resid - xoffset * 0.9
         if "q01_text" in self.plot_dict:
             self.plot_dict["q01_text"].set_position((xpos_q01, ystart))
+            self.plot_dict["q50_text"].set_position((xpos_q50, ystart))
             self.plot_dict["q99_text"].set_position((xpos_q99, ystart))
             self.plot_dict["min_text"].set_position((xpos_min, ystart))
             self.plot_dict["max_text"].set_position((xpos_max, ystart))
@@ -511,6 +601,21 @@ class HistogramWindow(QtWidgets.QWidget):
                 va="center",
                 rotation=90,
                 clip_on=True,
+            )
+            txt_50 = self.plot_dict["q50_text"] = self.ax2.text(
+                xpos_q50,
+                ystart,
+                "50% Quantile",
+                ha="right",
+                va="center",
+                rotation=90,
+                clip_on=True,
+            )
+            txt_50.set_path_effects(
+                [
+                    path_effects.Stroke(linewidth=4, foreground="white", alpha=1.0),
+                    path_effects.Normal(),
+                ]
             )
             self.plot_dict["q99_text"] = self.ax2.text(
                 xpos_q99,
@@ -546,7 +651,7 @@ class HistogramWindow(QtWidgets.QWidget):
 
 class PlotBox(QtWidgets.QVBoxLayout):
     def __init__(self, plot_name, plots_box):
-        super(PlotBox, self).__init__()
+        super().__init__()
 
         comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
         self.comp = plots_box.model.comp[comp_name]
@@ -554,8 +659,16 @@ class PlotBox(QtWidgets.QVBoxLayout):
         self.comp_name = comp_name
         self.plot_name = plot_name
 
-        self.fig = Figure()
+        self.fig = Figure(constrained_layout=True)
         canvas = FigureCanvas(self.fig)
+        # The next two lines make sure that the canvas doesn't
+        # shrink as we add more plots--instead the parent layout
+        # scrolls
+        canvas.setMinimumHeight(280)
+        canvas.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
+
         toolbar = NavigationToolbar(canvas, parent=None)
         delete_plot_button = QtWidgets.QPushButton("Delete")
         delete_plot_button.clicked.connect(
@@ -618,7 +731,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
     def update_xline(self):
         if self.plot_name.endswith("time") and self.ly is not None:
-            self.ly.set_xdata(self.plots_box.xline)
+            self.ly.set_xdata([self.plots_box.xline])
             self.fig.canvas.draw_idle()
 
     _rz_times = None
@@ -691,6 +804,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
     def update(self, first=False):
         mw = self.main_window
         plot_func = getattr(self.comp, "plot_" + self.plot_method)
+        if first:
+            [line.remove() for line in self.ax.get_lines()]
         plot_func(fig=self.fig, ax=self.ax)
         if self.plot_method.endswith("time"):
             self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
@@ -710,16 +825,19 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
 class PlotsBox(QtWidgets.QVBoxLayout):
     def __init__(self, model, main_window):
-        super(QtWidgets.QVBoxLayout, self).__init__()
+        super().__init__()
         self.main_window = main_window
         self.model = model
+        self.plot_boxes = []
+        self.plot_names = []
+
+        self.set_times()
+
+    def set_times(self):
         self.xline = 0.5 * np.sum(
             cxctime2plotdate([self.model.tstart, self.model.tstop])
         )
         self.pd_times = cxctime2plotdate(self.model.times)
-        self.plot_boxes = []
-        self.plot_names = []
-
         # Set up a default axis that will act as the scaling reference
         self.default_fig, self.default_ax = plt.subplots()
         plot_cxctime(
@@ -728,6 +846,21 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             fig=self.default_fig,
             ax=self.default_ax,
         )
+
+    def reset_model(self, model):
+        self.model = model
+        self.set_times()
+        names = [pb.plot_name for pb in self.plot_boxes]
+        for name in names:
+            self.delete_plot_box(name)
+        for name in names:
+            self.add_plot_box(name)
+
+    def reset_plots(self):
+        for i, pb in enumerate(self.plot_boxes):
+            if "time" in self.plot_names[i]:
+                pb.ax.set_xlim(self.pd_times[0], self.pd_times[-1])
+                pb.fig.canvas.draw_idle()
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
@@ -745,7 +878,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
             if pb.plot_name == plot_name:
                 pb.fig.clear()
                 self.removeItem(pb)
-                clearLayout(pb)
+                clear_layout(pb)
         self.update()
         self.update_plot_boxes()
         # This is a hack to get the axes to appear correctly
@@ -754,13 +887,11 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         for pb in self.plot_boxes:
             pb.ax.set_xlim()
 
-    def update_plots(self):
+    def update_plots(self, first=False):
         mw = self.main_window
-        mw.cbp.update_status.setText(" BUSY... ")
         self.model.calc()
         for plot_box in self.plot_boxes:
-            plot_box.update()
-        mw.cbp.update_status.setText("")
+            plot_box.update(first=first)
         if mw.model_info_window is not None:
             mw.model_info_window.update_checksum()
         mw.set_title()
