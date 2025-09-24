@@ -668,6 +668,7 @@ class PlotBox(QtWidgets.QVBoxLayout):
         canvas.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
+        self.canvas = canvas
 
         toolbar = NavigationToolbar(canvas, parent=None)
         delete_plot_button = QtWidgets.QPushButton("Delete")
@@ -807,20 +808,19 @@ class PlotBox(QtWidgets.QVBoxLayout):
         if first:
             [line.remove() for line in self.ax.get_lines()]
         plot_func(fig=self.fig, ax=self.ax)
-        if self.plot_method.endswith("time"):
-            self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
-            self.ax.autoscale(enable=False, axis="x")
         if first:
             if self.plot_method.endswith("time"):
                 self.show_fills()
-            if mw.show_radzones:
-                self.add_annotation("radzones")
-            if mw.show_line:
-                self.add_annotation("line")
+                if mw.show_radzones:
+                    self.add_annotation("radzones")
+                if mw.show_line:
+                    self.add_annotation("line")
             if mw.show_limits:
                 self.add_annotation("limits")
         self.fig.canvas.draw_idle()
-        self.fig.canvas.flush_events()
+        if self.plot_method.endswith("time"):
+            self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
+            self.ax.autoscale(enable=False, axis="x")
 
 
 class PlotsBox(QtWidgets.QVBoxLayout):
@@ -864,28 +864,25 @@ class PlotsBox(QtWidgets.QVBoxLayout):
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
+        self.main_window.cbp.add_plot_button.setCurrentIndex(0)
         if plot_name == "Add plot..." or plot_name in self.plot_names:
             return
         print("Adding plot ", plot_name)
         plot_box = PlotBox(plot_name, self)
         self.addLayout(plot_box)
         plot_box.update(first=True)
-        self.main_window.cbp.add_plot_button.setCurrentIndex(0)
-        self.update_plot_boxes()
+        self.plot_boxes.append(plot_box)
+        self.plot_names.append(plot_name)
 
     def delete_plot_box(self, plot_name):
-        for pb in self.plot_boxes:
+        for i, pb in enumerate(list(self.plot_boxes)):
             if pb.plot_name == plot_name:
-                pb.fig.clear()
+                self.plot_boxes.pop(i)
+                self.plot_names.pop(i)
                 self.removeItem(pb)
                 clear_layout(pb)
+                break
         self.update()
-        self.update_plot_boxes()
-        # This is a hack to get the axes to appear correctly
-        # on the rest of the plots after deleting one, somehow
-        # related to clearing the figure above
-        for pb in self.plot_boxes:
-            pb.ax.set_xlim()
 
     def update_plots(self, first=False):
         mw = self.main_window
@@ -919,13 +916,6 @@ class PlotsBox(QtWidgets.QVBoxLayout):
                 pb.remove_ignores()
                 pb.fig.canvas.draw_idle()
         self.update_plots()
-
-    def update_plot_boxes(self):
-        self.plot_boxes = []
-        self.plot_names = []
-        for plot_box in self.findChildren(PlotBox):
-            self.plot_boxes.append(plot_box)
-            self.plot_names.append(plot_box.plot_name)
 
     def update_xline(self):
         for pb in self.plot_boxes:
