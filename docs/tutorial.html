@@ -5,18 +5,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Tutorial &#8212; xija 4.33.2 documentation</title>
+    <title>Tutorial &#8212; xija 4.34.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script src="_static/documentation_options.js?v=b68cd544"></script>
+    <script src="_static/documentation_options.js?v=ab572af9"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API docs" href="api.html" />
+    <link rel="next" title="Fitting a model using xija_gui_fit" href="gui_fit.html" />
     <link rel="prev" title="Design overview" href="design.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
@@ -47,7 +47,7 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="api.html" title="API docs">
+	<a href="gui_fit.html" title="Fitting a model using xija_gui_fit">
 	  next &raquo;
 	</a>
       </li>
@@ -58,7 +58,7 @@
 	 |
       </li>
       <li>
-	<a href="index.html">xija 4.33.2 documentation</a>
+	<a href="index.html">xija 4.34.0 documentation</a>
 	 &#187;
       </li>
       
@@ -155,7 +155,7 @@ bin points at 45 and 180 degrees.</p>
 <p>To make and run the model do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% cd $XIJA/examples/doc
 % python example1.py
-% ../../gui_fit.py example1.json --autoscale
+% xija_gui_fit example1.json
 </pre></div>
 </div>
 <p>Points for discussion:</p>
@@ -176,18 +176,18 @@ bin points at 45 and 180 degrees.</p>
 <p>To make and run the model do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% cd $XIJA/examples/doc
 % python example2.py
-% ../../gui_fit.py example2.json --autoscale
+% xija_gui_fit example2.json
 </pre></div>
 </div>
 <p>Points for discussion:</p>
 <ul class="simple">
 <li><p>Twiddle each fittable parameter and observe the response.</p></li>
-<li><p>Use a longer interval <cite>./gui_fit.py example2.json –autoscale –stop=2015:240 –days=400</cite>
+<li><p>Use a longer interval <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span> <span class="pre">example2.json</span> <span class="pre">--stop=2015:240</span> <span class="pre">--days=400</span></code>
 for dP and solar amplitude.</p></li>
-<li><p>Discuss epoch: <cite>./gui_fit.py example2.json –autoscale –stop=2015:240 –days=400 –keep-epoch</cite>.
+<li><p>Discuss epoch: <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span> <span class="pre">example2.json</span> <span class="pre">--stop=2015:240</span> <span class="pre">--days=400</span> <span class="pre">--keep-epoch</span></code>.
 It is important to verify that SolarHeat epoch is explicitly in JSON file in order
 to have auto-epoch updating.  This should be an <code class="docutils literal notranslate"><span class="pre">&quot;epoch&quot;</span></code> field in the <code class="docutils literal notranslate"><span class="pre">&quot;init_kwargs&quot;</span></code>
-element of <code class="docutils literal notranslate"><span class="pre">SolarHeat</span></code> components.  (Note: <code class="docutils literal notranslate"><span class="pre">SolarHeatOffNomRoll</span></code> is a bit different
+element of <code class="docutils literal notranslate"><span class="pre">SolarHeat</span></code> components. (Note: <code class="docutils literal notranslate"><span class="pre">SolarHeatOffNomRoll</span></code> is a bit different
 and does not have an epoch).</p></li>
 </ul>
 </section>
@@ -207,13 +207,12 @@ and does not have an epoch).</p></li>
 </div>
 <p>To make and run the model do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% cd $XIJA/examples/doc
-% python example2.py
-% ../../gui_fit.py example3.json --stop=2015:240 --days=400
+% python example3.py
+% xija_gui_fit example3.json --stop=2015:240 --days=400
 </pre></div>
 </div>
 <p>Points for discussion:</p>
 <ul class="simple">
-<li><p>Why no <code class="docutils literal notranslate"><span class="pre">--autoscale</span></code>?</p></li>
 <li><p>Fit the model</p>
 <ul>
 <li><p>Naive try.</p></li>
@@ -332,9 +331,9 @@ derived model is by directly editing the JSON model specification.</p>
 <section id="convert-model-spec-back-to-python">
 <h3>Convert model spec back to Python<a class="headerlink" href="#convert-model-spec-back-to-python" title="Link to this heading">¶</a></h3>
 <p>A very good way to modify an existing model spec is to write it back out as
-Python code.  This can be done in three ways:</p>
+Python code. This can be done in three ways:</p>
 <ul>
-<li><p>Within <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code> save the model with a name ending in <code class="docutils literal notranslate"><span class="pre">.py</span></code></p></li>
+<li><p>Within <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> save the model with a name ending in <code class="docutils literal notranslate"><span class="pre">.py</span></code></p></li>
 <li><p>Within a Python session or script use the <code class="docutils literal notranslate"><span class="pre">write()</span></code> method of a Xija model:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">xija</span><span class="o">.</span><span class="n">XijaModel</span><span class="p">(</span><span class="s1">&#39;mdl&#39;</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="s1">&#39;mdl.json&#39;</span><span class="p">)</span>
 <span class="n">model</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;mdl.py&#39;</span><span class="p">)</span>
@@ -347,149 +346,6 @@ Python code.  This can be done in three ways:</p>
 </pre></div>
 </div>
 </li>
-</ul>
-</section>
-</section>
-<section id="fitting-a-model">
-<h2>Fitting a model<a class="headerlink" href="#fitting-a-model" title="Link to this heading">¶</a></h2>
-<p>So far we have been manually working with a Xija model to understand a bit of
-what is going on underneath and know how to make performance predictions.
-However, the key task of actually calibrating the model parameters is done with
-the <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code> application.</p>
-<p>GUI fit overview</p>
-<p>The image below shows an example of fitting the ACIS DPA model with
-<code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code>.</p>
-<a class="reference internal image-reference" href="_images/gui_fit_guide.png"><img alt="_images/gui_fit_guide.png" src="_images/gui_fit_guide.png" style="width: 100%;" />
-</a>
-<p>Live demo using a Ska window:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $XIJA/examples/pcm
-../../gui_fit.py pcm.json --stop 2012:095 --days 30
-</pre></div>
-</div>
-<section id="command-line-options">
-<h3>Command line options<a class="headerlink" href="#command-line-options" title="Link to this heading">¶</a></h3>
-<p>The GUI fit tool supports the following command line options:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="o">./</span><span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
-<span class="n">usage</span><span class="p">:</span> <span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">days</span> <span class="n">DAYS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">stop</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">fit</span><span class="o">-</span><span class="n">method</span> <span class="n">FIT_METHOD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">inherit</span><span class="o">-</span><span class="kn">from</span> <span class="nn">INHERIT_FROM</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="nb">set</span><span class="o">-</span><span class="n">data</span> <span class="n">SET_DATA_EXPRS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">quiet</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">keep</span><span class="o">-</span><span class="n">epoch</span><span class="p">]</span>
-                  <span class="n">filename</span>
-
-<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
-  <span class="n">filename</span>              <span class="n">Model</span> <span class="n">file</span>
-
-<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
-  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
-  <span class="o">--</span><span class="n">days</span> <span class="n">DAYS</span>           <span class="n">Number</span> <span class="n">of</span> <span class="n">days</span> <span class="ow">in</span> <span class="n">fit</span> <span class="n">interval</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">90</span>
-  <span class="o">--</span><span class="n">stop</span> <span class="n">STOP</span>           <span class="n">Stop</span> <span class="n">time</span> <span class="n">of</span> <span class="n">fit</span> <span class="n">interval</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">model</span> <span class="n">values</span><span class="p">)</span>
-  <span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span>         <span class="n">Number</span> <span class="n">of</span> <span class="n">processors</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-  <span class="o">--</span><span class="n">fit</span><span class="o">-</span><span class="n">method</span> <span class="n">FIT_METHOD</span>
-                        <span class="n">Sherpa</span> <span class="n">fit</span> <span class="n">method</span> <span class="p">(</span><span class="n">simplex</span><span class="o">|</span><span class="n">moncar</span><span class="o">|</span><span class="n">levmar</span><span class="p">)</span>
-  <span class="o">--</span><span class="n">inherit</span><span class="o">-</span><span class="kn">from</span> <span class="nn">INHERIT_FROM</span>
-                        <span class="n">Inherit</span> <span class="n">par</span> <span class="n">values</span> <span class="kn">from</span> <span class="nn">model</span> <span class="n">spec</span> <span class="n">file</span>
-  <span class="o">--</span><span class="nb">set</span><span class="o">-</span><span class="n">data</span> <span class="n">SET_DATA_EXPRS</span>
-                        <span class="n">Set</span> <span class="n">data</span> <span class="n">value</span> <span class="k">as</span> <span class="s1">&#39;&lt;comp_name&gt;=&lt;value&gt;&#39;</span>
-  <span class="o">--</span><span class="n">quiet</span>               <span class="n">Suppress</span> <span class="n">screen</span> <span class="n">output</span>
-  <span class="o">--</span><span class="n">keep</span><span class="o">-</span><span class="n">epoch</span>          <span class="n">Maintain</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">SolarHeat</span> <span class="n">models</span> <span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">recenter</span>
-                        <span class="n">on</span> <span class="n">fit</span> <span class="n">interval</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Most of the time you should use the <code class="docutils literal notranslate"><span class="pre">--days</span></code> and <code class="docutils literal notranslate"><span class="pre">--stop</span></code> options.  Note that
-if you have saved a model specification and then restart <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code>, the
-most recently specified values will be used by default.</p>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">--nproc</span></code></dt><dd><p>This option has not been tested recently though it might work.</p>
-</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">--fit-method</span></code></dt><dd><p>The default fit method is <code class="docutils literal notranslate"><span class="pre">simplex</span></code> which is a good compromise between speed
-and completeness.  For the fastest fitting use <code class="docutils literal notranslate"><span class="pre">levmar</span></code>.  If already have
-somewhat decent parameters and want to try to refine for the very best fit
-then select <code class="docutils literal notranslate"><span class="pre">moncar</span></code>.  However, do not choose this option with more than
-about 10 or 15 free parameters as it can take a long time.  Typically with
-<code class="docutils literal notranslate"><span class="pre">moncar</span></code> you need to start the fitting and then do something else for a
-while (many hours or more).</p>
-</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">--inherit-from</span></code></dt><dd><p>This provides a way to construct a model which is similar to an existing
-model but has some differences.  All the model parameters which are
-exactly the same will be taking from the inherited model specification.</p>
-</dd>
-</dl>
-<p>Assuming you have created a model specification file <code class="docutils literal notranslate"><span class="pre">my_model_spec.json</span></code>
-then a typical calling sequence from the Xija source directory is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">gui_fit</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">stop</span> <span class="mi">2012</span><span class="p">:</span><span class="mi">002</span> <span class="o">--</span><span class="n">days</span> <span class="mi">180</span> <span class="n">my_model_spec</span><span class="o">.</span><span class="n">json</span>
-</pre></div>
-</div>
-</section>
-<section id="manipulating-plots">
-<h3>Manipulating plots<a class="headerlink" href="#manipulating-plots" title="Link to this heading">¶</a></h3>
-<p>Many model components have built-in plots that can be added to the fit window
-via the <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">plots...</span></code> drop down menu.  The available plot names correspond to the
-model component followed by a description of the plot.  Plots can be deleted by
-pressing the corresponding <code class="docutils literal notranslate"><span class="pre">Delete</span></code> button.</p>
-<p>One handy feature is that the time-based plots are always linked in the time
-axis so that if you zoom in to one then all plots zoom accordingly.  When you
-want to go back to the full view you can use the <code class="docutils literal notranslate"><span class="pre">Home</span></code> button on the plot
-where you originally zoomed.</p>
-</section>
-<section id="manipulating-parameters">
-<h3>Manipulating parameters<a class="headerlink" href="#manipulating-parameters" title="Link to this heading">¶</a></h3>
-<p>One of the key features of the GUI fit tool is the ability to visualize and
-manipulate the dozens of parameters in a typical Xija model.</p>
-<p>The parameters are on the right side panel.  Each one has a checkbox that
-indicates whether it will be fit (checked) or not (unchecked).  The value is
-shown, then the minimum allowed fit value, a slider bar to select the value,
-and then the maximum allowed fit value.  As you change the slider the model
-will be recalculated and the plots updated.  It helps to make the GUI fit
-window as wide as possible to make the sliders longer.</p>
-<p>If you want to change the min or max values just type in the box and then hit
-enter.  (If you don’t hit enter the new value won’t apply).</p>
-<p>You can freeze or thaw many parameters at once using the “glob” syntax in the
-entry box at the top of the fit window.  Examples:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">thaw</span> <span class="o">*</span>                 <span class="c1"># thaw all parameters</span>
-<span class="n">freeze</span> <span class="n">solarheat</span><span class="o">*</span>      <span class="c1"># freeze all the solarheat params</span>
-<span class="n">freeze</span> <span class="n">solarheat</span><span class="o">*</span><span class="n">_dP_</span><span class="o">*</span> <span class="c1"># freeze the long-term solarheat variation params</span>
-</pre></div>
-</div>
-</section>
-<section id="fit-strategy">
-<h3>Fit strategy<a class="headerlink" href="#fit-strategy" title="Link to this heading">¶</a></h3>
-<p>Fitting Xija models is a bit of an art and will it take some time to develop
-skill here.  A few rules of thumb and tips:</p>
-<ul>
-<li><p>Start with all long-term variations frozen.  You want to begin with a single time span
-that is about a year long and ends near the present.  The more parameters in the model
-that get fit, the more data you need.  Start by try to get the model in the right
-ballpark. Typically this means:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Freeze?   Parameters         Initial values
--------   ------------------ ----------------------
-freeze    solarheat_*_dP_*        0
-freeze    solarheat_*_tau       365
-freeze    solarheat_*_ampl        0
-freeze    heatsink_T          ~10 deg below typical
-thaw      solarheat_*_P_*         0
-thaw      heatsink_tau        Typical time scale
-thaw      coupling_*             30
-</pre></div>
-</div>
-</li>
-<li><p>Almost always have the <code class="docutils literal notranslate"><span class="pre">solarheat_*_bias</span></code> terms frozen at 0.  This
-parameter is degenerate with the <code class="docutils literal notranslate"><span class="pre">solarheat_*_P_*</span></code> values and is used for
-certain diagnostics.</p></li>
-<li><p>Once you have a model that fits reasonably well over the one year period then freeze all
-parameters <em>except</em> for <code class="docutils literal notranslate"><span class="pre">solarheat_*_dP_*</span></code> and <code class="docutils literal notranslate"><span class="pre">solarheat_*_ampl</span></code> parameters.  Fit
-over a 2-3 year time period which ends at the present time.</p></li>
-<li><p>Next you might want to refine the <code class="docutils literal notranslate"><span class="pre">solarheat_*_P_*</span></code> parameters at this point by
-thawing those ones and freezing the long-term parameters and fitting.  Remember that if
-the time span is not long enough then <code class="docutils literal notranslate"><span class="pre">P</span></code> and <code class="docutils literal notranslate"><span class="pre">dP</span></code> are degenerate and the fit may
-not converge.</p></li>
-<li><p>It can be useful to include long normal-sun dwells in the fitting to have
-some high-temperature data in the fit dataset.</p></li>
-<li><p>Remember to save your model fit when you get a good fit.  It is not saved by
-default and there is currently no warning to this effect.  Often there is a
-progression of model fits and it may be useful to incrementally number the
-models, e.g. <code class="docutils literal notranslate"><span class="pre">pcm03t_1.json</span></code>, <code class="docutils literal notranslate"><span class="pre">pcm03t_2.json</span></code>, etc.  By convention the
-final “flight” models that get configured are called
-<code class="docutils literal notranslate"><span class="pre">&lt;modelname&gt;_model_spec.json</span></code>, so avoid using this name during development.</p></li>
-<li><p>Saving also saves the state of plots and your parameters.</p></li>
 </ul>
 </section>
 </section>
@@ -533,7 +389,7 @@ by playing with an existing calibrated model.  Do one of the following:</p>
 <span class="o">%</span> <span class="n">cp</span> <span class="o">~</span><span class="n">aldcroft</span><span class="o">/</span><span class="n">git</span><span class="o">/</span><span class="n">xija</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">minusz</span><span class="o">/</span><span class="n">minusz</span><span class="o">.</span><span class="n">json</span> <span class="o">./</span>    <span class="c1"># Spacecraft</span>
 </pre></div>
 </div>
-<p>You will run <code class="docutils literal notranslate"><span class="pre">gui_fit.py</span></code> specifying the stop time as <code class="docutils literal notranslate"><span class="pre">2012:095</span></code> and
+<p>You will run <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> specifying the stop time as <code class="docutils literal notranslate"><span class="pre">2012:095</span></code> and
 the number of days to fit as <code class="docutils literal notranslate"><span class="pre">90</span></code>.</p>
 <p>Then do the following:</p>
 <ul class="simple">
@@ -585,13 +441,6 @@ integrate the PCM03T model into the MinusZ model.</p>
 <li><a class="reference internal" href="#convert-model-spec-back-to-python">Convert model spec back to Python</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#fitting-a-model">Fitting a model</a><ul>
-<li><a class="reference internal" href="#command-line-options">Command line options</a></li>
-<li><a class="reference internal" href="#manipulating-plots">Manipulating plots</a></li>
-<li><a class="reference internal" href="#manipulating-parameters">Manipulating parameters</a></li>
-<li><a class="reference internal" href="#fit-strategy">Fit strategy</a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#bad-times">Bad Times</a></li>
 <li><a class="reference internal" href="#exercises">Exercises</a><ul>
 <li><a class="reference internal" href="#team-acis">Team ACIS</a></li>
@@ -610,8 +459,8 @@ integrate the PCM03T model into the MinusZ model.</p>
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="api.html"
-                          title="next chapter">API docs</a></p>
+    <p class="topless"><a href="gui_fit.html"
+                          title="next chapter">Fitting a model using <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code></a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>

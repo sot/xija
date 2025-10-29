@@ -25,5 +25,6 @@ package.
 
    design
    tutorial
+   gui_fit
    api
 

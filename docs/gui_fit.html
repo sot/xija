@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Fitting a model using xija_gui_fit &#8212; xija 4.34.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-astropy.css?v=f4f7060c" />
+    
+    <script src="_static/documentation_options.js?v=ab572af9"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API docs" href="api.html" />
+    <link rel="prev" title="Tutorial" href="tutorial.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="index.html"><span id="logotext1">Ska!</span><span id="logotext2">xija</span><span id="logotext3"></span></a>
+  <ul>
+    
+    <li><a class="home" title="Homepage" href="https://cxc.cfa.harvard.edu/mta/ASPECT/tool_doc">
+        <span id="logotext1">ska</span><span id="logotext2">tools</span>
+    </a></li>
+    <li><a title="General Index" href="genindex.html">Index</a></li>
+    <li><a title="Module Index" href="py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="api.html" title="API docs">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="tutorial.html" title="Tutorial">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="index.html">xija 4.34.0 documentation</a>
+	 &#187;
+      </li>
+      
+      <li>Fitting a model using <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code></li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="fitting-a-model-using-xija-gui-fit">
+<h1>Fitting a model using <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code><a class="headerlink" href="#fitting-a-model-using-xija-gui-fit" title="Link to this heading">¶</a></h1>
+<p>So far we have been manually working with a Xija model to understand a bit of
+what is going on underneath and know how to make performance predictions.
+However, the key task of actually calibrating the model parameters is done with
+the <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> application.</p>
+<section id="xija-gui-fit-overview">
+<h2><code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> Overview<a class="headerlink" href="#xija-gui-fit-overview" title="Link to this heading">¶</a></h2>
+<p>The image below shows an example of fitting the ACIS FP model with
+<code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code>.</p>
+<a class="reference internal image-reference" href="_images/gui_fit_guide.png"><img alt="_images/gui_fit_guide.png" src="_images/gui_fit_guide.png" style="width: 100%;" />
+</a>
+<p>Live demo using a Ska window:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nv">$XIJA</span>/examples/pcm
+%<span class="w"> </span>xija_gui_fit<span class="w"> </span>pcm.json<span class="w"> </span>--stop<span class="w"> </span><span class="m">2012</span>:095<span class="w"> </span>--days<span class="w"> </span><span class="m">30</span>
+</pre></div>
+</div>
+</section>
+<section id="command-line-options">
+<h2>Command line options<a class="headerlink" href="#command-line-options" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> tool supports the following command line options:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span>xija_gui_fit<span class="w"> </span>--help
+
+usage:<span class="w"> </span>xija_gui_fit<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>--model-version<span class="w"> </span>MODEL_VERSION<span class="o">]</span><span class="w"> </span><span class="o">[</span>--days<span class="w"> </span>DAYS<span class="o">]</span>
+<span class="w">                    </span><span class="o">[</span>--stop<span class="w"> </span>STOP<span class="o">]</span><span class="w"> </span><span class="o">[</span>--maxiter<span class="w"> </span>MAXITER<span class="o">]</span>
+<span class="w">                    </span><span class="o">[</span>--fit-method<span class="w"> </span>FIT_METHOD<span class="o">]</span><span class="w"> </span><span class="o">[</span>--inherit-from<span class="w"> </span>INHERIT_FROM<span class="o">]</span>
+<span class="w">                    </span><span class="o">[</span>--set-data<span class="w"> </span>SET_DATA_EXPRS<span class="o">]</span><span class="w"> </span><span class="o">[</span>--quiet<span class="o">]</span>
+<span class="w">                    </span>filename
+
+positional<span class="w"> </span>arguments:
+<span class="w">  </span>filename<span class="w">              </span>Model<span class="w"> </span>or<span class="w"> </span>file<span class="w"> </span>name:<span class="w"> </span><span class="s1">&#39;*.json&#39;</span><span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span><span class="nb">local</span><span class="w"> </span>spec<span class="w"> </span>file,
+<span class="w">                        </span>otherwise<span class="w"> </span>this<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>model<span class="w"> </span>name<span class="w"> </span><span class="o">(</span>e.g.
+<span class="w">                        </span><span class="s1">&#39;acisfp_spec_matlab&#39;</span><span class="o">)</span><span class="w"> </span>that<span class="w"> </span>points<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>like-named<span class="w"> </span>JSON
+<span class="w">                        </span>spec<span class="w"> </span>file<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>Ska<span class="w"> </span>chandra_models<span class="w"> </span>repo.
+
+options:
+<span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">            </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+<span class="w">  </span>--model-version<span class="w"> </span>MODEL_VERSION
+<span class="w">                        </span>Model<span class="w"> </span>version<span class="w"> </span><span class="k">for</span><span class="w"> </span>model<span class="w"> </span>from<span class="w"> </span>chandra_models
+<span class="w">  </span>--days<span class="w"> </span>DAYS<span class="w">           </span>Number<span class="w"> </span>of<span class="w"> </span>days<span class="w"> </span><span class="k">in</span><span class="w"> </span>fit<span class="w"> </span>interval<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="m">90</span><span class="o">)</span>
+<span class="w">  </span>--stop<span class="w"> </span>STOP<span class="w">           </span>Stop<span class="w"> </span><span class="nb">time</span><span class="w"> </span>of<span class="w"> </span>fit<span class="w"> </span>interval<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span>model<span class="w"> </span>values<span class="o">)</span>
+<span class="w">  </span>--maxiter<span class="w"> </span>MAXITER<span class="w">     </span>Maximum<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span>fit<span class="w"> </span>iterations<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="m">1000</span><span class="o">)</span>
+<span class="w">  </span>--fit-method<span class="w"> </span>FIT_METHOD
+<span class="w">                        </span>Sherpa<span class="w"> </span>fit<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>simplex<span class="p">|</span>moncar<span class="p">|</span>levmar<span class="o">)</span>
+<span class="w">  </span>--inherit-from<span class="w"> </span>INHERIT_FROM
+<span class="w">                        </span>Inherit<span class="w"> </span>par<span class="w"> </span>values<span class="w"> </span>from<span class="w"> </span>model<span class="w"> </span>spec<span class="w"> </span>file
+<span class="w">  </span>--set-data<span class="w"> </span>SET_DATA_EXPRS
+<span class="w">                        </span>Set<span class="w"> </span>data<span class="w"> </span>value<span class="w"> </span>as<span class="w"> </span><span class="s1">&#39;&lt;comp_name&gt;=&lt;value&gt;&#39;</span>
+</pre></div>
+</div>
+<p>Most of the time you should use the <code class="docutils literal notranslate"><span class="pre">--days</span></code> and <code class="docutils literal notranslate"><span class="pre">--stop</span></code> options. Note that
+if you have saved a model specification and then restart <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code>, the
+most recently specified values will be used by default.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--fit-method</span></code></dt><dd><p>The default fit method is <code class="docutils literal notranslate"><span class="pre">simplex</span></code> which is a good compromise between speed
+and completeness. For the fastest fitting use <code class="docutils literal notranslate"><span class="pre">levmar</span></code>. If already have
+somewhat decent parameters and want to try to refine for the very best fit
+then select <code class="docutils literal notranslate"><span class="pre">moncar</span></code>. However, do not choose this option with more than
+about 10 or 15 free parameters as it can take a long time. Typically with
+<code class="docutils literal notranslate"><span class="pre">moncar</span></code> you need to start the fitting and then do something else for a
+while (many hours or more).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--inherit-from</span></code></dt><dd><p>This provides a way to construct a model which is similar to an existing
+model but has some differences. All the model parameters which are
+exactly the same will be taking from the inherited model specification.</p>
+</dd>
+</dl>
+<p>Assuming you have created a model specification file <code class="docutils literal notranslate"><span class="pre">my_model_spec.json</span></code>
+then a typical calling sequence is:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span>xija_gui_fit<span class="w"> </span>--stop<span class="w"> </span><span class="m">2012</span>:002<span class="w"> </span>--days<span class="w"> </span><span class="m">180</span><span class="w"> </span>my_model_spec.json
+</pre></div>
+</div>
+</section>
+<section id="menu-bar-options">
+<h2>Menu Bar Options<a class="headerlink" href="#menu-bar-options" title="Link to this heading">¶</a></h2>
+<p>The top-level menu bar has a number of options. The <a class="reference internal" href="#utils-menu"><span class="std std-ref">Utilities Menu</span></a>
+will be discussed below.</p>
+<section id="file-menu">
+<h3>File Menu<a class="headerlink" href="#file-menu" title="Link to this heading">¶</a></h3>
+<a class="reference internal image-reference" href="_images/file_menu.png"><img alt="_images/file_menu.png" src="_images/file_menu.png" style="width: 50%;" />
+</a>
+<section id="save">
+<h4>Save…<a class="headerlink" href="#save" title="Link to this heading">¶</a></h4>
+<p>Opens a dialog to save the current model specification file.</p>
+</section>
+<section id="info">
+<h4>Info…<a class="headerlink" href="#info" title="Link to this heading">¶</a></h4>
+<p>The “Info…” option allows one to get some quick information about
+the model which is being fit, which includes the full path to the filename,
+the MD5 sum of the model JSON file, the start time and the stop time of the
+model run, the timestep, the chosen evolution method, the limits for the model,
+and the order of the method (RK2 or RK4). If the MD5 of the current model is
+different from the one on disk (due to a parameter change, etc.) it will show
+up in red.</p>
+<img alt="_images/model_info.png" src="_images/model_info.png" />
+</section>
+</section>
+<section id="model-menu">
+<span id="id1"></span><h3>Model Menu<a class="headerlink" href="#model-menu" title="Link to this heading">¶</a></h3>
+<a class="reference internal image-reference" href="_images/model_menu.png"><img alt="_images/model_menu.png" src="_images/model_menu.png" style="width: 50%;" />
+</a>
+<section id="change-times">
+<h4>Change Times…<a class="headerlink" href="#change-times" title="Link to this heading">¶</a></h4>
+<p>Opens a dialog to change the start and stop times of the model run. This can
+be useful if you want to expand the model evalulation to a longer time range
+(e.g., in order to include more data for fitting, or better constrain the
+long-term pitch parameters).</p>
+<a class="reference internal image-reference" href="_images/change_times.png"><img alt="_images/change_times.png" src="_images/change_times.png" style="width: 60%;" />
+</a>
+<p>There are two ways to update the new times. You can either enter a new start
+and/or stop time in the boxes and then press the “Change” button, or you can
+select a new stop time and then set the number of days to go back to to
+calculate the new start time. Regardless of which method you use, the values
+in the boxes will be updated to reflect the new values.</p>
+<p>If you enter an invalid time (e.g. a stop time before or equal to the start
+time, or an invalid date string) or an invalid number of days (e.g. negative,
+zero, or not a number), then the values will turn red until a valid value is
+entered. If you enter bad values and then press “Change”, a dialog will pop
+up to remind you that the values are bad, with the message depending on the
+reason.</p>
+</section>
+</section>
+</section>
+<section id="manipulating-parameters">
+<h2>Manipulating Parameters<a class="headerlink" href="#manipulating-parameters" title="Link to this heading">¶</a></h2>
+<p>One of the key features of <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> is the ability to visualize and
+manipulate the dozens of parameters in a typical Xija model.</p>
+<p>The parameters are on the right side panel. Each one has a checkbox that
+indicates whether it will be fit (checked) or not (unchecked). The value is
+shown, then the minimum allowed fit value, a slider bar to select the value,
+and then the maximum allowed fit value. As you change the slider the model
+will be recalculated and the plots updated. It helps to make the <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code>
+window as wide as possible to make the sliders longer.</p>
+<p>If you want to change the min or max values just type in the box and then hit
+enter (if you don’t hit enter, the new value won’t apply).</p>
+<p>You can freeze or thaw many parameters at once using the “glob” syntax in the
+“Freeze:” or “Thaw:” entry boxes at the top of the fit window. Examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>*<span class="w">               </span><span class="c1"># freeze/thaw all parameters</span>
+solarheat*<span class="w">      </span><span class="c1"># freeze/thaw all the solarheat params</span>
+solarheat*_dP_*<span class="w"> </span><span class="c1"># freeze/thaw the long-term solarheat variation params</span>
+</pre></div>
+</div>
+</section>
+<section id="plots">
+<h2>Plots<a class="headerlink" href="#plots" title="Link to this heading">¶</a></h2>
+<p>Many model components have built-in plots that can be added to the fit window
+via the “Add plots…” drop down menu. The available plot names correspond to the
+model component followed by a description of the plot. Plots can be deleted by
+pressing the corresponding “Delete” button.</p>
+<p>For the particular node that is being modeled, there will be a plot showing the data
+(blue) and model (red) together vs time. One handy feature is that the time-based
+plots are always linked in the time axis so that if you zoom in or pan on one then
+all plots zoom or pan accordingly. When you want to go back to the full view, you
+can use the “Reset Plots” button. Plots will update in real-time if parameters are
+changed, either by moving the sliders, setting values directly, or by fitting.</p>
+<section id="plot-types">
+<h3>Plot Types<a class="headerlink" href="#plot-types" title="Link to this heading">¶</a></h3>
+<section id="model-and-data-vs-time">
+<h4>Model and Data vs. Time<a class="headerlink" href="#model-and-data-vs-time" title="Link to this heading">¶</a></h4>
+<p>The main plot that you will want to see is the model’s main <code class="docutils literal notranslate"><span class="pre">data__time</span></code> plot,
+which shows the data and model vs. time. This is the key plot to see how well the
+model is fitting the data. In the plot dropdown menu, select <code class="docutils literal notranslate"><span class="pre">&lt;node&gt;</span> <span class="pre">data__time</span></code>
+where <code class="docutils literal notranslate"><span class="pre">&lt;node&gt;</span></code> is the name of the node being modeled (e.g. <code class="docutils literal notranslate"><span class="pre">fptemp</span></code>):</p>
+<img alt="_images/data_time.png" src="_images/data_time.png" />
+</section>
+<section id="model-residuals-vs-time">
+<h4>Model Residuals vs. Time<a class="headerlink" href="#model-residuals-vs-time" title="Link to this heading">¶</a></h4>
+<p>Another useful plot is the <code class="docutils literal notranslate"><span class="pre">&lt;node&gt;</span> <span class="pre">resid__time</span></code> plot, which shows the data-model
+residuals vs. time. This is useful for seeing trends in the residuals which may be
+related to certain spacecraft conditions:</p>
+<img alt="_images/resid_time.png" src="_images/resid_time.png" />
+</section>
+<section id="model-residuals-vs-data">
+<h4>Model Residuals vs. Data<a class="headerlink" href="#model-residuals-vs-data" title="Link to this heading">¶</a></h4>
+<p>One may want to see the residuals plotted against the data temperature to see if
+there are any trends. This is available as the <code class="docutils literal notranslate"><span class="pre">&lt;node&gt;</span> <span class="pre">resid__data</span></code> plot
+which shows the residuals vs. the data temperature:</p>
+<img alt="_images/resid_data.png" src="_images/resid_data.png" />
+</section>
+<section id="model-inputs-vs-time">
+<h4>Model Inputs vs. Time<a class="headerlink" href="#model-inputs-vs-time" title="Link to this heading">¶</a></h4>
+<p>Model inputs, such as other MSIDs or commanded states, can also be plotted vs. time.
+Some examples are <code class="docutils literal notranslate"><span class="pre">pitch</span></code> and <code class="docutils literal notranslate"><span class="pre">fep_count</span></code>:</p>
+<img alt="_images/pitch_time.png" src="_images/pitch_time.png" />
+<img alt="_images/fep_count_time.png" src="_images/fep_count_time.png" />
+</section>
+<section id="solar-heating-power-vs-pitch">
+<h4>Solar Heating Power vs. Pitch<a class="headerlink" href="#solar-heating-power-vs-pitch" title="Link to this heading">¶</a></h4>
+<p>Each node in the model which has a solar heating component has a corresponding plot
+of the solar heating power vs. pitch. For most models, this is the
+<code class="docutils literal notranslate"><span class="pre">solarheat__&lt;node&gt;</span> <span class="pre">solar_heat__pitch</span></code> plot, which shows the amount of solar heating
+power being applied to the node as a function of pitch angle:</p>
+<img alt="_images/solarheat_power_pitch.png" src="_images/solarheat_power_pitch.png" />
+<p>The blue line “P” shows the nominal solar heating power vs. pitch, while the purple
+line “P + dP” shows the added effect of the long-term variation in the solar heating
+power.</p>
+<p>Some models (ACIS FP, ACIS PSMC, HRC CEA) have a solar heating curve for multiple
+SIM-Z positions. This plot has a name like
+<code class="docutils literal notranslate"><span class="pre">hrc_*_acis_*_simz_solarheat__&lt;node&gt;</span> <span class="pre">solar_heat__pitch</span></code> and looks like this:</p>
+<img alt="_images/solarheat_power_pitch_simz.png" src="_images/solarheat_power_pitch_simz.png" />
+</section>
+<section id="acis-power-states">
+<h4>ACIS Power States<a class="headerlink" href="#acis-power-states" title="Link to this heading">¶</a></h4>
+<p>ACIS thermal models (and the HRC CEA model) have a plot showing the ACIS power
+states, which depend on CCD count, FEP count, and whether the detector is taking
+data (“clocking”). This plot is called <code class="docutils literal notranslate"><span class="pre">dpa_power</span> <span class="pre">power__state</span></code> and looks like
+this:</p>
+<img alt="_images/acis_state_power.png" src="_images/acis_state_power.png" />
+<p>The x-axis shows FEP or CCD count, depending on the model. The different colors
+of the points indicate whether the detector is clocking (blue), not (orange), or
+if the state is unknown (green).</p>
+</section>
+</section>
+<section id="plot-annotations">
+<h3>Plot Annotations<a class="headerlink" href="#plot-annotations" title="Link to this heading">¶</a></h3>
+<p>There are also a few types of plot annotations that may be useful.</p>
+<section id="annotate-limits-and-radzones">
+<h4>Annotate Limits and Radzones<a class="headerlink" href="#annotate-limits-and-radzones" title="Link to this heading">¶</a></h4>
+<p>If the thermal limits are included in the JSON model specification file, they can
+be plotted on the <code class="docutils literal notranslate"><span class="pre">data__time</span></code> and <code class="docutils literal notranslate"><span class="pre">resid__data</span></code> plots for the modeled
+temperature. To enable this, toggle the “Show limits” checkbox. Different colors
+are used for different limits.</p>
+<p>It may also be useful to know when the radzones begin and end. Toggling the
+“Show radzones” checkbox puts dashed green lines on the time plots indicating the
+times of the radzones.</p>
+<img alt="_images/annot_lims_rads.png" src="_images/annot_lims_rads.png" />
+</section>
+<section id="annotate-line-option">
+<h4>Annotate Line Option<a class="headerlink" href="#annotate-line-option" title="Link to this heading">¶</a></h4>
+<p>Clicking the “Annotate line” checkbox adds a brown vertical line to the time plots
+which can be dragged around from any plot and its motion will by synchronized between
+them. It also pops up a “Line Data” window which shows the values of all of the model
+inputs and outputs at the time marked by the brown line.</p>
+<img alt="_images/annot_line.png" src="_images/annot_line.png" />
+</section>
+</section>
+</section>
+<section id="fit-strategy">
+<h2>Fit Strategy<a class="headerlink" href="#fit-strategy" title="Link to this heading">¶</a></h2>
+<p>Fitting Xija models is a bit of an art and will it take some time to develop
+skill here. A few rules of thumb and tips:</p>
+<ul>
+<li><p>Start with all long-term variations frozen. You want to begin with a single time span
+that is about a year long and ends near the present. The more parameters in the model
+that get fit, the more data you need. Start by trying to get the model in the right
+ballpark. Typically this means:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Freeze?   Parameters         Initial values
+-------   ------------------ ----------------------
+freeze    solarheat_*_dP_*        0
+freeze    solarheat_*_tau       365
+freeze    solarheat_*_ampl        0
+freeze    heatsink_T          ~10 deg below typical
+thaw      solarheat_*_P_*         0
+thaw      heatsink_tau        Typical time scale
+thaw      coupling_*             30
+</pre></div>
+</div>
+</li>
+<li><p>Almost always have the <code class="docutils literal notranslate"><span class="pre">solarheat_*_bias</span></code> terms frozen at 0. This
+parameter is degenerate with the <code class="docutils literal notranslate"><span class="pre">solarheat_*_P_*</span></code> values and is used for
+certain diagnostics.</p></li>
+<li><p>Once you have a model that fits reasonably well over the one year period, freeze all
+parameters <em>except</em> for <code class="docutils literal notranslate"><span class="pre">solarheat_*_dP_*</span></code> and <code class="docutils literal notranslate"><span class="pre">solarheat_*_ampl</span></code> parameters. Fit
+over a 2-3 year time period which ends at the present time. You can do this by either
+saving the model spec file and then restarting <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> with the new
+<code class="docutils literal notranslate"><span class="pre">--days</span></code> and <code class="docutils literal notranslate"><span class="pre">--stop</span></code> values, or by using the “Change Times…” option in the
+<a class="reference internal" href="#model-menu"><span class="std std-ref">Model Menu</span></a>.</p></li>
+<li><p>Next, you might want to refine the <code class="docutils literal notranslate"><span class="pre">solarheat_*_P_*</span></code> parameters at this point by
+thawing those ones and freezing the long-term parameters and fitting. Remember that if
+the time span is not long enough, then <code class="docutils literal notranslate"><span class="pre">P</span></code> and <code class="docutils literal notranslate"><span class="pre">dP</span></code> are degenerate and the fit may
+not converge.</p></li>
+<li><p>It can be useful to include long dwells at the worst-case pitch for your model
+in the fitting to have some high-temperature data in the fit dataset.</p></li>
+<li><p>Remember to save your model fit when you get a good fit. It is not saved by
+default and there is currently no warning to this effect. Often there is a
+progression of model fits and it may be useful to incrementally number the
+models, e.g. <code class="docutils literal notranslate"><span class="pre">pcm03t_1.json</span></code>, <code class="docutils literal notranslate"><span class="pre">pcm03t_2.json</span></code>, etc. By convention the
+final “flight” models that get configured are called
+<code class="docutils literal notranslate"><span class="pre">&lt;modelname&gt;_model_spec.json</span></code>, so avoid using this name during development.</p></li>
+<li><p>Saving also saves the state of plots and your parameters.</p></li>
+</ul>
+</section>
+<section id="utilities-menu">
+<span id="utils-menu"></span><h2>Utilities Menu<a class="headerlink" href="#utilities-menu" title="Link to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="_images/utils_menu.png"><img alt="_images/utils_menu.png" src="_images/utils_menu.png" style="width: 50%;" />
+</a>
+<p>A number of other optional features are included with <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> under the
+Utilities Menu, which may help with interpreting model fits and other analyses.</p>
+<section id="histogram">
+<h3>Histogram…<a class="headerlink" href="#histogram" title="Link to this heading">¶</a></h3>
+<p>The “Histogram…” menu item brings up a window which shows two histograms of the
+model performance, similar to a dashboard plot. The left histogram shows the
+distribution of the residuals (data - model) versus the data temperature. Lines
+are drawn for the 1%, 50%, and 99% quantiles. The right histogram shows the
+binned distribution of the residuals, with lines drawn for the 1%, 50%, and 99%
+quantiles.</p>
+<img alt="_images/histogram.png" src="_images/histogram.png" />
+<p>Though the histogram window can be open while fitting, it will not update
+automatically. To update the histograms, press the “Redraw” button.</p>
+<p>Note that there are a number of options that can be set to modify the histograms.
+First, there is the standard Matplotlib toolbox for zooming, panning, saving, etc.
+Second, there are two dialog boxes that can be used to set the limits of the
+residuals. Finally, there are three checkboxes. The “Mask radzones” and “Mask FMT1”
+checkboxes will exclude data during radzones and FMT1 periods, respectively. In
+this example, we mask out data from the radzones–note how different the histograms
+look from the unmasked version above:</p>
+<img alt="_images/histogram_mask.png" src="_images/histogram_mask.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These options may only be useful for certain models, such as the ACIS FP model.</p>
+</div>
+<p>The “Show limits” checkbox will overplot the thermal limits on the left histogram:</p>
+<img alt="_images/histogram_limits.png" src="_images/histogram_limits.png" />
+</section>
+<section id="filters">
+<h3>Filters…<a class="headerlink" href="#filters" title="Link to this heading">¶</a></h3>
+<p>Sometimes it may be desirable to exclude certain telemetry data from the fit
+if it is known to be bad or one just wants to experiment. This functionality
+is available under the “Filters…” menu item, which brings up a window that
+presents two options for filtering data on time ranges.</p>
+<p>The first option is to filter out data within a given time intervals for the
+the current session only. To do this, enter a start and stop time under the
+“Add Ignore/Notice” section of the “Filters” window and then press the
+“Add Ignore” button. The time interval will be added to the intervals that
+are ignored for the current session, and will be shown in red on the plots.
+If you want to remove all ignored intervals, press the “Notice All” button.
+Once you exit the <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> application, these ignored intervals
+will be forgotten.</p>
+<p>The second option is to permanently filter out data by adding time intervals
+known as “bad times” to the model specification file. Historically, these
+have been added by hand, but now this can also be done in the “Filters” window,
+by entering a start and stop time under the “Add Bad Time” section and then
+pressing the “Add Bad Time” button. The time interval will be added to the
+list of bad times in the model specification file, and will be shown in green
+on the plots.</p>
+<a class="reference internal image-reference" href="_images/filters.png"><img alt="_images/filters.png" src="_images/filters.png" style="width: 60%;" />
+</a>
+<img alt="_images/filters_plot.png" src="_images/filters_plot.png" />
+<p>If you enter an invalid start or stop date, then the bad value(s) will turn
+red until a valid value is entered. If you enter bad values for the intervals
+and then press either of the buttons to add them, a dialog will pop up to
+This will also occur if you set the stop time to be before or equal to the
+start time, or if you enter ignore intervals that are outside of the current
+model time range. However, you can add bad time intervals that are outside
+of the current model time range.</p>
+</section>
+<section id="write-table">
+<h3>Write Table…<a class="headerlink" href="#write-table" title="Link to this heading">¶</a></h3>
+<p>It may be useful to take a number of model/data outputs associated with the
+fitting procedure and output to an ASCII table in the
+<a class="reference external" href="https://docs.astropy.org/en/stable/io/ascii/write.html#ecsv-format&quot;">AstroPy ECSV format</a>
+The “Write Table…” menu item brings up a window which allows one to select from
+the different quantities which are inputs to the model and its outputs, select
+a time window within which to output data, and then write the quantities to the table.</p>
+<a class="reference internal image-reference" href="_images/write_table.png"><img alt="_images/write_table.png" src="_images/write_table.png" style="width: 50%;" />
+</a>
+<p>If you enter an invalid start or stop date, then the bad value(s) will turn
+red until a valid value is entered. If you enter bad values and then press
+“Write Table”, a dialog will pop up to remind you that the value(s) are bad,
+with the message depending on the reason. This will also occur if you set the
+stop time to be before or equal to the start time.</p>
+</section>
+<section id="fit-statistic">
+<h3>Fit Statistic…<a class="headerlink" href="#fit-statistic" title="Link to this heading">¶</a></h3>
+<p>The “Fit Statistic…” menu item brings up a window which shows the change in
+the fit statistic vs. the number of fit iterations. This plot is not renewed
+in real-time, it must be refreshed by pressing the “Redraw” button, or it will
+be refreshed if the window is closed and then reopened. The plot has no data
+until a fit is performed. It will retain the history of the fit statistic from
+previous fits during the current session, but not if the times are changed or
+if the application is exited.</p>
+<img alt="_images/fit_stat.png" src="_images/fit_stat.png" />
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Fitting a model using <code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code></a><ul>
+<li><a class="reference internal" href="#xija-gui-fit-overview"><code class="docutils literal notranslate"><span class="pre">xija_gui_fit</span></code> Overview</a></li>
+<li><a class="reference internal" href="#command-line-options">Command line options</a></li>
+<li><a class="reference internal" href="#menu-bar-options">Menu Bar Options</a><ul>
+<li><a class="reference internal" href="#file-menu">File Menu</a><ul>
+<li><a class="reference internal" href="#save">Save…</a></li>
+<li><a class="reference internal" href="#info">Info…</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model-menu">Model Menu</a><ul>
+<li><a class="reference internal" href="#change-times">Change Times…</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#manipulating-parameters">Manipulating Parameters</a></li>
+<li><a class="reference internal" href="#plots">Plots</a><ul>
+<li><a class="reference internal" href="#plot-types">Plot Types</a><ul>
+<li><a class="reference internal" href="#model-and-data-vs-time">Model and Data vs. Time</a></li>
+<li><a class="reference internal" href="#model-residuals-vs-time">Model Residuals vs. Time</a></li>
+<li><a class="reference internal" href="#model-residuals-vs-data">Model Residuals vs. Data</a></li>
+<li><a class="reference internal" href="#model-inputs-vs-time">Model Inputs vs. Time</a></li>
+<li><a class="reference internal" href="#solar-heating-power-vs-pitch">Solar Heating Power vs. Pitch</a></li>
+<li><a class="reference internal" href="#acis-power-states">ACIS Power States</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plot-annotations">Plot Annotations</a><ul>
+<li><a class="reference internal" href="#annotate-limits-and-radzones">Annotate Limits and Radzones</a></li>
+<li><a class="reference internal" href="#annotate-line-option">Annotate Line Option</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fit-strategy">Fit Strategy</a></li>
+<li><a class="reference internal" href="#utilities-menu">Utilities Menu</a><ul>
+<li><a class="reference internal" href="#histogram">Histogram…</a></li>
+<li><a class="reference internal" href="#filters">Filters…</a></li>
+<li><a class="reference internal" href="#write-table">Write Table…</a></li>
+<li><a class="reference internal" href="#fit-statistic">Fit Statistic…</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="tutorial.html"
+                          title="previous chapter">Tutorial</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="api.html"
+                          title="next chapter">API docs</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gui_fit.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<form action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="_sources/gui_fit.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2016, Tom Aldcroft.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 8.1.3. &nbsp;
+  </p>
+</footer>
+  </body>
+</html>
