@@ -570,6 +570,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         pitch_comp="pitch",
         simz_comp="sim_z",
         dh_heater_comp="dh_heater",
+        eclipse_comp=None,
         P_pitches=None,
         P_vals=None,
         dP_pitches=None,
@@ -586,6 +587,7 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
         self.pitch_comp = self.model.get_comp(pitch_comp)
         self.simz_comp = self.model.get_comp(simz_comp)
         self.dh_heater_comp = self.model.get_comp(dh_heater_comp)
+        self.eclipse_comp = self.model.get_comp(eclipse_comp)
         self.P_pitches = np.array(
             [45.0, 55.0, 70.0, 90.0, 150.0] if (P_pitches is None) else P_pitches,
             dtype=float,
@@ -681,6 +683,10 @@ class SimZDepSolarHeat(PrecomputedHeatPower):
 
         # Increase heat power for times when detector housing heater is enabled
         self._dvals[self.dh_heater_comp.dvals] += self.dh_heater
+
+        # Set power to 0.0 during eclipse (where eclipse_comp.dvals == True)
+        if self.eclipse_comp is not None:
+            self._dvals[self.eclipse_comp.dvals] = 0.0
 
         return self._dvals
 
