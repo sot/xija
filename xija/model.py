@@ -364,7 +364,12 @@ class XijaModel:
         datestop = DateTime(self.tstop + tpad).date
 
         logger.info("Fetching msid: %s over %s to %s" % (msid, datestart, datestop))
-        tlm = fetch.MSID(msid, datestart, datestop, stat="5min")
+
+        # Orbit and solar ephemeris MSIDs are already sampled at 5min, so don't use the
+        # 5min stat. This avoids an issue with the cheta sync mechanism where the 5min
+        # data lag behind by a week or two.
+        stat = None if msid.lower().startswith(("orbitephem", "solarephem")) else "5min"
+        tlm = fetch.MSID(msid, datestart, datestop, stat=stat)
         tlm.filter_bad_times()
 
         if tlm.times[0] > self.tstart or tlm.times[-1] < self.tstop:
