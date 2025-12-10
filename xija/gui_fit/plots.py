@@ -657,8 +657,9 @@ class HistogramWindow(QtWidgets.QWidget):
 
 class PlotsPanel(QtWidgets.QWidget):
     """
-    QWidget wrapper for PlotsBox (QVBoxLayout), ensures persistent ownership and correct parent/child relationship.
-    Also exposes main_window for compatibility with code expecting PlotsBox.main_window.
+    QWidget wrapper for PlotsBox (QVBoxLayout), ensures persistent ownership and correct
+    parent/child relationship. Also exposes main_window for compatibility with code
+    expecting PlotsBox.main_window.
     """
 
     def __init__(self, model, main_window):
