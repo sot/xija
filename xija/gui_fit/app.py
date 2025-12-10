@@ -23,7 +23,7 @@ from xija.component.base import Node, TelemData
 from xija.get_model_spec import get_xija_model_spec
 
 from .fitter import FitWorker, fit_logger
-from .plots import FitStatWindow, HistogramWindow, PlotsBox
+from .plots import FitStatWindow, HistogramWindow, PlotsPanel
 
 gui_config = {}
 
@@ -956,10 +956,10 @@ class MainLeftPanel(Panel):
     def __init__(self, model, main_window):
         Panel.__init__(self, orient="v")
         self.control_buttons_panel = ControlButtonsPanel(model)
-        self.plots_box = PlotsBox(model, main_window)
+        self.plots_panel = PlotsPanel(model, main_window)
+        self.plots_box = self.plots_panel.plots_box
         self.pack_start(self.control_buttons_panel)
-        # This specialized code is for the PlotsBox because we
-        # want it to be scrollable
+        # Make PlotsPanel scrollable
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setSizePolicy(
@@ -968,12 +968,7 @@ class MainLeftPanel(Panel):
         self.scroll.setFrameShape(
             QtWidgets.QFrame.NoFrame
         )  # optional, just looks nicer
-        container = QtWidgets.QWidget()
-        container.setLayout(self.plots_box)
-        container.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
-        )
-        self.scroll.setWidget(container)
+        self.scroll.setWidget(self.plots_panel)
         self.box.addWidget(self.scroll, 1)
 
 
@@ -1026,9 +1021,10 @@ class MainWindow:
 
         self.main_left_panel = MainLeftPanel(model, self)
         mlp = self.main_left_panel
+        self.plots_panel = self.main_left_panel.plots_panel
         self.plots_box = self.main_left_panel.plots_box
 
-        self.main_right_panel = MainRightPanel(model, mlp.plots_box)
+        self.main_right_panel = MainRightPanel(model, self.plots_panel)
         mrp = self.main_right_panel
 
         self.show_radzones = False
