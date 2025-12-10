@@ -690,6 +690,9 @@ class PlotBox(QtWidgets.QWidget):
 
         self.fig = Figure(constrained_layout=True)
         canvas = FigureCanvas(self.fig)
+        # The next two lines make sure that the canvas doesn't
+        # shrink as we add more plots--instead the parent layout
+        # scrolls
         canvas.setMinimumHeight(280)
         canvas.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
@@ -896,6 +899,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         self.main_window.cbp.add_plot_button.setCurrentIndex(0)
         if plot_name == "Add plot..." or plot_name in self.plot_names:
             return
+        print("Adding plot ", plot_name)
         # Pass parent_widget during PlotBox construction for proper Qt ownership
         plot_box = PlotBox(plot_name, self, parent=self.parent_widget)
         # Keep strong references BEFORE any other operations
