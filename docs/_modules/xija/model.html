@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.model &#8212; xija 4.35.0 documentation</title>
+    <title>xija.model &#8212; xija 4.36.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script src="../../_static/documentation_options.js?v=da8260a0"></script>
+    <script src="../../_static/documentation_options.js?v=48fdbe4b"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
@@ -44,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.35.0 documentation</a>
+	<a href="../../index.html">xija 4.36.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -436,7 +436,12 @@
         <span class="n">datestop</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstop</span> <span class="o">+</span> <span class="n">tpad</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching msid: </span><span class="si">%s</span><span class="s2"> over </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">))</span>
-        <span class="n">tlm</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">MSID</span><span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;5min&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Orbit and solar ephemeris MSIDs are already sampled at 5min, so don&#39;t use the</span>
+        <span class="c1"># 5min stat. This avoids an issue with the cheta sync mechanism where the 5min</span>
+        <span class="c1"># data lag behind by a week or two.</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">msid</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;orbitephem&quot;</span><span class="p">,</span> <span class="s2">&quot;solarephem&quot;</span><span class="p">))</span> <span class="k">else</span> <span class="s2">&quot;5min&quot;</span>
+        <span class="n">tlm</span> <span class="o">=</span> <span class="n">fetch</span><span class="o">.</span><span class="n">MSID</span><span class="p">(</span><span class="n">msid</span><span class="p">,</span> <span class="n">datestart</span><span class="p">,</span> <span class="n">datestop</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="n">stat</span><span class="p">)</span>
         <span class="n">tlm</span><span class="o">.</span><span class="n">filter_bad_times</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="ow">or</span> <span class="n">tlm</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstop</span><span class="p">:</span>
