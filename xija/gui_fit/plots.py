@@ -209,6 +209,7 @@ class FitStatWindow(QtWidgets.QWidget):
         self.fig = Figure()
 
         canvas = FigureCanvas(self.fig)
+        self.canvas = canvas
         toolbar = NavigationToolbar(canvas, parent=None)
 
         toolbar_box = QtWidgets.QHBoxLayout()
@@ -269,6 +270,8 @@ class FitStatWindow(QtWidgets.QWidget):
         self.fig.canvas.flush_events()
 
     def close_window(self, *args):
+        if hasattr(self, "canvas"):
+            self.canvas = None
         self.close()
 
 
@@ -291,6 +294,7 @@ class HistogramWindow(QtWidgets.QWidget):
         self.fig = Figure()
 
         canvas = FigureCanvas(self.fig)
+        self.canvas = canvas
         toolbar = NavigationToolbar(canvas, parent=None)
 
         msid_select = QtWidgets.QComboBox()
@@ -387,6 +391,8 @@ class HistogramWindow(QtWidgets.QWidget):
         self.update_plots()
 
     def close_window(self, *args):
+        if hasattr(self, "canvas"):
+            self.canvas = None
         self.close()
 
     _rz_mask = None
@@ -649,15 +655,38 @@ class HistogramWindow(QtWidgets.QWidget):
         self.fig.canvas.flush_events()
 
 
-class PlotBox(QtWidgets.QVBoxLayout):
-    def __init__(self, plot_name, plots_box):
-        super().__init__()
+class PlotsPanel(QtWidgets.QWidget):
+    """
+    QWidget wrapper for PlotsBox (QVBoxLayout), ensures persistent ownership and correct
+    parent/child relationship. Also exposes main_window for compatibility with code
+    expecting PlotsBox.main_window.
+    """
 
+    def __init__(self, model, main_window):
+        super().__init__()
+        self.main_window = main_window
+        self.model = model
+        self.plots_box = PlotsBox(model, main_window, parent_widget=self)
+        # Keep explicit reference to plot_boxes to prevent GC
+        self._plot_boxes_ref = self.plots_box.plot_boxes
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addLayout(self.plots_box)
+        self.setLayout(layout)
+
+
+class PlotBox(QtWidgets.QWidget):
+    def __init__(self, plot_name, plots_box, parent=None):
+        super().__init__(parent)
+        self.plot_name = plot_name
         comp_name, plot_method = plot_name.split()  # E.g. "tephin fit_resid"
         self.comp = plots_box.model.comp[comp_name]
         self.plot_method = plot_method
         self.comp_name = comp_name
-        self.plot_name = plot_name
+
+        # Layout for this widget
+        vbox = QtWidgets.QVBoxLayout()
+        self.setLayout(vbox)
 
         self.fig = Figure(constrained_layout=True)
         canvas = FigureCanvas(self.fig)
@@ -681,8 +710,8 @@ class PlotBox(QtWidgets.QVBoxLayout):
         toolbar_box.addStretch(1)
         toolbar_box.addWidget(delete_plot_button)
 
-        self.addWidget(canvas)
-        self.addLayout(toolbar_box)
+        vbox.addWidget(canvas)
+        vbox.addLayout(toolbar_box)
 
         # Add shared x-axes for plots with time on the x-axis
         xaxis = plot_method.split("__")
@@ -824,11 +853,14 @@ class PlotBox(QtWidgets.QVBoxLayout):
 
 
 class PlotsBox(QtWidgets.QVBoxLayout):
-    def __init__(self, model, main_window):
+    def __init__(self, model, main_window, parent_widget=None):
         super().__init__()
         self.main_window = main_window
         self.model = model
-        self.plot_boxes = []
+        self.parent_widget = (
+            parent_widget  # Store the parent widget for proper Qt ownership
+        )
+        self.plot_boxes = []  # Keep strong references to PlotBox objects
         self.plot_names = []
 
         self.set_times()
@@ -868,19 +900,25 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         if plot_name == "Add plot..." or plot_name in self.plot_names:
             return
         print("Adding plot ", plot_name)
-        plot_box = PlotBox(plot_name, self)
-        self.addLayout(plot_box)
-        plot_box.update(first=True)
+        # Pass parent_widget during PlotBox construction for proper Qt ownership
+        plot_box = PlotBox(plot_name, self, parent=self.parent_widget)
+        # Keep strong references BEFORE any other operations
         self.plot_boxes.append(plot_box)
         self.plot_names.append(plot_name)
+        # Now add to layout - layout takes ownership but we keep Python ref
+        self.addWidget(plot_box)
+        # Defer update to allow Qt to fully establish ownership
+        # This prevents premature garbage collection of the PlotBox
+        QtCore.QTimer.singleShot(0, lambda: plot_box.update(first=True))
 
     def delete_plot_box(self, plot_name):
         for i, pb in enumerate(list(self.plot_boxes)):
             if pb.plot_name == plot_name:
                 self.plot_boxes.pop(i)
                 self.plot_names.pop(i)
-                self.removeItem(pb)
-                clear_layout(pb)
+                self.removeWidget(pb)
+                pb.setParent(None)
+                pb.deleteLater()
                 break
         self.update()
 
