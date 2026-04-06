@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>xija.model &#8212; xija 4.36.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <title>xija.model &#8212; xija 4.37.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-astropy.css?v=f4f7060c" />
     
-    <script src="../../_static/documentation_options.js?v=48fdbe4b"></script>
-    <script src="../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=3928f412"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <script type="text/javascript" src="../../_static/copybutton.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -44,7 +44,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">xija 4.36.0 documentation</a>
+	<a href="../../index.html">xija 4.37.0 documentation</a>
 	 &#187;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
@@ -67,28 +67,28 @@
 <span class="sd">interactions.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
 
-<span class="kn">import</span> <span class="nn">ctypes</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ctypes</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pyyaks.context</span> <span class="k">as</span> <span class="nn">pyc</span>
-<span class="kn">import</span> <span class="nn">Ska.DBI</span>
-<span class="kn">import</span> <span class="nn">Ska.Numpy</span>
-<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">ascii</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyyaks.context</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pyc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">Ska.DBI</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">Ska.Numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">ascii</span>
 
 <span class="c1"># Optional packages for model fitting or use on HEAD LAN</span>
-<span class="kn">from</span> <span class="nn">Chandra.Time</span> <span class="kn">import</span> <span class="n">DateTime</span>
-<span class="kn">from</span> <span class="nn">cxotime</span> <span class="kn">import</span> <span class="n">date2secs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Chandra.Time</span><span class="w"> </span><span class="kn">import</span> <span class="n">DateTime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cxotime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date2secs</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">clogging</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">tmal</span>
-<span class="kn">from</span> <span class="nn">.files</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">xija_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">clogging</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">tmal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.files</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">xija_files</span>
 
 <span class="c1"># HDF5 version of commanded states table</span>
 <span class="n">H5FILE</span> <span class="o">=</span> <span class="s2">&quot;/proj/sot/ska/data/cmd_states/cmd_states.h5&quot;</span>
@@ -107,12 +107,12 @@
 <span class="n">dt_factors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.125</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">convert_type_star_star</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">ctype_type</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_type_star_star</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">ctype_type</span><span class="p">):</span>
     <span class="n">f4ptr</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ctype_type</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">f4ptr</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">))(</span><span class="o">*</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data_as</span><span class="p">(</span><span class="n">f4ptr</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">_get_bad_times_indices</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_bad_times_indices</span><span class="p">(</span>
     <span class="n">times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">datestart</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">datestop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -147,14 +147,14 @@
 
 <div class="viewcode-block" id="FetchError">
 <a class="viewcode-back" href="../../api.html#xija.model.FetchError">[docs]</a>
-<span class="k">class</span> <span class="nc">FetchError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FetchError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
 
 <div class="viewcode-block" id="XijaModel">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel">[docs]</a>
-<span class="k">class</span> <span class="nc">XijaModel</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">XijaModel</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Xija model class to encapsulate all ModelComponents and provide the</span>
 <span class="sd">    infrastructure to define and evaluate models.</span>
 
@@ -197,7 +197,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -266,7 +266,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_from_model_spec</span><span class="p">(</span><span class="n">model_spec</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cmd_states</span> <span class="o">=</span> <span class="n">cmd_states</span>
 
-    <span class="k">def</span> <span class="nf">_get_allowed_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_allowed_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;This method ensures that only certain timesteps are chosen,</span>
 <span class="sd">        which are integer multiples of 8.2 and where 328.0/dt is an</span>
 <span class="sd">        integer.</span>
@@ -292,7 +292,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using dt = </span><span class="si">%g</span><span class="s2"> s.&quot;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dt</span>
 
-    <span class="k">def</span> <span class="nf">_set_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">model_spec</span><span class="p">[</span><span class="s2">&quot;comps&quot;</span><span class="p">]:</span>
             <span class="n">ComponentClass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">comp</span><span class="p">[</span><span class="s2">&quot;class_name&quot;</span><span class="p">])</span>
             <span class="n">args</span> <span class="o">=</span> <span class="n">comp</span><span class="p">[</span><span class="s2">&quot;init_args&quot;</span><span class="p">]</span>
@@ -312,7 +312,7 @@
 
 <div class="viewcode-block" id="XijaModel.inherit_from_model_spec">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.inherit_from_model_spec">[docs]</a>
-    <span class="k">def</span> <span class="nf">inherit_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inherit_spec</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inherit_from_model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inherit_spec</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Inherit parameter values from any like-named parameters within the</span>
 <span class="sd">        inherit_spec model specification.  This is useful for making a new</span>
 <span class="sd">        variation of an existing model.</span>
@@ -342,7 +342,7 @@
                 <span class="n">par</span><span class="o">.</span><span class="n">fmt</span> <span class="o">=</span> <span class="n">inherit_pars</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span><span class="p">][</span><span class="s2">&quot;fmt&quot;</span><span class="p">]</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_eng_match_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_eng_match_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Parameters</span>
@@ -364,9 +364,9 @@
         <span class="n">i1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">DateTime</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span> <span class="o">-</span> <span class="n">time0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">time0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
 
-    <span class="k">def</span> <span class="nf">_get_cmd_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_cmd_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_cmd_states&quot;</span><span class="p">):</span>
-            <span class="kn">import</span> <span class="nn">kadi.commands.states</span> <span class="k">as</span> <span class="nn">kadi_states</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">kadi.commands.states</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">kadi_states</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;Getting kadi commanded states over </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span>
@@ -379,7 +379,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_states</span>
 
-    <span class="k">def</span> <span class="nf">_set_cmd_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_cmd_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the states that define component data inputs.</span>
 
 <span class="sd">        Parameters</span>
@@ -413,7 +413,7 @@
 
 <div class="viewcode-block" id="XijaModel.fetch">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.fetch">[docs]</a>
-    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msid</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s2">&quot;vals&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msid</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s2">&quot;vals&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get data from the Chandra engineering archive.</span>
 
 <span class="sd">        Parameters</span>
@@ -429,7 +429,7 @@
 <span class="sd">        -------</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">cheta.fetch_sci</span> <span class="k">as</span> <span class="nn">fetch</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cheta.fetch_sci</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fetch</span>
 
         <span class="n">tpad</span> <span class="o">=</span> <span class="n">DEFAULT_DT</span> <span class="o">*</span> <span class="mf">5.0</span>
         <span class="n">datestart</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="o">-</span> <span class="n">tpad</span><span class="p">)</span><span class="o">.</span><span class="n">date</span>
@@ -457,7 +457,7 @@
 
 <div class="viewcode-block" id="XijaModel.interpolate_data">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.interpolate_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">interpolate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interpolate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">comp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Interpolate supplied ``data`` values at the model times using</span>
 <span class="sd">        nearest-neighbor or state value interpolation.</span>
 
@@ -515,7 +515,7 @@
 
 <div class="viewcode-block" id="XijaModel.add">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.add">[docs]</a>
-    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ComponentClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ComponentClass</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a new component to the model</span>
 
 <span class="sd">        Parameters</span>
@@ -548,7 +548,7 @@
 
 <div class="viewcode-block" id="XijaModel.get_comp">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_comp">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_comp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_comp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a model component.  Works with either a string or a component</span>
 <span class="sd">        object</span>
 
@@ -565,7 +565,7 @@
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">model_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a full model specification data structure for this</span>
 <span class="sd">        model</span>
 
@@ -610,7 +610,7 @@
 
 <div class="viewcode-block" id="XijaModel.write_vals">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write_vals">[docs]</a>
-    <span class="k">def</span> <span class="nf">write_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Write dvals and mvals for each model component (as applicable) to an</span>
 <span class="sd">        ascii table file.  Some component have neither (couplings), some have</span>
 <span class="sd">        just dvals (TelemData), others have both (Node, AcisDpaPower).</span>
@@ -638,7 +638,7 @@
 
 <div class="viewcode-block" id="XijaModel.write">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.write">[docs]</a>
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the model specification as JSON or Python to a file.</span>
 
 <span class="sd">        If the file name ends with &quot;.py&quot; then the output will the Python</span>
@@ -668,7 +668,7 @@
 
 <div class="viewcode-block" id="XijaModel.get_model_code">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.get_model_code">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_model_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_model_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return Python code that will create the current model.</span>
 
 <span class="sd">        This is useful during model development as a way to derive from and</span>
@@ -742,11 +742,11 @@
         <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_get_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">val</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_set_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_parvals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the full list of parameter values.  No provision is made for</span>
 <span class="sd">        setting individual elements or slicing (use self.pars directly in this</span>
 <span class="sd">        case).</span>
@@ -772,13 +772,13 @@
     <span class="n">parvals</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_parvals</span><span class="p">,</span> <span class="n">_set_parvals</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">parnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">full_name</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pars</span><span class="p">)</span>
 
 <div class="viewcode-block" id="XijaModel.make">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make">[docs]</a>
-    <span class="k">def</span> <span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Call self.make_mvals and self.make_tmal to prepare for model evaluation</span>
 <span class="sd">        once all model components have been added.</span>
 
@@ -795,7 +795,7 @@
 
 <div class="viewcode-block" id="XijaModel.make_mvals">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_mvals">[docs]</a>
-    <span class="k">def</span> <span class="nf">make_mvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_mvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the global mvals (model values) array.  This is an</span>
 <span class="sd">        N (rows) x n_times (cols) array that contains all data needed</span>
 <span class="sd">        to compute the model prediction.  All rows are initialized to</span>
@@ -831,7 +831,7 @@
 
 <div class="viewcode-block" id="XijaModel.make_tmal">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.make_tmal">[docs]</a>
-    <span class="k">def</span> <span class="nf">make_tmal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_tmal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make the TMAL &quot;code&quot; using components that generate TMAL</span>
 <span class="sd">        statements</span>
 
@@ -854,7 +854,7 @@
 
 <div class="viewcode-block" id="XijaModel.calc">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc">[docs]</a>
-    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the model.  The results appear in the self.mvals array.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">make_tmal</span><span class="p">()</span>
         <span class="c1"># int calc_model(int n_times, int n_preds, int n_tmals, float dt,</span>
@@ -903,7 +903,7 @@
 
 <div class="viewcode-block" id="XijaModel.calc_stat">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_stat">[docs]</a>
-    <span class="k">def</span> <span class="nf">calc_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate model fit statistic as the sum of component fit stats&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calc</span><span class="p">()</span>  <span class="c1"># parvals already set with dummy_calc</span>
         <span class="n">fit_stat</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">calc_stat</span><span class="p">()</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comps</span> <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">predict</span><span class="p">)</span>
@@ -912,7 +912,7 @@
 
 <div class="viewcode-block" id="XijaModel.calc_staterror">
 <a class="viewcode-back" href="../../api.html#xija.model.XijaModel.calc_staterror">[docs]</a>
-    <span class="k">def</span> <span class="nf">calc_staterror</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_staterror</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate model fit statistic error (dummy array for Sherpa use)</span>
 
 <span class="sd">        Parameters</span>
@@ -928,7 +928,7 @@
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">date_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">date_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">DateTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tstart</span><span class="p">)</span><span class="o">.</span><span class="n">greta</span><span class="p">[:</span><span class="mi">7</span><span class="p">],</span>
@@ -936,7 +936,7 @@
         <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">core_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">core_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_1&quot; ctypes shared object libary that does the</span>
 <span class="sd">        low-level model calculation via the C &quot;calc_model_1&quot; routine.  Only</span>
 <span class="sd">        load once by setting/returning a class attribute.</span>
@@ -965,7 +965,7 @@
         <span class="k">return</span> <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_1</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">core_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">core_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazy-load the &quot;core_2&quot; ctypes shared object libary that does the</span>
 <span class="sd">        low-level model calculation via the C &quot;calc_model_2&quot; routine.  Only</span>
 <span class="sd">        load once by setting/returning a class attribute.</span>
@@ -994,14 +994,14 @@
             <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_2</span> <span class="o">=</span> <span class="n">_core_2</span>
         <span class="k">return</span> <span class="n">XijaModel</span><span class="o">.</span><span class="n">_core_2</span>
 
-    <span class="k">def</span> <span class="nf">append_mask_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">,</span> <span class="n">bad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">append_mask_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">,</span> <span class="n">bad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span>
         <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times_bad</span><span class="p">,</span> <span class="n">bad</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">append_bad_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">append_bad_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_times</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">append_mask_time</span><span class="p">(</span><span class="n">new_times</span><span class="p">,</span> <span class="n">bad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bad_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span>
         <span class="n">t0</span><span class="p">,</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">DateTime</span><span class="p">(</span><span class="n">new_times</span><span class="p">)</span><span class="o">.</span><span class="n">secs</span>
@@ -1009,7 +1009,7 @@
         <span class="k">if</span> <span class="n">i1</span> <span class="o">&gt;</span> <span class="n">i0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">reset_mask_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_mask_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bad_times_indices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_times_bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_times_indices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bool&quot;</span><span class="p">)</span></div>
 
@@ -1040,7 +1040,7 @@
     <a href="#">Back to Top</a></p>
   <p>
     &copy; Copyright 2016, Tom Aldcroft.<br/>
-    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 8.1.3. &nbsp;
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 9.1.0. &nbsp;
   </p>
 </footer>
   </body>
