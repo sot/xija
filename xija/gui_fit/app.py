@@ -723,7 +723,7 @@ class PanelText(QtWidgets.QLineEdit):
         if msg is not None:
             print(msg)
         self.slider.update_slider_val(val, self.attr)
-        self.params_panel.plots_panel.update_plots()
+        self.params_panel.plots_panel.plots_box.update_plots()
 
     def __repr__(self):
         return getattr(self.par, self.attr).__repr__()
@@ -807,7 +807,7 @@ class PanelSlider(QtWidgets.QSlider):
         self.par.val = val
         self.params_panel.params_table[self.row, 2].setText(self.par.fmt.format(val))
         if self.update_plots:
-            self.params_panel.plots_panel.update_plots()
+            self.params_panel.plots_panel.plots_box.update_plots()
 
 
 class ParamsPanel(Panel):
