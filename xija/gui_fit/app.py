@@ -940,16 +940,19 @@ class ControlButtonsPanel(Panel):
         return apb
 
 
-class FreezeThawPanel(Panel):
+class FreezeThawZeroPanel(Panel):
     def __init__(self):
         Panel.__init__(self, orient="h")
         self.freeze_entry = QtWidgets.QLineEdit()
         self.thaw_entry = QtWidgets.QLineEdit()
+        self.zero_entry = QtWidgets.QLineEdit()
 
         self.pack_start(QtWidgets.QLabel("Freeze:"))
         self.pack_start(self.freeze_entry)
         self.pack_start(QtWidgets.QLabel("Thaw:"))
         self.pack_start(self.thaw_entry)
+        self.pack_start(QtWidgets.QLabel("Zero:"))
+        self.pack_start(self.zero_entry)
 
 
 class MainLeftPanel(Panel):
@@ -975,9 +978,9 @@ class MainLeftPanel(Panel):
 class MainRightPanel(Panel):
     def __init__(self, model, plots_panel):
         Panel.__init__(self, orient="v")
-        self.freeze_thaw_panel = FreezeThawPanel()
+        self.freeze_thaw_zero_panel = FreezeThawZeroPanel()
         self.params_panel = ParamsPanel(model, plots_panel)
-        self.pack_start(self.freeze_thaw_panel)
+        self.pack_start(self.freeze_thaw_zero_panel)
         self.pack_start(self.params_panel)
 
 
@@ -1074,9 +1077,10 @@ class MainWindow:
         self.cbp.add_plot_button.activated[str].connect(self.add_plot)
         self.cbp.reset_plots_button.clicked.connect(self.plots_box.reset_plots)
 
-        self.ftp = mrp.freeze_thaw_panel
-        self.ftp.freeze_entry.returnPressed.connect(self.freeze_activated)
-        self.ftp.thaw_entry.returnPressed.connect(self.thaw_activated)
+        self.ftzp = mrp.freeze_thaw_zero_panel
+        self.ftzp.freeze_entry.returnPressed.connect(self.freeze_activated)
+        self.ftzp.thaw_entry.returnPressed.connect(self.thaw_activated)
+        self.ftzp.zero_entry.returnPressed.connect(self.zero_activated)
 
         self.set_checksum(newfile=True)
 
@@ -1281,6 +1285,9 @@ class MainWindow:
     def thaw_activated(self):
         self.command_activated("thaw")
 
+    def zero_activated(self):
+        self.command_activated("zero")
+
     def command_activated(self, cmd_type):
         """Respond to a command like "freeze solarheat*dP*" submitted via the
         command entry box.  The first word is either "freeze" or "thaw" (with
@@ -1289,24 +1296,31 @@ class MainWindow:
         This then sets the corresponding params_table checkbuttons.
 
         """
-        widget = getattr(self.ftp, f"{cmd_type}_entry")
+        widget = getattr(self.ftzp, f"{cmd_type}_entry")
         command = widget.text().strip()
         if command == "":
             return
         vals = command.split()
-        if cmd_type in ("freeze", "thaw"):
+        if cmd_type in ("freeze", "thaw", "zero"):
             par_regexes = [fnmatch.translate(x) for x in vals]
             params_table = self.main_right_panel.params_panel.params_table
             for row, par in enumerate(self.model.pars):
                 for par_regex in par_regexes:
                     if re.match(par_regex, par.full_name):
-                        checkbutton = params_table[row, 0]
-                        checkbutton.setChecked(cmd_type == "thaw")
-                        par.frozen = cmd_type != "thaw"
+                        if cmd_type == "zero":
+                            par.val = 0.0
+                            print(par, "here")
+                        else:
+                            checkbutton = params_table[row, 0]
+                            checkbutton.setChecked(cmd_type == "thaw")
+                            par.frozen = cmd_type != "thaw"
                         self.set_checksum()
                         self.set_title()
                         if self.model_info_window is not None:
                             self.model_info_window.update_checksum()
+            if cmd_type == "zero":
+                self.main_right_panel.params_panel.update()
+                self.main_left_panel.plots_box.update_plots()
         widget.setText("")
 
     def set_title(self):
