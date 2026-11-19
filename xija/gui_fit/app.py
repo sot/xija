@@ -1430,6 +1430,27 @@ def get_options():
     return parser.parse_args()
 
 
+def _set_macos_app_name(name):
+    """Make the macOS menu bar show `name` instead of the python executable.
+
+    When run as a plain script (not a bundled .app), Cocoa derives the
+    application menu's title from the process name (e.g. "Python" or
+    "python3.13") rather than from QApplication.applicationName(). Patching
+    the bogus bundle's CFBundleName before the QApplication is created works
+    around that; it is a no-op if pyobjc isn't available.
+    """
+    if sys.platform != "darwin":
+        return
+    try:
+        from Foundation import NSBundle
+    except ImportError:
+        return
+    bundle = NSBundle.mainBundle()
+    info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
+    if info is not None:
+        info["CFBundleName"] = name
+
+
 def main():  # noqa: PLR0912, PLR0915
     # Enable fully-randomized evaluation of ACIS-FP model which is desirable
     # for fitting.
@@ -1511,6 +1532,8 @@ def main():  # noqa: PLR0912, PLR0915
     fit_worker = FitWorker(model, opt.maxiter, method=opt.fit_method)
 
     model.calc()
+
+    _set_macos_app_name("xija_gui_fit")
 
     app = QtWidgets.QApplication(sys.argv)
     icon_path = str(Path(__file__).parent / "app_icon.png")
