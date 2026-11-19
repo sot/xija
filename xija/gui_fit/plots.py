@@ -15,6 +15,25 @@ from Ska.Matplotlib import cxctime2plotdate, plot_cxctime
 from xija.limits import get_limit_color
 
 
+def safe_redraw(canvas, flush=False):
+    """Request a deferred redraw of a matplotlib Qt canvas, tolerating the
+    case where the underlying Qt widget has already been destroyed.
+
+    ``draw_idle()`` schedules the actual redraw to run later on the Qt event
+    loop. If the widget (e.g. a PlotBox that was just deleted) is destroyed
+    before that deferred redraw runs, Qt raises "RuntimeError: wrapped C/C++
+    object ... has been deleted" from deep inside matplotlib's backend. Since
+    a destroyed canvas has nothing left to redraw, it's safe to just ignore
+    the error here.
+    """
+    try:
+        canvas.draw_idle()
+        if flush:
+            canvas.flush_events()
+    except RuntimeError:
+        pass
+
+
 def digitize_data(Ttelem, nbins=50):
     """Digitize telemetry.
 
@@ -248,8 +267,7 @@ class FitStatWindow(QtWidgets.QWidget):
             self.ax.set_yscale("linear")
         else:
             self.ax.set_yscale("log")
-        self.fig.canvas.draw_idle()
-        self.fig.canvas.flush_events()
+        safe_redraw(self.fig.canvas, flush=True)
 
     def update_plot(self):
         """Update the plot with the current fit statistics."""
@@ -266,8 +284,7 @@ class FitStatWindow(QtWidgets.QWidget):
             self.ax.relim()  # Recompute data limits for the Axes
             self.ax.autoscale_view()  # Rescale view to the new limits
 
-        self.fig.canvas.draw_idle()
-        self.fig.canvas.flush_events()
+        safe_redraw(self.fig.canvas, flush=True)
 
     def close_window(self, *args):
         if hasattr(self, "canvas"):
@@ -651,8 +668,7 @@ class HistogramWindow(QtWidgets.QWidget):
                 clip_on=True,
             )
 
-        self.fig.canvas.draw_idle()
-        self.fig.canvas.flush_events()
+        safe_redraw(self.fig.canvas, flush=True)
 
 
 class PlotsPanel(QtWidgets.QWidget):
@@ -762,7 +778,7 @@ class PlotBox(QtWidgets.QWidget):
     def update_xline(self):
         if self.plot_name.endswith("time") and self.ly is not None:
             self.ly.set_xdata([self.plots_box.xline])
-            self.fig.canvas.draw_idle()
+            safe_redraw(self.fig.canvas)
 
     _rz_times = None
 
@@ -846,7 +862,7 @@ class PlotBox(QtWidgets.QWidget):
                     self.add_annotation("line")
             if mw.show_limits:
                 self.add_annotation("limits")
-        self.fig.canvas.draw_idle()
+        safe_redraw(self.fig.canvas)
         if self.plot_method.endswith("time"):
             self.ax.fmt_xdata = mdates.DateFormatter("%Y:%j:%H:%M:%S")
             self.ax.autoscale(enable=False, axis="x")
@@ -892,7 +908,7 @@ class PlotsBox(QtWidgets.QVBoxLayout):
         for i, pb in enumerate(self.plot_boxes):
             if "time" in self.plot_names[i]:
                 pb.ax.set_xlim(self.pd_times[0], self.pd_times[-1])
-                pb.fig.canvas.draw_idle()
+                safe_redraw(pb.fig.canvas)
 
     def add_plot_box(self, plot_name):
         plot_name = str(plot_name)
@@ -918,7 +934,13 @@ class PlotsBox(QtWidgets.QVBoxLayout):
                 self.plot_names.pop(i)
                 self.removeWidget(pb)
                 pb.setParent(None)
-                pb.deleteLater()
+                pb.hide()
+                # Defer the actual destruction by one event-loop tick rather
+                # than calling deleteLater() immediately. A redraw may
+                # already be queued on this canvas (e.g. from the periodic
+                # fit-monitor update); deleting it right away risks that
+                # deferred redraw running after the Qt widget is gone.
+                QtCore.QTimer.singleShot(0, pb.deleteLater)
                 break
         self.update()
 
@@ -934,25 +956,25 @@ class PlotsBox(QtWidgets.QVBoxLayout):
     def add_annotations(self, atype):
         for pb in self.plot_boxes:
             pb.add_annotation(atype)
-            pb.fig.canvas.draw_idle()
+            safe_redraw(pb.fig.canvas)
 
     def remove_annotations(self, atype):
         for pb in self.plot_boxes:
             pb.remove_annotation(atype)
-            pb.fig.canvas.draw_idle()
+            safe_redraw(pb.fig.canvas)
 
     def add_fill(self, t0, t1, bad=False):
         for i, pb in enumerate(self.plot_boxes):
             if "time" in self.plot_names[i]:
                 pb.add_fill(t0, t1, bad=bad)
-                pb.fig.canvas.draw_idle()
+                safe_redraw(pb.fig.canvas)
         self.update_plots()
 
     def remove_ignores(self):
         for i, pb in enumerate(self.plot_boxes):
             if "time" in self.plot_names[i]:
                 pb.remove_ignores()
-                pb.fig.canvas.draw_idle()
+                safe_redraw(pb.fig.canvas)
         self.update_plots()
 
     def update_xline(self):

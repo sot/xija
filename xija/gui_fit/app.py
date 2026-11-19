@@ -1007,6 +1007,8 @@ class MainWindow:
             self.checksum_match = True
 
         self.fit_worker = fit_worker
+        self._quitting = False
+        QtWidgets.QApplication.instance().aboutToQuit.connect(self._on_about_to_quit)
         # create a new window
         self.mwindow = QtWidgets.QMainWindow()
         self.window = QtWidgets.QWidget()
@@ -1227,7 +1229,18 @@ class MainWindow:
         pp = self.main_left_panel.plots_box
         pp.add_plot_box(plotname)
 
+    def _on_about_to_quit(self):
+        # Stop the recurring fit_monitor timer loop and terminate any running
+        # fit process so neither keeps touching widgets (e.g. plot canvases)
+        # while the application is tearing down. Without this, fit_monitor
+        # can fire again mid-shutdown and crash with "wrapped C/C++ object
+        # ... has been deleted".
+        self._quitting = True
+        self.fit_worker.terminate()
+
     def fit_monitor(self):
+        if self._quitting:
+            return
         self.status_bar.showMessage("BUSY... ")
         msg = None
         fit_stopped = False
@@ -1259,7 +1272,7 @@ class MainWindow:
                 self.line_data_window.update_data()
 
         # If fit has not stopped then set another timeout 200 msec from now
-        if not fit_stopped:
+        if not fit_stopped and not self._quitting:
             QtCore.QTimer.singleShot(200, self.fit_monitor)
 
     def freeze_activated(self):
